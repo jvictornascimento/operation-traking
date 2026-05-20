@@ -8,12 +8,15 @@ Motivo:
 
 - O Flutter SDK nao esta instalado neste ambiente.
 - O comando `flutter --version` retornou `flutter: command not found`.
+- O Dart SDK tambem nao esta disponivel diretamente.
+- O comando `dart --version` retornou `dart: command not found`.
 
 Impacto:
 
 - Ainda nao foi possivel executar `flutter create`.
 - Ainda nao foi possivel validar `flutter analyze`.
 - Ainda nao foi possivel validar `flutter test`.
+- Ainda nao foi possivel validar testes Dart isolados.
 
 O que ja foi feito:
 
