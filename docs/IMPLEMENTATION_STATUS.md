@@ -64,3 +64,20 @@ Pendente por falta do Flutter/Dart SDK:
 - Rodar `dart run build_runner build`.
 - Gerar `app_database.g.dart`.
 - Validar compilacao.
+
+## Story 0.3 - Configurar tema e rotas iniciais
+
+Status: implementada parcialmente.
+
+O que ja foi feito:
+
+- `MaterialApp.router` ja estava configurado.
+- `GoRouter` configurado com rotas nomeadas.
+- Rotas criadas para dashboard, obras, empresas, contratantes, fiscalizacoes e relatorios.
+- Telas placeholder funcionais adicionadas para as areas principais.
+
+Pendente por falta do Flutter SDK:
+
+- Validar compilacao.
+- Validar navegacao em runtime.
+- Rodar testes de widget.
