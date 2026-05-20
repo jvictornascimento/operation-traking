@@ -1,19 +1,25 @@
+import '../../../core/domain/domain_enums.dart';
+
 class Obra {
   const Obra({
     required this.id,
+    required this.empresaId,
+    required this.enderecoId,
     required this.nome,
-    required this.cliente,
+    required this.dataInicio,
+    required this.dataFim,
     required this.status,
-    this.endereco,
-    this.dataInicio,
-    this.dataFim,
+    required this.progressoFisico,
+    required this.progressoPrazoDias,
   });
 
   final String id;
+  final String empresaId;
+  final String enderecoId;
   final String nome;
-  final String cliente;
-  final String status;
-  final String? endereco;
-  final DateTime? dataInicio;
-  final DateTime? dataFim;
+  final DateTime dataInicio;
+  final DateTime dataFim;
+  final StatusExecucao status;
+  final double progressoFisico;
+  final int progressoPrazoDias;
 }

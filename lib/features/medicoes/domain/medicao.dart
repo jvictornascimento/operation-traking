@@ -5,7 +5,10 @@ class Medicao {
     required this.percentualExecutado,
     required this.data,
     this.observacao,
-  });
+  }) : assert(
+          percentualExecutado >= 0 && percentualExecutado <= 100,
+          'Percentual executado deve estar entre 0 e 100.',
+        );
 
   final String id;
   final String servicoId;
