@@ -32,6 +32,11 @@ class DashboardPage extends StatelessWidget {
             onTap: () => context.go('/etapas'),
           ),
           _DashboardAction(
+            title: 'Servicos',
+            subtitle: 'Quantidade, unidade, valor e progresso',
+            onTap: () => context.go('/servicos'),
+          ),
+          _DashboardAction(
             title: 'Fiscalizacoes',
             subtitle: 'Vistorias diarias por servico',
             onTap: () => context.go('/fiscalizacoes'),

@@ -7,6 +7,7 @@ import '../../features/etapas/presentation/etapas_page.dart';
 import '../../features/fiscalizacoes/presentation/fiscalizacoes_page.dart';
 import '../../features/obras/presentation/obras_page.dart';
 import '../../features/relatorios/presentation/relatorios_page.dart';
+import '../../features/servicos/presentation/servicos_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -35,6 +36,11 @@ final appRouter = GoRouter(
       name: 'etapas',
       path: '/etapas',
       builder: (context, state) => const EtapasPage(),
+    ),
+    GoRoute(
+      name: 'servicos',
+      path: '/servicos',
+      builder: (context, state) => const ServicosPage(),
     ),
     GoRoute(
       name: 'fiscalizacoes',
