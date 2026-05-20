@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/cadastros/presentation/contratantes_page.dart';
 import '../../features/cadastros/presentation/empresas_page.dart';
 import '../../features/dashboard/presentation/dashboard_page.dart';
+import '../../features/etapas/presentation/etapas_page.dart';
 import '../../features/fiscalizacoes/presentation/fiscalizacoes_page.dart';
 import '../../features/obras/presentation/obras_page.dart';
 import '../../features/relatorios/presentation/relatorios_page.dart';
@@ -29,6 +30,11 @@ final appRouter = GoRouter(
       name: 'contratantes',
       path: '/contratantes',
       builder: (context, state) => const ContratantesPage(),
+    ),
+    GoRoute(
+      name: 'etapas',
+      path: '/etapas',
+      builder: (context, state) => const EtapasPage(),
     ),
     GoRoute(
       name: 'fiscalizacoes',
