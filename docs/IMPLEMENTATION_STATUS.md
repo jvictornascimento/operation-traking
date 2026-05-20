@@ -2,21 +2,23 @@
 
 ## Story 0.1 - Inicializar projeto Flutter real
 
-Status: bloqueada parcialmente.
+Status: concluida para Linux e estrutura Flutter.
 
-Motivo:
+Resolvido:
 
-- O Flutter SDK nao esta instalado neste ambiente.
-- O comando `flutter --version` retornou `flutter: command not found`.
-- O Dart SDK tambem nao esta disponivel diretamente.
-- O comando `dart --version` retornou `dart: command not found`.
+- Flutter SDK instalado em `/home/joao_nascimento/development/flutter`.
+- Dart SDK disponivel via Flutter.
+- Projeto Flutter real gerado com plataformas Android, iOS e Linux.
+- `flutter pub get` executado.
+- `flutter analyze` executado sem issues.
+- `flutter test` executado com sucesso.
+- `flutter build linux` executado com sucesso.
 
-Impacto:
+Limitacoes restantes do ambiente:
 
-- Ainda nao foi possivel executar `flutter create`.
-- Ainda nao foi possivel validar `flutter analyze`.
-- Ainda nao foi possivel validar `flutter test`.
-- Ainda nao foi possivel validar testes Dart isolados.
+- Android SDK nao esta instalado no WSL.
+- Chrome nao esta instalado no WSL.
+- Build iOS depende de macOS/Xcode.
 
 O que ja foi feito:
 
@@ -24,15 +26,7 @@ O que ja foi feito:
 - Branch inicial renomeada para `main`.
 - Commit base criado.
 - Estrutura inicial do projeto preservada.
-
-Proximo passo quando Flutter estiver instalado:
-
-```bash
-flutter create --platforms=ios,android --project-name operational_tracking .
-flutter pub get
-flutter analyze
-flutter test
-```
+- Arquivos nativos Android, iOS e Linux gerados.
 
 ## Regra operacional
 
@@ -44,11 +38,17 @@ Enquanto o Flutter SDK nao estiver disponivel, avancar nas partes que podem ser 
 - Estrutura de pastas.
 - Preparacao de banco e contratos.
 
-Quando o SDK estiver disponivel, voltar para validar compilacao, analise estatica e testes.
+Validacoes locais disponiveis:
+
+```bash
+flutter analyze
+flutter test
+flutter build linux
+```
 
 ## Story 1.2 - Configurar Drift e SQLite
 
-Status: implementada parcialmente.
+Status: implementada.
 
 O que ja foi feito:
 
@@ -57,17 +57,13 @@ O que ja foi feito:
 - Relacionamentos principais declarados.
 - Chave unica para uma fiscalizacao por servico e data.
 - Chave unica para um periodo por fiscalizacao e periodo.
-
-Pendente por falta do Flutter/Dart SDK:
-
-- Rodar `flutter pub get`.
-- Rodar `dart run build_runner build`.
-- Gerar `app_database.g.dart`.
-- Validar compilacao.
+- `dart run build_runner build --delete-conflicting-outputs` executado.
+- `app_database.g.dart` gerado.
+- Compilacao validada via build Linux.
 
 ## Story 0.3 - Configurar tema e rotas iniciais
 
-Status: implementada parcialmente.
+Status: implementada.
 
 O que ja foi feito:
 
@@ -75,9 +71,6 @@ O que ja foi feito:
 - `GoRouter` configurado com rotas nomeadas.
 - Rotas criadas para dashboard, obras, empresas, contratantes, fiscalizacoes e relatorios.
 - Telas placeholder funcionais adicionadas para as areas principais.
-
-Pendente por falta do Flutter SDK:
-
-- Validar compilacao.
-- Validar navegacao em runtime.
-- Rodar testes de widget.
+- `flutter analyze` executado sem issues.
+- `flutter test` executado com sucesso.
+- `flutter build linux` executado com sucesso.
