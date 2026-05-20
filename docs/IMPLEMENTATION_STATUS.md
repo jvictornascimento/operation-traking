@@ -45,3 +45,22 @@ Enquanto o Flutter SDK nao estiver disponivel, avancar nas partes que podem ser 
 - Preparacao de banco e contratos.
 
 Quando o SDK estiver disponivel, voltar para validar compilacao, analise estatica e testes.
+
+## Story 1.2 - Configurar Drift e SQLite
+
+Status: implementada parcialmente.
+
+O que ja foi feito:
+
+- `AppDatabase` configurado com Drift.
+- Tabelas iniciais do MVP declaradas.
+- Relacionamentos principais declarados.
+- Chave unica para uma fiscalizacao por servico e data.
+- Chave unica para um periodo por fiscalizacao e periodo.
+
+Pendente por falta do Flutter/Dart SDK:
+
+- Rodar `flutter pub get`.
+- Rodar `dart run build_runner build`.
+- Gerar `app_database.g.dart`.
+- Validar compilacao.
