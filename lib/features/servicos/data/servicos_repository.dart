@@ -8,6 +8,11 @@ abstract class ServicosRepository {
   Stream<List<Servico>> watchServicosDaEtapa(String etapaId);
 
   Future<void> salvarServico(Servico servico);
+
+  Future<void> atualizarProgressoFisico({
+    required String id,
+    required double progressoFisico,
+  });
 }
 
 class DriftServicosRepository implements ServicosRepository {
@@ -41,6 +46,20 @@ class DriftServicosRepository implements ServicosRepository {
             progressoPrazoDias: Value(servico.progressoPrazoDias),
           ),
         );
+  }
+
+  @override
+  Future<void> atualizarProgressoFisico({
+    required String id,
+    required double progressoFisico,
+  }) {
+    return (_database.update(_database.servicos)
+          ..where((table) => table.id.equals(id)))
+        .write(
+      db.ServicosCompanion(
+        progressoFisico: Value(progressoFisico),
+      ),
+    );
   }
 
   Servico _mapServico(db.Servico row) {

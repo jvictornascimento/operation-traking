@@ -42,6 +42,11 @@ class DashboardPage extends StatelessWidget {
             onTap: () => context.push('/fiscalizacoes'),
           ),
           _DashboardAction(
+            title: 'Medicoes',
+            subtitle: 'Progresso fisico por servico',
+            onTap: () => context.push('/medicoes'),
+          ),
+          _DashboardAction(
             title: 'Relatorios',
             subtitle: 'PDFs locais para compartilhar',
             onTap: () => context.push('/relatorios'),
