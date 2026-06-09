@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/domain/domain_enums.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../domain/servico.dart';
 import 'servicos_controller.dart';
 
@@ -38,7 +39,10 @@ class _ServicosPageState extends ConsumerState<ServicosPage> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Servicos')),
+      appBar: AppBar(
+        leading: const AppBackButton(),
+        title: const Text('Servicos'),
+      ),
       body: Column(
         children: [
           Padding(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_back_button.dart';
 import '../domain/empresa.dart';
 import 'empresas_controller.dart';
 
@@ -19,7 +20,10 @@ class EmpresasPage extends ConsumerWidget {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Empresas')),
+      appBar: AppBar(
+        leading: const AppBackButton(),
+        title: const Text('Empresas'),
+      ),
       body: empresas.when(
         data: (items) => _EmpresasList(empresas: items),
         loading: () => const Center(child: CircularProgressIndicator()),

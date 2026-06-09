@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_back_button.dart';
 import '../domain/contratante.dart';
 import 'contratantes_controller.dart';
 
@@ -19,7 +20,10 @@ class ContratantesPage extends ConsumerWidget {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Contratantes')),
+      appBar: AppBar(
+        leading: const AppBackButton(),
+        title: const Text('Contratantes'),
+      ),
       body: contratantes.when(
         data: (items) => _ContratantesList(contratantes: items),
         loading: () => const Center(child: CircularProgressIndicator()),
