@@ -23,6 +23,17 @@ class VistoriaServicoDuplicadaException implements Exception {
   }
 }
 
+class NumeroVistoriaDuplicadoException implements Exception {
+  const NumeroVistoriaDuplicadoException(this.numero);
+
+  final String numero;
+
+  @override
+  String toString() {
+    return 'Ja existe fiscalizacao com o numero $numero.';
+  }
+}
+
 class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
   const DriftVistoriasServicoRepository(this._database);
 
@@ -45,6 +56,10 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
         id: vistoria.id,
         servicoId: vistoria.servicoId,
         data: dataNormalizada,
+      );
+      await _garantirNumeroUnico(
+        id: vistoria.id,
+        numero: vistoria.numero,
       );
 
       final existente = await (_database.select(_database.vistoriasServico)
@@ -91,6 +106,21 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
 
     if (duplicada != null) {
       throw VistoriaServicoDuplicadaException(servicoId, data);
+    }
+  }
+
+  Future<void> _garantirNumeroUnico({
+    required String id,
+    required String numero,
+  }) async {
+    final duplicada = await (_database.select(_database.vistoriasServico)
+          ..where((table) {
+            return table.numero.equals(numero) & table.id.equals(id).not();
+          }))
+        .getSingleOrNull();
+
+    if (duplicada != null) {
+      throw NumeroVistoriaDuplicadoException(numero);
     }
   }
 

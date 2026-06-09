@@ -114,6 +114,27 @@ void main() {
       expect(rows.single.comentario, 'Atualizado em campo');
     });
 
+    test('rejeita numero duplicado em vistorias diferentes', () async {
+      await repository.salvarVistoria(
+        _vistoria(
+          id: 'vistoria-1',
+          numero: '001',
+          data: DateTime(2026, 5, 20),
+        ),
+      );
+
+      expect(
+        () => repository.salvarVistoria(
+          _vistoria(
+            id: 'vistoria-2',
+            numero: '001',
+            data: DateTime(2026, 5, 21),
+          ),
+        ),
+        throwsA(isA<NumeroVistoriaDuplicadoException>()),
+      );
+    });
+
     test('banco impede duplicidade por servico e data normalizada', () async {
       await repository.salvarVistoria(
         _vistoria(
