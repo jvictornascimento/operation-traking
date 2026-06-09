@@ -4,6 +4,9 @@ import '../../../core/database/database_provider.dart';
 import '../../../core/domain/progresso_fisico.dart';
 import '../../servicos/data/servicos_repository.dart';
 import '../../servicos/presentation/servicos_controller.dart';
+import '../data/fotos_medicao_repository.dart';
+import '../data/fotos_medicao_storage.dart';
+import '../domain/foto_medicao.dart';
 import '../data/medicoes_repository.dart';
 import '../domain/medicao.dart';
 
@@ -23,6 +26,31 @@ final medicoesControllerProvider =
   return MedicoesController(
     medicoesRepository: ref.watch(medicoesRepositoryProvider),
     servicosRepository: ref.watch(servicosRepositoryProvider),
+  );
+});
+
+final fotosMedicaoRepositoryProvider = Provider<FotosMedicaoRepository>((ref) {
+  return DriftFotosMedicaoRepository(ref.watch(appDatabaseProvider));
+});
+
+final fotosMedicaoStorageProvider = Provider<FotosMedicaoStorage>((ref) {
+  return const LocalFotosMedicaoStorage();
+});
+
+final fotosMedicaoStreamProvider =
+    StreamProvider.family.autoDispose<List<FotoMedicao>, String>(
+  (ref, medicaoId) {
+    return ref.watch(fotosMedicaoRepositoryProvider).watchFotosDaMedicao(
+          medicaoId,
+        );
+  },
+);
+
+final fotosMedicaoControllerProvider =
+    StateNotifierProvider<FotosMedicaoController, AsyncValue<void>>((ref) {
+  return FotosMedicaoController(
+    repository: ref.watch(fotosMedicaoRepositoryProvider),
+    storage: ref.watch(fotosMedicaoStorageProvider),
   );
 });
 
@@ -102,5 +130,80 @@ class MedicoesController extends StateNotifier<AsyncValue<void>> {
       return null;
     }
     return texto;
+  }
+}
+
+class FotosMedicaoController extends StateNotifier<AsyncValue<void>> {
+  FotosMedicaoController({
+    required FotosMedicaoRepository repository,
+    required FotosMedicaoStorage storage,
+  })  : _repository = repository,
+        _storage = storage,
+        super(const AsyncData(null));
+
+  final FotosMedicaoRepository _repository;
+  final FotosMedicaoStorage _storage;
+
+  Future<void> salvarArquivo({
+    required String medicaoId,
+    required String caminhoOrigem,
+  }) async {
+    final medicaoIdNormalizado = medicaoId.trim();
+    final caminhoOrigemNormalizado = caminhoOrigem.trim();
+
+    if (medicaoIdNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Medicao da foto e obrigatoria.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    if (caminhoOrigemNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Arquivo da foto e obrigatorio.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      final caminhoArquivo = await _storage.salvarFotoMedicao(
+        medicaoId: medicaoIdNormalizado,
+        caminhoOrigem: caminhoOrigemNormalizado,
+      );
+
+      await _repository.salvarFoto(
+        FotoMedicao(
+          id: _novoId(),
+          medicaoId: medicaoIdNormalizado,
+          caminhoArquivo: caminhoArquivo,
+        ),
+      );
+    });
+  }
+
+  Future<void> remover(String id) async {
+    final idNormalizado = id.trim();
+
+    if (idNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Foto da medicao e obrigatoria.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() {
+      return _repository.removerFoto(idNormalizado);
+    });
+  }
+
+  String _novoId() {
+    return 'foto-${DateTime.now().microsecondsSinceEpoch}';
   }
 }

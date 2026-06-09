@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/widgets/app_back_button.dart';
+import '../domain/foto_medicao.dart';
 import '../domain/medicao.dart';
 import 'medicoes_controller.dart';
 
@@ -222,6 +226,10 @@ class _MedicaoFormState extends ConsumerState<_MedicaoForm> {
                 border: OutlineInputBorder(),
               ),
             ),
+            if (widget.medicao != null) ...[
+              const SizedBox(height: 16),
+              _FotosMedicaoSection(medicaoId: widget.medicao!.id),
+            ],
             const SizedBox(height: 16),
             FilledButton(
               onPressed: saving ? null : _salvar,
@@ -264,6 +272,155 @@ class _MedicaoFormState extends ConsumerState<_MedicaoForm> {
     if (!state.hasError) {
       Navigator.of(context).pop();
     }
+  }
+}
+
+class _FotosMedicaoSection extends ConsumerWidget {
+  const _FotosMedicaoSection({required this.medicaoId});
+
+  final String medicaoId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fotos = ref.watch(fotosMedicaoStreamProvider(medicaoId));
+    final saving = ref.watch(fotosMedicaoControllerProvider).isLoading;
+
+    ref.listen(fotosMedicaoControllerProvider, (previous, next) {
+      if (next.hasError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error.toString())),
+        );
+      }
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Fotos',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: saving
+                    ? null
+                    : () => _selecionarFoto(
+                          ref,
+                          source: ImageSource.camera,
+                        ),
+                icon: const Icon(Icons.photo_camera),
+                label: const Text('Camera'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: saving
+                    ? null
+                    : () => _selecionarFoto(
+                          ref,
+                          source: ImageSource.gallery,
+                        ),
+                icon: const Icon(Icons.photo_library),
+                label: const Text('Galeria'),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        fotos.when(
+          data: (items) => _FotosMedicaoList(fotos: items),
+          loading: () => const LinearProgressIndicator(),
+          error: (error, stackTrace) {
+            return Text('Erro ao carregar fotos: $error');
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> _selecionarFoto(
+    WidgetRef ref, {
+    required ImageSource source,
+  }) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: source,
+      imageQuality: 85,
+    );
+
+    if (picked == null) {
+      return;
+    }
+
+    await ref.read(fotosMedicaoControllerProvider.notifier).salvarArquivo(
+          medicaoId: medicaoId,
+          caminhoOrigem: picked.path,
+        );
+  }
+}
+
+class _FotosMedicaoList extends ConsumerWidget {
+  const _FotosMedicaoList({required this.fotos});
+
+  final List<FotoMedicao> fotos;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (fotos.isEmpty) {
+      return const Text('Nenhuma foto cadastrada');
+    }
+
+    return Column(
+      children: [
+        for (final foto in fotos)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: _FotoPreview(caminhoArquivo: foto.caminhoArquivo),
+            title: Text(foto.id),
+            subtitle: Text(foto.caminhoArquivo),
+            trailing: IconButton(
+              tooltip: 'Remover',
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () {
+                ref
+                    .read(fotosMedicaoControllerProvider.notifier)
+                    .remover(foto.id);
+              },
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _FotoPreview extends StatelessWidget {
+  const _FotoPreview({required this.caminhoArquivo});
+
+  final String caminhoArquivo;
+
+  @override
+  Widget build(BuildContext context) {
+    final file = File(caminhoArquivo);
+    if (!file.existsSync()) {
+      return const SizedBox.square(
+        dimension: 48,
+        child: Icon(Icons.image_not_supported),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: Image.file(
+        file,
+        width: 48,
+        height: 48,
+        fit: BoxFit.cover,
+      ),
+    );
   }
 }
 
