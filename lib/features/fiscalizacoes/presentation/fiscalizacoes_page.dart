@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
+import '../../cadastros/domain/funcionario.dart';
+import '../domain/vistoria_mao_de_obra.dart';
 import '../domain/vistoria_periodo.dart';
 import '../domain/vistoria_servico.dart';
 import 'fiscalizacoes_controller.dart';
@@ -278,6 +280,8 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
             if (vistoria != null) ...[
               const SizedBox(height: 16),
               _PeriodosSection(vistoriaServicoId: vistoria.id),
+              const SizedBox(height: 16),
+              _MaoDeObraSection(vistoriaServicoId: vistoria.id),
             ],
             const SizedBox(height: 16),
             FilledButton(
@@ -509,6 +513,222 @@ class _PeriodoEditor extends ConsumerWidget {
       CondicaoPeriodo.praticavel => 'Praticavel',
       CondicaoPeriodo.impraticavel => 'Impraticavel',
     };
+  }
+}
+
+class _MaoDeObraSection extends ConsumerStatefulWidget {
+  const _MaoDeObraSection({required this.vistoriaServicoId});
+
+  final String vistoriaServicoId;
+
+  @override
+  ConsumerState<_MaoDeObraSection> createState() => _MaoDeObraSectionState();
+}
+
+class _MaoDeObraSectionState extends ConsumerState<_MaoDeObraSection> {
+  final _funcionarioIdController = TextEditingController();
+  final _funcaoNoDiaController = TextEditingController();
+  final _observacaoController = TextEditingController();
+
+  @override
+  void dispose() {
+    _funcionarioIdController.dispose();
+    _funcaoNoDiaController.dispose();
+    _observacaoController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final maoDeObra =
+        ref.watch(maoDeObraVistoriaStreamProvider(widget.vistoriaServicoId));
+    final funcionarios = ref.watch(
+      funcionariosMaoDeObraDisponiveisStreamProvider(widget.vistoriaServicoId),
+    );
+    final saving = ref.watch(maoDeObraFiscalizacaoControllerProvider).isLoading;
+
+    ref.listen(maoDeObraFiscalizacaoControllerProvider, (previous, next) {
+      if (next.hasError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error.toString())),
+        );
+      }
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Mao de obra',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        funcionarios.when(
+          data: (items) => _FuncionariosDisponiveisList(
+            funcionarios: items,
+            onSelect: (funcionario) {
+              _funcionarioIdController.text = funcionario.id;
+              _funcaoNoDiaController.text = funcionario.cargo;
+            },
+          ),
+          loading: () => const LinearProgressIndicator(),
+          error: (error, stackTrace) {
+            return Text('Erro ao carregar funcionarios: $error');
+          },
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _funcionarioIdController,
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+            labelText: 'ID do funcionario',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _funcaoNoDiaController,
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+            labelText: 'Funcao no dia',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _observacaoController,
+          textInputAction: TextInputAction.newline,
+          minLines: 2,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            labelText: 'Observacao',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerRight,
+          child: FilledButton.icon(
+            onPressed: saving ? null : _salvar,
+            icon: const Icon(Icons.person_add),
+            label: Text(saving ? 'Salvando...' : 'Adicionar'),
+          ),
+        ),
+        const SizedBox(height: 12),
+        maoDeObra.when(
+          data: (items) => _MaoDeObraSelecionadaList(
+            maoDeObra: items,
+            onRemove: (item) {
+              ref
+                  .read(maoDeObraFiscalizacaoControllerProvider.notifier)
+                  .remover(item.id);
+            },
+          ),
+          loading: () => const LinearProgressIndicator(),
+          error: (error, stackTrace) {
+            return Text('Erro ao carregar mao de obra: $error');
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> _salvar() async {
+    await ref.read(maoDeObraFiscalizacaoControllerProvider.notifier).salvar(
+          vistoriaServicoId: widget.vistoriaServicoId,
+          funcionarioId: _funcionarioIdController.text,
+          funcaoNoDia: _funcaoNoDiaController.text,
+          observacao: _observacaoController.text,
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    final state = ref.read(maoDeObraFiscalizacaoControllerProvider);
+    if (!state.hasError) {
+      _funcionarioIdController.clear();
+      _funcaoNoDiaController.clear();
+      _observacaoController.clear();
+    }
+  }
+}
+
+class _FuncionariosDisponiveisList extends StatelessWidget {
+  const _FuncionariosDisponiveisList({
+    required this.funcionarios,
+    required this.onSelect,
+  });
+
+  final List<Funcionario> funcionarios;
+  final ValueChanged<Funcionario> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    if (funcionarios.isEmpty) {
+      return const Text('Nenhum funcionario da empresa encontrado');
+    }
+
+    return Column(
+      children: [
+        for (final funcionario in funcionarios)
+          ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            title: Text(funcionario.nome),
+            subtitle: Text('${funcionario.cargo} | ${funcionario.id}'),
+            trailing: const Icon(Icons.add),
+            onTap: () => onSelect(funcionario),
+          ),
+      ],
+    );
+  }
+}
+
+class _MaoDeObraSelecionadaList extends StatelessWidget {
+  const _MaoDeObraSelecionadaList({
+    required this.maoDeObra,
+    required this.onRemove,
+  });
+
+  final List<VistoriaMaoDeObra> maoDeObra;
+  final ValueChanged<VistoriaMaoDeObra> onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    if (maoDeObra.isEmpty) {
+      return const Text('Nenhum funcionario selecionado');
+    }
+
+    return Column(
+      children: [
+        for (final item in maoDeObra)
+          ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            title: Text(item.funcionarioId),
+            subtitle: Text(_subtitle(item)),
+            trailing: IconButton(
+              tooltip: 'Remover',
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () => onRemove(item),
+            ),
+          ),
+      ],
+    );
+  }
+
+  String _subtitle(VistoriaMaoDeObra item) {
+    final partes = [
+      if (item.funcaoNoDia != null) item.funcaoNoDia,
+      if (item.observacao != null) item.observacao,
+    ];
+
+    if (partes.isEmpty) {
+      return 'Sem detalhes';
+    }
+
+    return partes.join(' | ');
   }
 }
 

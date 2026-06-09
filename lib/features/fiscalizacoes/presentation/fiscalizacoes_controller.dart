@@ -2,8 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/database/database_provider.dart';
 import '../../../core/domain/domain_enums.dart';
+import '../../cadastros/domain/funcionario.dart';
+import '../data/vistorias_mao_de_obra_repository.dart';
 import '../data/vistorias_periodo_repository.dart';
 import '../data/vistorias_servico_repository.dart';
+import '../domain/vistoria_mao_de_obra.dart';
 import '../domain/vistoria_periodo.dart';
 import '../domain/vistoria_servico.dart';
 
@@ -45,6 +48,38 @@ final periodosFiscalizacaoControllerProvider =
   (ref) {
     return PeriodosFiscalizacaoController(
       ref.watch(vistoriasPeriodoRepositoryProvider),
+    );
+  },
+);
+
+final vistoriasMaoDeObraRepositoryProvider =
+    Provider<VistoriasMaoDeObraRepository>((ref) {
+  return DriftVistoriasMaoDeObraRepository(ref.watch(appDatabaseProvider));
+});
+
+final maoDeObraVistoriaStreamProvider =
+    StreamProvider.family.autoDispose<List<VistoriaMaoDeObra>, String>(
+  (ref, vistoriaServicoId) {
+    return ref
+        .watch(vistoriasMaoDeObraRepositoryProvider)
+        .watchMaoDeObraDaVistoria(vistoriaServicoId);
+  },
+);
+
+final funcionariosMaoDeObraDisponiveisStreamProvider =
+    StreamProvider.family.autoDispose<List<Funcionario>, String>(
+  (ref, String vistoriaServicoId) {
+    return ref
+        .watch(vistoriasMaoDeObraRepositoryProvider)
+        .watchFuncionariosDaEmpresaDaVistoria(vistoriaServicoId);
+  },
+);
+
+final maoDeObraFiscalizacaoControllerProvider =
+    StateNotifierProvider<MaoDeObraFiscalizacaoController, AsyncValue<void>>(
+  (ref) {
+    return MaoDeObraFiscalizacaoController(
+      ref.watch(vistoriasMaoDeObraRepositoryProvider),
     );
   },
 );
@@ -213,5 +248,83 @@ class PeriodosFiscalizacaoController extends StateNotifier<AsyncValue<void>> {
 
   String _novoId() {
     return 'periodo-${DateTime.now().microsecondsSinceEpoch}';
+  }
+}
+
+class MaoDeObraFiscalizacaoController extends StateNotifier<AsyncValue<void>> {
+  MaoDeObraFiscalizacaoController(this._repository)
+      : super(const AsyncData(null));
+
+  final VistoriasMaoDeObraRepository _repository;
+
+  Future<void> salvar({
+    String? id,
+    required String vistoriaServicoId,
+    required String funcionarioId,
+    String? funcaoNoDia,
+    String? observacao,
+  }) async {
+    final vistoriaServicoIdNormalizado = vistoriaServicoId.trim();
+    final funcionarioIdNormalizado = funcionarioId.trim();
+
+    if (vistoriaServicoIdNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Fiscalizacao da mao de obra e obrigatoria.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    if (funcionarioIdNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Funcionario da mao de obra e obrigatorio.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() {
+      return _repository.salvarMaoDeObra(
+        VistoriaMaoDeObra(
+          id: id ?? _novoId(),
+          vistoriaServicoId: vistoriaServicoIdNormalizado,
+          funcionarioId: funcionarioIdNormalizado,
+          funcaoNoDia: _normalizarTextoOpcional(funcaoNoDia),
+          observacao: _normalizarTextoOpcional(observacao),
+        ),
+      );
+    });
+  }
+
+  Future<void> remover(String id) async {
+    final idNormalizado = id.trim();
+
+    if (idNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Mao de obra da fiscalizacao e obrigatoria.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() {
+      return _repository.removerMaoDeObra(idNormalizado);
+    });
+  }
+
+  String _novoId() {
+    return 'mao-obra-${DateTime.now().microsecondsSinceEpoch}';
+  }
+
+  String? _normalizarTextoOpcional(String? value) {
+    final texto = value?.trim();
+    if (texto == null || texto.isEmpty) {
+      return null;
+    }
+    return texto;
   }
 }
