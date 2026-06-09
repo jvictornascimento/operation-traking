@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/domain/domain_enums.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../domain/obra.dart';
 import 'obras_controller.dart';
 
@@ -20,7 +21,10 @@ class ObrasPage extends ConsumerWidget {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Obras')),
+      appBar: AppBar(
+        leading: const AppBackButton(),
+        title: const Text('Obras'),
+      ),
       body: obras.when(
         data: (items) => _ObrasList(obras: items),
         loading: () => const Center(child: CircularProgressIndicator()),

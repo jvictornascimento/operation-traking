@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/domain/domain_enums.dart';
+import '../../../core/widgets/app_back_button.dart';
+import '../../cadastros/domain/funcionario.dart';
+import '../domain/vistoria_mao_de_obra.dart';
+import '../domain/vistoria_periodo.dart';
 import '../domain/vistoria_servico.dart';
 import 'fiscalizacoes_controller.dart';
 
@@ -37,7 +41,10 @@ class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Fiscalizacoes')),
+      appBar: AppBar(
+        leading: const AppBackButton(),
+        title: const Text('Fiscalizacoes'),
+      ),
       body: Column(
         children: [
           Padding(
@@ -53,7 +60,7 @@ class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
           ),
           Expanded(
             child: vistorias.when(
-              data: (items) => _VistoriasList(vistorias: items),
+              data: (items) => _FiscalizacoesList(vistorias: items),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stackTrace) => Center(
                 child: Text('Erro ao carregar fiscalizacoes: $error'),
@@ -88,8 +95,8 @@ class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
   }
 }
 
-class _VistoriasList extends StatelessWidget {
-  const _VistoriasList({required this.vistorias});
+class _FiscalizacoesList extends StatelessWidget {
+  const _FiscalizacoesList({required this.vistorias});
 
   final List<VistoriaServico> vistorias;
 
@@ -104,11 +111,8 @@ class _VistoriasList extends StatelessWidget {
       itemBuilder: (context, index) {
         final vistoria = vistorias[index];
         return ListTile(
-          title: Text('Fiscalizacao ${vistoria.numero}'),
-          subtitle: Text(
-            '${vistoria.status.name} | '
-            '${vistoria.data.day}/${vistoria.data.month}/${vistoria.data.year}',
-          ),
+          title: Text(vistoria.numero),
+          subtitle: Text(_subtitle(vistoria)),
           trailing: const Icon(Icons.edit),
           onTap: () => showModalBottomSheet<void>(
             context: context,
@@ -123,6 +127,15 @@ class _VistoriasList extends StatelessWidget {
       separatorBuilder: (context, index) => const Divider(height: 1),
       itemCount: vistorias.length,
     );
+  }
+
+  String _subtitle(VistoriaServico vistoria) {
+    return '${_formatarData(vistoria.data)} | ${vistoria.status.name} | '
+        'obra ${vistoria.obraId}';
+  }
+
+  String _formatarData(DateTime data) {
+    return '${data.day}/${data.month}/${data.year}';
   }
 }
 
@@ -147,22 +160,22 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
   late final TextEditingController _ocorrenciaController;
   late final TextEditingController _comentarioController;
   late DateTime _data;
-  late StatusFiscalizacao _status;
 
   @override
   void initState() {
     super.initState();
     final vistoria = widget.vistoria;
     _obraIdController = TextEditingController(text: vistoria?.obraId);
-    _contratanteIdController =
-        TextEditingController(text: vistoria?.contratanteId);
-    _responsavelIdController =
-        TextEditingController(text: vistoria?.responsavelId);
+    _contratanteIdController = TextEditingController(
+      text: vistoria?.contratanteId,
+    );
+    _responsavelIdController = TextEditingController(
+      text: vistoria?.responsavelId,
+    );
     _numeroController = TextEditingController(text: vistoria?.numero);
     _ocorrenciaController = TextEditingController(text: vistoria?.ocorrencia);
     _comentarioController = TextEditingController(text: vistoria?.comentario);
     _data = vistoria?.data ?? DateTime.now();
-    _status = vistoria?.status ?? StatusFiscalizacao.emAndamento;
   }
 
   @override
@@ -179,6 +192,7 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
   @override
   Widget build(BuildContext context) {
     final saving = ref.watch(fiscalizacoesControllerProvider).isLoading;
+    final vistoria = widget.vistoria;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -190,12 +204,31 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              widget.vistoria == null
-                  ? 'Nova fiscalizacao'
-                  : 'Editar fiscalizacao',
+              vistoria == null ? 'Nova fiscalizacao' : 'Editar fiscalizacao',
               style: Theme.of(context).textTheme.titleLarge,
             ),
+            const SizedBox(height: 8),
+            Text(
+              'Status: ${(vistoria?.status.name) ?? 'emAndamento'}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(height: 16),
+            _DateTile(
+              label: 'Data',
+              value: _data,
+              onTap: _selecionarData,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _numeroController,
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(
+                labelText: 'Numero',
+                hintText: 'Gerado automaticamente se ficar vazio',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: _obraIdController,
               textInputAction: TextInputAction.next,
@@ -224,45 +257,8 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: _numeroController,
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'Numero',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Data'),
-              subtitle: Text('${_data.day}/${_data.month}/${_data.year}'),
-              trailing: const Icon(Icons.calendar_month),
-              onTap: _selecionarData,
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<StatusFiscalizacao>(
-              initialValue: _status,
-              decoration: const InputDecoration(
-                labelText: 'Status',
-                border: OutlineInputBorder(),
-              ),
-              items: StatusFiscalizacao.values
-                  .map(
-                    (status) => DropdownMenuItem(
-                      value: status,
-                      child: Text(status.name),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _status = value);
-                }
-              },
-            ),
-            const SizedBox(height: 12),
-            TextField(
               controller: _ocorrenciaController,
+              textInputAction: TextInputAction.newline,
               minLines: 2,
               maxLines: 4,
               decoration: const InputDecoration(
@@ -273,6 +269,7 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
             const SizedBox(height: 12),
             TextField(
               controller: _comentarioController,
+              textInputAction: TextInputAction.newline,
               minLines: 2,
               maxLines: 4,
               decoration: const InputDecoration(
@@ -280,6 +277,12 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
                 border: OutlineInputBorder(),
               ),
             ),
+            if (vistoria != null) ...[
+              const SizedBox(height: 16),
+              _PeriodosSection(vistoriaServicoId: vistoria.id),
+              const SizedBox(height: 16),
+              _MaoDeObraSection(vistoriaServicoId: vistoria.id),
+            ],
             const SizedBox(height: 16),
             FilledButton(
               onPressed: saving ? null : _salvar,
@@ -305,15 +308,17 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
   }
 
   Future<void> _salvar() async {
+    final vistoria = widget.vistoria;
+
     await ref.read(fiscalizacoesControllerProvider.notifier).salvar(
-          id: widget.vistoria?.id,
+          id: vistoria?.id,
           servicoId: widget.servicoId,
           obraId: _obraIdController.text,
           contratanteId: _contratanteIdController.text,
           responsavelId: _responsavelIdController.text,
           numero: _numeroController.text,
           data: _data,
-          status: _status,
+          status: vistoria?.status,
           ocorrencia: _ocorrenciaController.text,
           comentario: _comentarioController.text,
         );
@@ -326,5 +331,426 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
     if (!state.hasError) {
       Navigator.of(context).pop();
     }
+  }
+}
+
+class _PeriodosSection extends ConsumerWidget {
+  const _PeriodosSection({required this.vistoriaServicoId});
+
+  final String vistoriaServicoId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final periodos =
+        ref.watch(periodosVistoriaStreamProvider(vistoriaServicoId));
+
+    ref.listen(periodosFiscalizacaoControllerProvider, (previous, next) {
+      if (next.hasError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error.toString())),
+        );
+      }
+    });
+
+    return periodos.when(
+      data: (items) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Periodos',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          for (final periodo in PeriodoDia.values)
+            _PeriodoEditor(
+              vistoriaServicoId: vistoriaServicoId,
+              periodo: periodo,
+              value: _buscarPeriodo(items, periodo),
+            ),
+        ],
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Text('Erro ao carregar periodos: $error'),
+    );
+  }
+
+  VistoriaPeriodo? _buscarPeriodo(
+    List<VistoriaPeriodo> periodos,
+    PeriodoDia periodo,
+  ) {
+    for (final item in periodos) {
+      if (item.periodo == periodo) {
+        return item;
+      }
+    }
+
+    return null;
+  }
+}
+
+class _PeriodoEditor extends ConsumerWidget {
+  const _PeriodoEditor({
+    required this.vistoriaServicoId,
+    required this.periodo,
+    required this.value,
+  });
+
+  final String vistoriaServicoId;
+  final PeriodoDia periodo;
+  final VistoriaPeriodo? value;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final checked = value != null;
+    final tempo = value?.tempo ?? TempoPeriodo.claro;
+    final condicao = value?.condicao ?? CondicaoPeriodo.praticavel;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(_periodoLabel(periodo)),
+          value: checked,
+          onChanged: (selected) {
+            if (selected ?? false) {
+              _salvar(ref, tempo: tempo, condicao: condicao);
+              return;
+            }
+
+            ref.read(periodosFiscalizacaoControllerProvider.notifier).remover(
+                  vistoriaServicoId: vistoriaServicoId,
+                  periodo: periodo,
+                );
+          },
+        ),
+        if (checked) ...[
+          Text(
+            'Tempo',
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          RadioGroup<TempoPeriodo>(
+            groupValue: tempo,
+            onChanged: (selected) {
+              if (selected != null) {
+                _salvar(ref, tempo: selected, condicao: condicao);
+              }
+            },
+            child: Column(
+              children: [
+                for (final option in TempoPeriodo.values)
+                  RadioListTile<TempoPeriodo>(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(_tempoLabel(option)),
+                    value: option,
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Condicao',
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          RadioGroup<CondicaoPeriodo>(
+            groupValue: condicao,
+            onChanged: (selected) {
+              if (selected != null) {
+                _salvar(ref, tempo: tempo, condicao: selected);
+              }
+            },
+            child: Column(
+              children: [
+                for (final option in CondicaoPeriodo.values)
+                  RadioListTile<CondicaoPeriodo>(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(_condicaoLabel(option)),
+                    value: option,
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+
+  void _salvar(
+    WidgetRef ref, {
+    required TempoPeriodo tempo,
+    required CondicaoPeriodo condicao,
+  }) {
+    ref.read(periodosFiscalizacaoControllerProvider.notifier).salvar(
+          id: value?.id,
+          vistoriaServicoId: vistoriaServicoId,
+          periodo: periodo,
+          tempo: tempo,
+          condicao: condicao,
+        );
+  }
+
+  String _periodoLabel(PeriodoDia periodo) {
+    return switch (periodo) {
+      PeriodoDia.manha => 'Manha',
+      PeriodoDia.tarde => 'Tarde',
+      PeriodoDia.noite => 'Noite',
+    };
+  }
+
+  String _tempoLabel(TempoPeriodo tempo) {
+    return switch (tempo) {
+      TempoPeriodo.claro => 'Claro',
+      TempoPeriodo.nublado => 'Nublado',
+      TempoPeriodo.chuvoso => 'Chuvoso',
+    };
+  }
+
+  String _condicaoLabel(CondicaoPeriodo condicao) {
+    return switch (condicao) {
+      CondicaoPeriodo.praticavel => 'Praticavel',
+      CondicaoPeriodo.impraticavel => 'Impraticavel',
+    };
+  }
+}
+
+class _MaoDeObraSection extends ConsumerStatefulWidget {
+  const _MaoDeObraSection({required this.vistoriaServicoId});
+
+  final String vistoriaServicoId;
+
+  @override
+  ConsumerState<_MaoDeObraSection> createState() => _MaoDeObraSectionState();
+}
+
+class _MaoDeObraSectionState extends ConsumerState<_MaoDeObraSection> {
+  final _funcionarioIdController = TextEditingController();
+  final _funcaoNoDiaController = TextEditingController();
+  final _observacaoController = TextEditingController();
+
+  @override
+  void dispose() {
+    _funcionarioIdController.dispose();
+    _funcaoNoDiaController.dispose();
+    _observacaoController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final maoDeObra =
+        ref.watch(maoDeObraVistoriaStreamProvider(widget.vistoriaServicoId));
+    final funcionarios = ref.watch(
+      funcionariosMaoDeObraDisponiveisStreamProvider(widget.vistoriaServicoId),
+    );
+    final saving = ref.watch(maoDeObraFiscalizacaoControllerProvider).isLoading;
+
+    ref.listen(maoDeObraFiscalizacaoControllerProvider, (previous, next) {
+      if (next.hasError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error.toString())),
+        );
+      }
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Mao de obra',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        funcionarios.when(
+          data: (items) => _FuncionariosDisponiveisList(
+            funcionarios: items,
+            onSelect: (funcionario) {
+              _funcionarioIdController.text = funcionario.id;
+              _funcaoNoDiaController.text = funcionario.cargo;
+            },
+          ),
+          loading: () => const LinearProgressIndicator(),
+          error: (error, stackTrace) {
+            return Text('Erro ao carregar funcionarios: $error');
+          },
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _funcionarioIdController,
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+            labelText: 'ID do funcionario',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _funcaoNoDiaController,
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+            labelText: 'Funcao no dia',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _observacaoController,
+          textInputAction: TextInputAction.newline,
+          minLines: 2,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            labelText: 'Observacao',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerRight,
+          child: FilledButton.icon(
+            onPressed: saving ? null : _salvar,
+            icon: const Icon(Icons.person_add),
+            label: Text(saving ? 'Salvando...' : 'Adicionar'),
+          ),
+        ),
+        const SizedBox(height: 12),
+        maoDeObra.when(
+          data: (items) => _MaoDeObraSelecionadaList(
+            maoDeObra: items,
+            onRemove: (item) {
+              ref
+                  .read(maoDeObraFiscalizacaoControllerProvider.notifier)
+                  .remover(item.id);
+            },
+          ),
+          loading: () => const LinearProgressIndicator(),
+          error: (error, stackTrace) {
+            return Text('Erro ao carregar mao de obra: $error');
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> _salvar() async {
+    await ref.read(maoDeObraFiscalizacaoControllerProvider.notifier).salvar(
+          vistoriaServicoId: widget.vistoriaServicoId,
+          funcionarioId: _funcionarioIdController.text,
+          funcaoNoDia: _funcaoNoDiaController.text,
+          observacao: _observacaoController.text,
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    final state = ref.read(maoDeObraFiscalizacaoControllerProvider);
+    if (!state.hasError) {
+      _funcionarioIdController.clear();
+      _funcaoNoDiaController.clear();
+      _observacaoController.clear();
+    }
+  }
+}
+
+class _FuncionariosDisponiveisList extends StatelessWidget {
+  const _FuncionariosDisponiveisList({
+    required this.funcionarios,
+    required this.onSelect,
+  });
+
+  final List<Funcionario> funcionarios;
+  final ValueChanged<Funcionario> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    if (funcionarios.isEmpty) {
+      return const Text('Nenhum funcionario da empresa encontrado');
+    }
+
+    return Column(
+      children: [
+        for (final funcionario in funcionarios)
+          ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            title: Text(funcionario.nome),
+            subtitle: Text('${funcionario.cargo} | ${funcionario.id}'),
+            trailing: const Icon(Icons.add),
+            onTap: () => onSelect(funcionario),
+          ),
+      ],
+    );
+  }
+}
+
+class _MaoDeObraSelecionadaList extends StatelessWidget {
+  const _MaoDeObraSelecionadaList({
+    required this.maoDeObra,
+    required this.onRemove,
+  });
+
+  final List<VistoriaMaoDeObra> maoDeObra;
+  final ValueChanged<VistoriaMaoDeObra> onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    if (maoDeObra.isEmpty) {
+      return const Text('Nenhum funcionario selecionado');
+    }
+
+    return Column(
+      children: [
+        for (final item in maoDeObra)
+          ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            title: Text(item.funcionarioId),
+            subtitle: Text(_subtitle(item)),
+            trailing: IconButton(
+              tooltip: 'Remover',
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () => onRemove(item),
+            ),
+          ),
+      ],
+    );
+  }
+
+  String _subtitle(VistoriaMaoDeObra item) {
+    final partes = [
+      if (item.funcaoNoDia != null) item.funcaoNoDia,
+      if (item.observacao != null) item.observacao,
+    ];
+
+    if (partes.isEmpty) {
+      return 'Sem detalhes';
+    }
+
+    return partes.join(' | ');
+  }
+}
+
+class _DateTile extends StatelessWidget {
+  const _DateTile({
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+
+  final String label;
+  final DateTime value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(label),
+      subtitle: Text('${value.day}/${value.month}/${value.year}'),
+      trailing: const Icon(Icons.calendar_month),
+      onTap: onTap,
+    );
   }
 }

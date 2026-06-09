@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/domain/domain_enums.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../domain/etapa.dart';
 import 'etapas_controller.dart';
 
@@ -37,7 +38,10 @@ class _EtapasPageState extends ConsumerState<EtapasPage> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Etapas')),
+      appBar: AppBar(
+        leading: const AppBackButton(),
+        title: const Text('Etapas'),
+      ),
       body: Column(
         children: [
           Padding(

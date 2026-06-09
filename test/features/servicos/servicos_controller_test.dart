@@ -100,6 +100,32 @@ class _FakeServicosRepository implements ServicosRepository {
   }
 
   @override
+  Future<void> atualizarProgressoFisico({
+    required String id,
+    required double progressoFisico,
+  }) async {
+    final index = servicos.indexWhere((servico) => servico.id == id);
+    if (index == -1) {
+      return;
+    }
+
+    final servico = servicos[index];
+    servicos[index] = Servico(
+      id: servico.id,
+      etapaId: servico.etapaId,
+      nome: servico.nome,
+      precoTotal: servico.precoTotal,
+      unidade: servico.unidade,
+      quantidade: servico.quantidade,
+      dataInicio: servico.dataInicio,
+      dataFim: servico.dataFim,
+      status: servico.status,
+      progressoFisico: progressoFisico,
+      progressoPrazoDias: servico.progressoPrazoDias,
+    );
+  }
+
+  @override
   Stream<List<Servico>> watchServicosDaEtapa(String etapaId) {
     return Stream.value(
       servicos.where((servico) => servico.etapaId == etapaId).toList(),
