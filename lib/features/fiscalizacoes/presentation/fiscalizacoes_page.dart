@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
+import '../domain/vistoria_periodo.dart';
 import '../domain/vistoria_servico.dart';
 import 'fiscalizacoes_controller.dart';
 
@@ -273,6 +275,10 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
                 border: OutlineInputBorder(),
               ),
             ),
+            if (vistoria != null) ...[
+              const SizedBox(height: 16),
+              _PeriodosSection(vistoriaServicoId: vistoria.id),
+            ],
             const SizedBox(height: 16),
             FilledButton(
               onPressed: saving ? null : _salvar,
@@ -321,6 +327,188 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
     if (!state.hasError) {
       Navigator.of(context).pop();
     }
+  }
+}
+
+class _PeriodosSection extends ConsumerWidget {
+  const _PeriodosSection({required this.vistoriaServicoId});
+
+  final String vistoriaServicoId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final periodos =
+        ref.watch(periodosVistoriaStreamProvider(vistoriaServicoId));
+
+    ref.listen(periodosFiscalizacaoControllerProvider, (previous, next) {
+      if (next.hasError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error.toString())),
+        );
+      }
+    });
+
+    return periodos.when(
+      data: (items) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Periodos',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          for (final periodo in PeriodoDia.values)
+            _PeriodoEditor(
+              vistoriaServicoId: vistoriaServicoId,
+              periodo: periodo,
+              value: _buscarPeriodo(items, periodo),
+            ),
+        ],
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Text('Erro ao carregar periodos: $error'),
+    );
+  }
+
+  VistoriaPeriodo? _buscarPeriodo(
+    List<VistoriaPeriodo> periodos,
+    PeriodoDia periodo,
+  ) {
+    for (final item in periodos) {
+      if (item.periodo == periodo) {
+        return item;
+      }
+    }
+
+    return null;
+  }
+}
+
+class _PeriodoEditor extends ConsumerWidget {
+  const _PeriodoEditor({
+    required this.vistoriaServicoId,
+    required this.periodo,
+    required this.value,
+  });
+
+  final String vistoriaServicoId;
+  final PeriodoDia periodo;
+  final VistoriaPeriodo? value;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final checked = value != null;
+    final tempo = value?.tempo ?? TempoPeriodo.claro;
+    final condicao = value?.condicao ?? CondicaoPeriodo.praticavel;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(_periodoLabel(periodo)),
+          value: checked,
+          onChanged: (selected) {
+            if (selected ?? false) {
+              _salvar(ref, tempo: tempo, condicao: condicao);
+              return;
+            }
+
+            ref.read(periodosFiscalizacaoControllerProvider.notifier).remover(
+                  vistoriaServicoId: vistoriaServicoId,
+                  periodo: periodo,
+                );
+          },
+        ),
+        if (checked) ...[
+          Text(
+            'Tempo',
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          RadioGroup<TempoPeriodo>(
+            groupValue: tempo,
+            onChanged: (selected) {
+              if (selected != null) {
+                _salvar(ref, tempo: selected, condicao: condicao);
+              }
+            },
+            child: Column(
+              children: [
+                for (final option in TempoPeriodo.values)
+                  RadioListTile<TempoPeriodo>(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(_tempoLabel(option)),
+                    value: option,
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Condicao',
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          RadioGroup<CondicaoPeriodo>(
+            groupValue: condicao,
+            onChanged: (selected) {
+              if (selected != null) {
+                _salvar(ref, tempo: tempo, condicao: selected);
+              }
+            },
+            child: Column(
+              children: [
+                for (final option in CondicaoPeriodo.values)
+                  RadioListTile<CondicaoPeriodo>(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(_condicaoLabel(option)),
+                    value: option,
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+
+  void _salvar(
+    WidgetRef ref, {
+    required TempoPeriodo tempo,
+    required CondicaoPeriodo condicao,
+  }) {
+    ref.read(periodosFiscalizacaoControllerProvider.notifier).salvar(
+          id: value?.id,
+          vistoriaServicoId: vistoriaServicoId,
+          periodo: periodo,
+          tempo: tempo,
+          condicao: condicao,
+        );
+  }
+
+  String _periodoLabel(PeriodoDia periodo) {
+    return switch (periodo) {
+      PeriodoDia.manha => 'Manha',
+      PeriodoDia.tarde => 'Tarde',
+      PeriodoDia.noite => 'Noite',
+    };
+  }
+
+  String _tempoLabel(TempoPeriodo tempo) {
+    return switch (tempo) {
+      TempoPeriodo.claro => 'Claro',
+      TempoPeriodo.nublado => 'Nublado',
+      TempoPeriodo.chuvoso => 'Chuvoso',
+    };
+  }
+
+  String _condicaoLabel(CondicaoPeriodo condicao) {
+    return switch (condicao) {
+      CondicaoPeriodo.praticavel => 'Praticavel',
+      CondicaoPeriodo.impraticavel => 'Impraticavel',
+    };
   }
 }
 

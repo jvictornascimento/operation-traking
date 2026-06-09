@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/database/database_provider.dart';
 import '../../../core/domain/domain_enums.dart';
+import '../data/vistorias_periodo_repository.dart';
 import '../data/vistorias_servico_repository.dart';
+import '../domain/vistoria_periodo.dart';
 import '../domain/vistoria_servico.dart';
 
 final vistoriasServicoRepositoryProvider =
@@ -23,6 +25,29 @@ final fiscalizacoesControllerProvider =
     StateNotifierProvider<FiscalizacoesController, AsyncValue<void>>((ref) {
   return FiscalizacoesController(ref.watch(vistoriasServicoRepositoryProvider));
 });
+
+final vistoriasPeriodoRepositoryProvider =
+    Provider<VistoriasPeriodoRepository>((ref) {
+  return DriftVistoriasPeriodoRepository(ref.watch(appDatabaseProvider));
+});
+
+final periodosVistoriaStreamProvider =
+    StreamProvider.family.autoDispose<List<VistoriaPeriodo>, String>(
+  (ref, vistoriaServicoId) {
+    return ref
+        .watch(vistoriasPeriodoRepositoryProvider)
+        .watchPeriodosDaVistoria(vistoriaServicoId);
+  },
+);
+
+final periodosFiscalizacaoControllerProvider =
+    StateNotifierProvider<PeriodosFiscalizacaoController, AsyncValue<void>>(
+  (ref) {
+    return PeriodosFiscalizacaoController(
+      ref.watch(vistoriasPeriodoRepositoryProvider),
+    );
+  },
+);
 
 class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
   FiscalizacoesController(this._repository) : super(const AsyncData(null));
@@ -121,5 +146,72 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
       return null;
     }
     return texto;
+  }
+}
+
+class PeriodosFiscalizacaoController extends StateNotifier<AsyncValue<void>> {
+  PeriodosFiscalizacaoController(this._repository)
+      : super(const AsyncData(null));
+
+  final VistoriasPeriodoRepository _repository;
+
+  Future<void> salvar({
+    String? id,
+    required String vistoriaServicoId,
+    required PeriodoDia periodo,
+    required TempoPeriodo tempo,
+    required CondicaoPeriodo condicao,
+  }) async {
+    final vistoriaServicoIdNormalizado = vistoriaServicoId.trim();
+
+    if (vistoriaServicoIdNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Fiscalizacao do periodo e obrigatoria.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() {
+      return _repository.salvarPeriodo(
+        VistoriaPeriodo(
+          id: id ?? _novoId(),
+          vistoriaServicoId: vistoriaServicoIdNormalizado,
+          periodo: periodo,
+          tempo: tempo,
+          condicao: condicao,
+        ),
+      );
+    });
+  }
+
+  Future<void> remover({
+    required String vistoriaServicoId,
+    required PeriodoDia periodo,
+  }) async {
+    final vistoriaServicoIdNormalizado = vistoriaServicoId.trim();
+
+    if (vistoriaServicoIdNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Fiscalizacao do periodo e obrigatoria.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() {
+      return _repository.removerPeriodo(
+        vistoriaServicoId: vistoriaServicoIdNormalizado,
+        periodo: periodo,
+      );
+    });
+  }
+
+  String _novoId() {
+    return 'periodo-${DateTime.now().microsecondsSinceEpoch}';
   }
 }
