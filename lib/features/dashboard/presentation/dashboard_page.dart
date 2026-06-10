@@ -85,7 +85,7 @@ class _DashboardResumoSection extends StatelessWidget {
 
         return GridView.count(
           crossAxisCount: columns,
-          childAspectRatio: wide ? 2.7 : 2.1,
+          childAspectRatio: wide ? 2.25 : 1.45,
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
           shrinkWrap: true,
@@ -148,11 +148,11 @@ class _ResumoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(10),
         child: Row(
           children: [
             Icon(icon),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
