@@ -31,7 +31,16 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (migrator, from, to) async {
+          if (from < 2) {
+            await migrator.addColumn(medicoes, medicoes.vistoriaServicoId);
+          }
+        },
+      );
 }
 
 LazyDatabase _openConnection() {
@@ -114,7 +123,8 @@ class Obras extends Table {
   DateTimeColumn get dataFim => dateTime()();
   TextColumn get status => text()();
   RealColumn get progressoFisico => real().withDefault(const Constant(0))();
-  IntColumn get progressoPrazoDias => integer().withDefault(const Constant(0))();
+  IntColumn get progressoPrazoDias =>
+      integer().withDefault(const Constant(0))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -128,7 +138,8 @@ class Etapas extends Table {
   DateTimeColumn get dataFim => dateTime()();
   TextColumn get status => text()();
   RealColumn get progressoFisico => real().withDefault(const Constant(0))();
-  IntColumn get progressoPrazoDias => integer().withDefault(const Constant(0))();
+  IntColumn get progressoPrazoDias =>
+      integer().withDefault(const Constant(0))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -145,7 +156,8 @@ class Servicos extends Table {
   DateTimeColumn get dataFim => dateTime()();
   TextColumn get status => text()();
   RealColumn get progressoFisico => real().withDefault(const Constant(0))();
-  IntColumn get progressoPrazoDias => integer().withDefault(const Constant(0))();
+  IntColumn get progressoPrazoDias =>
+      integer().withDefault(const Constant(0))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -175,7 +187,8 @@ class VistoriasServico extends Table {
 
 class VistoriasPeriodo extends Table {
   TextColumn get id => text()();
-  TextColumn get vistoriaServicoId => text().references(VistoriasServico, #id)();
+  TextColumn get vistoriaServicoId =>
+      text().references(VistoriasServico, #id)();
   TextColumn get periodo => text()();
   TextColumn get tempo => text()();
   TextColumn get condicao => text()();
@@ -191,7 +204,8 @@ class VistoriasPeriodo extends Table {
 
 class VistoriasMaoDeObra extends Table {
   TextColumn get id => text()();
-  TextColumn get vistoriaServicoId => text().references(VistoriasServico, #id)();
+  TextColumn get vistoriaServicoId =>
+      text().references(VistoriasServico, #id)();
   TextColumn get funcionarioId => text().references(Funcionarios, #id)();
   TextColumn get funcaoNoDia => text().nullable()();
   TextColumn get observacao => text().nullable()();
@@ -203,6 +217,8 @@ class VistoriasMaoDeObra extends Table {
 class Medicoes extends Table {
   TextColumn get id => text()();
   TextColumn get servicoId => text().references(Servicos, #id)();
+  TextColumn get vistoriaServicoId =>
+      text().nullable().references(VistoriasServico, #id)();
   RealColumn get percentualExecutado => real()();
   TextColumn get observacao => text().nullable()();
   DateTimeColumn get data => dateTime()();

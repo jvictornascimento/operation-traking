@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../cadastros/domain/funcionario.dart';
+import '../../medicoes/domain/medicao.dart';
+import '../../medicoes/presentation/medicoes_controller.dart';
 import '../domain/vistoria_mao_de_obra.dart';
 import '../domain/vistoria_periodo.dart';
 import '../domain/vistoria_servico.dart';
@@ -282,6 +285,10 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
               _PeriodosSection(vistoriaServicoId: vistoria.id),
               const SizedBox(height: 16),
               _MaoDeObraSection(vistoriaServicoId: vistoria.id),
+              const SizedBox(height: 16),
+              _MedicoesFiscalizacaoSection(
+                vistoriaServicoId: vistoria.id,
+              ),
             ],
             const SizedBox(height: 16),
             FilledButton(
@@ -732,6 +739,209 @@ class _MaoDeObraSelecionadaList extends StatelessWidget {
   }
 }
 
+class _MedicoesFiscalizacaoSection extends ConsumerStatefulWidget {
+  const _MedicoesFiscalizacaoSection({required this.vistoriaServicoId});
+
+  final String vistoriaServicoId;
+
+  @override
+  ConsumerState<_MedicoesFiscalizacaoSection> createState() =>
+      _MedicoesFiscalizacaoSectionState();
+}
+
+class _MedicoesFiscalizacaoSectionState
+    extends ConsumerState<_MedicoesFiscalizacaoSection> {
+  final _percentualController = TextEditingController();
+  final _observacaoController = TextEditingController();
+  DateTime _data = DateTime.now();
+  Medicao? _editando;
+
+  @override
+  void dispose() {
+    _percentualController.dispose();
+    _observacaoController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final medicoes =
+        ref.watch(medicoesFiscalizacaoStreamProvider(widget.vistoriaServicoId));
+    final saving = ref.watch(medicoesControllerProvider).isLoading;
+
+    ref.listen(medicoesControllerProvider, (previous, next) {
+      if (next.hasError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error.toString())),
+        );
+      }
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Medicao',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        _DateTile(
+          label: 'Data da medicao',
+          value: _data,
+          onTap: _selecionarData,
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _percentualController,
+          keyboardType: TextInputType.number,
+          inputFormatters: [_DecimalInputFormatter()],
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+            labelText: 'Percentual executado',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _observacaoController,
+          textInputAction: TextInputAction.newline,
+          minLines: 2,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            labelText: 'Observacao da medicao',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (_editando != null)
+              TextButton(
+                onPressed: saving ? null : _limparFormulario,
+                child: const Text('Cancelar'),
+              ),
+            const SizedBox(width: 8),
+            FilledButton.icon(
+              onPressed: saving ? null : _salvar,
+              icon: const Icon(Icons.add_chart),
+              label: Text(saving ? 'Salvando...' : _labelSalvar()),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        medicoes.when(
+          data: (items) => _MedicoesFiscalizacaoList(
+            medicoes: items,
+            onSelect: _preencherFormulario,
+          ),
+          loading: () => const LinearProgressIndicator(),
+          error: (error, stackTrace) {
+            return Text('Erro ao carregar medicoes: $error');
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> _selecionarData() async {
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: _data,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (selected != null) {
+      setState(() => _data = selected);
+    }
+  }
+
+  Future<void> _salvar() async {
+    await ref.read(medicoesControllerProvider.notifier).salvarDaFiscalizacao(
+          id: _editando?.id,
+          vistoriaServicoId: widget.vistoriaServicoId,
+          percentualExecutado:
+              double.tryParse(_percentualController.text) ?? -1,
+          observacao: _observacaoController.text,
+          data: _data,
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    final state = ref.read(medicoesControllerProvider);
+    if (!state.hasError) {
+      _limparFormulario();
+    }
+  }
+
+  void _preencherFormulario(Medicao medicao) {
+    setState(() {
+      _editando = medicao;
+      _data = medicao.data;
+      _percentualController.text = medicao.percentualExecutado.toString();
+      _observacaoController.text = medicao.observacao ?? '';
+    });
+  }
+
+  void _limparFormulario() {
+    setState(() {
+      _editando = null;
+      _data = DateTime.now();
+      _percentualController.clear();
+      _observacaoController.clear();
+    });
+  }
+
+  String _labelSalvar() {
+    return _editando == null ? 'Adicionar' : 'Atualizar';
+  }
+}
+
+class _MedicoesFiscalizacaoList extends StatelessWidget {
+  const _MedicoesFiscalizacaoList({
+    required this.medicoes,
+    required this.onSelect,
+  });
+
+  final List<Medicao> medicoes;
+  final ValueChanged<Medicao> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    if (medicoes.isEmpty) {
+      return const Text('Nenhuma medicao cadastrada nesta fiscalizacao');
+    }
+
+    return Column(
+      children: [
+        for (final medicao in medicoes)
+          ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            title: Text('${medicao.percentualExecutado}% executado'),
+            subtitle: Text(_subtitle(medicao)),
+            trailing: const Icon(Icons.edit),
+            onTap: () => onSelect(medicao),
+          ),
+      ],
+    );
+  }
+
+  String _subtitle(Medicao medicao) {
+    final data =
+        '${medicao.data.day}/${medicao.data.month}/${medicao.data.year}';
+    final observacao = medicao.observacao;
+    if (observacao == null) {
+      return data;
+    }
+
+    return '$data | $observacao';
+  }
+}
+
 class _DateTile extends StatelessWidget {
   const _DateTile({
     required this.label,
@@ -752,5 +962,19 @@ class _DateTile extends StatelessWidget {
       trailing: const Icon(Icons.calendar_month),
       onTap: onTap,
     );
+  }
+}
+
+class _DecimalInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final normalized = newValue.text.replaceAll(',', '.');
+    if (normalized.isEmpty || double.tryParse(normalized) != null) {
+      return newValue.copyWith(text: normalized);
+    }
+    return oldValue;
   }
 }

@@ -93,11 +93,67 @@ void main() {
       expect(controller.state, isA<AsyncData<void>>());
       expect(servicosRepository.servicos.single.progressoFisico, 70);
     });
+
+    test('salva medicao pela fiscalizacao usando o servico vinculado',
+        () async {
+      final medicoesRepository = _FakeMedicoesRepository()
+        ..servicoPorVistoria['vistoria-1'] = 'servico-1';
+      final servicosRepository = _FakeServicosRepository()
+        ..servicos.add(_servico(id: 'servico-1'));
+      final controller = MedicoesController(
+        medicoesRepository: medicoesRepository,
+        servicosRepository: servicosRepository,
+      );
+
+      await controller.salvarDaFiscalizacao(
+        vistoriaServicoId: ' vistoria-1 ',
+        percentualExecutado: 33.333,
+        observacao: ' Liberado ',
+        data: DateTime(2026, 5, 23, 9),
+      );
+
+      expect(controller.state, isA<AsyncData<void>>());
+      expect(medicoesRepository.medicoes, hasLength(1));
+      expect(medicoesRepository.medicoes.single.servicoId, 'servico-1');
+      expect(
+        medicoesRepository.medicoes.single.vistoriaServicoId,
+        'vistoria-1',
+      );
+      expect(medicoesRepository.medicoes.single.percentualExecutado, 33.33);
+      expect(medicoesRepository.medicoes.single.observacao, 'Liberado');
+      expect(medicoesRepository.medicoes.single.data, DateTime(2026, 5, 23));
+      expect(servicosRepository.servicos.single.progressoFisico, 33.33);
+    });
+
+    test('rejeita medicao de fiscalizacao inexistente', () async {
+      final medicoesRepository = _FakeMedicoesRepository();
+      final servicosRepository = _FakeServicosRepository();
+      final controller = MedicoesController(
+        medicoesRepository: medicoesRepository,
+        servicosRepository: servicosRepository,
+      );
+
+      await controller.salvarDaFiscalizacao(
+        vistoriaServicoId: 'vistoria-inexistente',
+        percentualExecutado: 20,
+        data: DateTime(2026, 5, 23),
+      );
+
+      expect(controller.state, isA<AsyncError<void>>());
+      expect(medicoesRepository.medicoes, isEmpty);
+    });
   });
 }
 
 class _FakeMedicoesRepository implements MedicoesRepository {
   final medicoes = <Medicao>[];
+  final servicoPorVistoria = <String, String>{};
+
+  @override
+  Future<String?> buscarServicoIdDaFiscalizacao(
+      String vistoriaServicoId) async {
+    return servicoPorVistoria[vistoriaServicoId];
+  }
 
   @override
   Future<void> salvarMedicao(Medicao medicao) async {
@@ -114,6 +170,15 @@ class _FakeMedicoesRepository implements MedicoesRepository {
   Stream<List<Medicao>> watchMedicoesDoServico(String servicoId) {
     return Stream.value(
       medicoes.where((medicao) => medicao.servicoId == servicoId).toList(),
+    );
+  }
+
+  @override
+  Stream<List<Medicao>> watchMedicoesDaFiscalizacao(String vistoriaServicoId) {
+    return Stream.value(
+      medicoes
+          .where((medicao) => medicao.vistoriaServicoId == vistoriaServicoId)
+          .toList(),
     );
   }
 }

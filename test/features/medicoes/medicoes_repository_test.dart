@@ -1,5 +1,6 @@
 import 'dart:ffi';
 
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:operational_tracking/core/database/app_database.dart' as db;
@@ -91,6 +92,42 @@ void main() {
       expect(rows.single.observacao, 'Revisado');
     });
 
+    test('salva e lista medicao vinculada a fiscalizacao', () async {
+      await repository.salvarMedicao(
+        _medicao(
+          id: 'medicao-1',
+          percentualExecutado: 30,
+          data: DateTime(2026, 5, 20),
+          vistoriaServicoId: 'vistoria-1',
+        ),
+      );
+      await repository.salvarMedicao(
+        _medicao(
+          id: 'medicao-2',
+          percentualExecutado: 50,
+          data: DateTime(2026, 5, 21),
+          vistoriaServicoId: 'vistoria-1',
+        ),
+      );
+
+      final medicoes =
+          await repository.watchMedicoesDaFiscalizacao('vistoria-1').first;
+
+      expect(medicoes.map((item) => item.id), ['medicao-2', 'medicao-1']);
+      expect(medicoes.every((item) => item.servicoId == 'servico-1'), isTrue);
+      expect(
+        medicoes.every((item) => item.vistoriaServicoId == 'vistoria-1'),
+        isTrue,
+      );
+    });
+
+    test('busca servico vinculado a fiscalizacao', () async {
+      final servicoId =
+          await repository.buscarServicoIdDaFiscalizacao('vistoria-1');
+
+      expect(servicoId, 'servico-1');
+    });
+
     test('rejeita percentual menor que zero', () async {
       expect(
         () => repository.salvarMedicao(
@@ -132,10 +169,12 @@ Medicao _medicao({
   required double percentualExecutado,
   DateTime? data,
   String? observacao,
+  String? vistoriaServicoId,
 }) {
   return Medicao(
     id: id,
     servicoId: 'servico-1',
+    vistoriaServicoId: vistoriaServicoId,
     percentualExecutado: percentualExecutado,
     observacao: observacao,
     data: data ?? DateTime(2026, 5, 20),
@@ -147,6 +186,22 @@ Future<void> _popularDadosBase(db.AppDatabase database) async {
         db.EmpresasCompanion.insert(
           id: 'empresa-1',
           nome: 'Construtora Regis',
+        ),
+      );
+
+  await database.into(database.contratantes).insert(
+        db.ContratantesCompanion.insert(
+          id: 'contratante-1',
+          nome: 'Prefeitura',
+        ),
+      );
+
+  await database.into(database.funcionarios).insert(
+        db.FuncionariosCompanion.insert(
+          id: 'responsavel-1',
+          contratanteId: const Value('contratante-1'),
+          nome: 'Regis',
+          cargo: 'Fiscal',
         ),
       );
 
@@ -195,6 +250,20 @@ Future<void> _popularDadosBase(db.AppDatabase database) async {
           dataInicio: DateTime(2026, 5, 1),
           dataFim: DateTime(2026, 5, 10),
           status: StatusExecucao.emAndamento.name,
+        ),
+      );
+
+  await database.into(database.vistoriasServico).insert(
+        db.VistoriasServicoCompanion.insert(
+          id: 'vistoria-1',
+          servicoId: 'servico-1',
+          obraId: 'obra-1',
+          contratanteId: 'contratante-1',
+          responsavelId: 'responsavel-1',
+          numero: 'VS-001',
+          data: DateTime(2026, 5, 20),
+          diaSemana: DateTime.wednesday,
+          status: StatusFiscalizacao.emAndamento.name,
         ),
       );
 }

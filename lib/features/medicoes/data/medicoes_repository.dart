@@ -6,6 +6,10 @@ import '../domain/medicao.dart';
 abstract class MedicoesRepository {
   Stream<List<Medicao>> watchMedicoesDoServico(String servicoId);
 
+  Stream<List<Medicao>> watchMedicoesDaFiscalizacao(String vistoriaServicoId);
+
+  Future<String?> buscarServicoIdDaFiscalizacao(String vistoriaServicoId);
+
   Future<void> salvarMedicao(Medicao medicao);
 }
 
@@ -38,6 +42,28 @@ class DriftMedicoesRepository implements MedicoesRepository {
   }
 
   @override
+  Stream<List<Medicao>> watchMedicoesDaFiscalizacao(String vistoriaServicoId) {
+    final query = _database.select(_database.medicoes)
+      ..where((table) => table.vistoriaServicoId.equals(vistoriaServicoId))
+      ..orderBy([
+        (table) => OrderingTerm.desc(table.data),
+        (table) => OrderingTerm.desc(table.id),
+      ]);
+
+    return query.watch().map((rows) => rows.map(_mapMedicao).toList());
+  }
+
+  @override
+  Future<String?> buscarServicoIdDaFiscalizacao(
+      String vistoriaServicoId) async {
+    final vistoria = await (_database.select(_database.vistoriasServico)
+          ..where((table) => table.id.equals(vistoriaServicoId)))
+        .getSingleOrNull();
+
+    return vistoria?.servicoId;
+  }
+
+  @override
   Future<void> salvarMedicao(Medicao medicao) {
     if (medicao.percentualExecutado < 0 || medicao.percentualExecutado > 100) {
       throw PercentualMedicaoInvalidoException(medicao.percentualExecutado);
@@ -49,6 +75,7 @@ class DriftMedicoesRepository implements MedicoesRepository {
             servicoId: medicao.servicoId,
             percentualExecutado: medicao.percentualExecutado,
             data: medicao.data,
+            vistoriaServicoId: Value(medicao.vistoriaServicoId),
             observacao: Value(medicao.observacao),
           ),
         );
@@ -58,6 +85,7 @@ class DriftMedicoesRepository implements MedicoesRepository {
     return Medicao(
       id: row.id,
       servicoId: row.servicoId,
+      vistoriaServicoId: row.vistoriaServicoId,
       percentualExecutado: row.percentualExecutado,
       observacao: row.observacao,
       data: row.data,

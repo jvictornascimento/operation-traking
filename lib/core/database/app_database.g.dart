@@ -4555,6 +4555,15 @@ class $MedicoesTable extends Medicoes with TableInfo<$MedicoesTable, Medicoe> {
       requiredDuringInsert: true,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('REFERENCES servicos (id)'));
+  static const VerificationMeta _vistoriaServicoIdMeta =
+      const VerificationMeta('vistoriaServicoId');
+  @override
+  late final GeneratedColumn<String> vistoriaServicoId =
+      GeneratedColumn<String>('vistoria_servico_id', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultConstraints: GeneratedColumn.constraintIsAlways(
+              'REFERENCES vistorias_servico (id)'));
   static const VerificationMeta _percentualExecutadoMeta =
       const VerificationMeta('percentualExecutado');
   @override
@@ -4574,7 +4583,7 @@ class $MedicoesTable extends Medicoes with TableInfo<$MedicoesTable, Medicoe> {
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, servicoId, percentualExecutado, observacao, data];
+      [id, servicoId, vistoriaServicoId, percentualExecutado, observacao, data];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -4595,6 +4604,12 @@ class $MedicoesTable extends Medicoes with TableInfo<$MedicoesTable, Medicoe> {
           servicoId.isAcceptableOrUnknown(data['servico_id']!, _servicoIdMeta));
     } else if (isInserting) {
       context.missing(_servicoIdMeta);
+    }
+    if (data.containsKey('vistoria_servico_id')) {
+      context.handle(
+          _vistoriaServicoIdMeta,
+          vistoriaServicoId.isAcceptableOrUnknown(
+              data['vistoria_servico_id']!, _vistoriaServicoIdMeta));
     }
     if (data.containsKey('percentual_executado')) {
       context.handle(
@@ -4629,6 +4644,8 @@ class $MedicoesTable extends Medicoes with TableInfo<$MedicoesTable, Medicoe> {
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       servicoId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}servico_id'])!,
+      vistoriaServicoId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}vistoria_servico_id']),
       percentualExecutado: attachedDatabase.typeMapping.read(
           DriftSqlType.double, data['${effectivePrefix}percentual_executado'])!,
       observacao: attachedDatabase.typeMapping
@@ -4647,12 +4664,14 @@ class $MedicoesTable extends Medicoes with TableInfo<$MedicoesTable, Medicoe> {
 class Medicoe extends DataClass implements Insertable<Medicoe> {
   final String id;
   final String servicoId;
+  final String? vistoriaServicoId;
   final double percentualExecutado;
   final String? observacao;
   final DateTime data;
   const Medicoe(
       {required this.id,
       required this.servicoId,
+      this.vistoriaServicoId,
       required this.percentualExecutado,
       this.observacao,
       required this.data});
@@ -4661,6 +4680,9 @@ class Medicoe extends DataClass implements Insertable<Medicoe> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['servico_id'] = Variable<String>(servicoId);
+    if (!nullToAbsent || vistoriaServicoId != null) {
+      map['vistoria_servico_id'] = Variable<String>(vistoriaServicoId);
+    }
     map['percentual_executado'] = Variable<double>(percentualExecutado);
     if (!nullToAbsent || observacao != null) {
       map['observacao'] = Variable<String>(observacao);
@@ -4673,6 +4695,9 @@ class Medicoe extends DataClass implements Insertable<Medicoe> {
     return MedicoesCompanion(
       id: Value(id),
       servicoId: Value(servicoId),
+      vistoriaServicoId: vistoriaServicoId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(vistoriaServicoId),
       percentualExecutado: Value(percentualExecutado),
       observacao: observacao == null && nullToAbsent
           ? const Value.absent()
@@ -4687,6 +4712,8 @@ class Medicoe extends DataClass implements Insertable<Medicoe> {
     return Medicoe(
       id: serializer.fromJson<String>(json['id']),
       servicoId: serializer.fromJson<String>(json['servicoId']),
+      vistoriaServicoId:
+          serializer.fromJson<String?>(json['vistoriaServicoId']),
       percentualExecutado:
           serializer.fromJson<double>(json['percentualExecutado']),
       observacao: serializer.fromJson<String?>(json['observacao']),
@@ -4699,6 +4726,7 @@ class Medicoe extends DataClass implements Insertable<Medicoe> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'servicoId': serializer.toJson<String>(servicoId),
+      'vistoriaServicoId': serializer.toJson<String?>(vistoriaServicoId),
       'percentualExecutado': serializer.toJson<double>(percentualExecutado),
       'observacao': serializer.toJson<String?>(observacao),
       'data': serializer.toJson<DateTime>(data),
@@ -4708,12 +4736,16 @@ class Medicoe extends DataClass implements Insertable<Medicoe> {
   Medicoe copyWith(
           {String? id,
           String? servicoId,
+          Value<String?> vistoriaServicoId = const Value.absent(),
           double? percentualExecutado,
           Value<String?> observacao = const Value.absent(),
           DateTime? data}) =>
       Medicoe(
         id: id ?? this.id,
         servicoId: servicoId ?? this.servicoId,
+        vistoriaServicoId: vistoriaServicoId.present
+            ? vistoriaServicoId.value
+            : this.vistoriaServicoId,
         percentualExecutado: percentualExecutado ?? this.percentualExecutado,
         observacao: observacao.present ? observacao.value : this.observacao,
         data: data ?? this.data,
@@ -4722,6 +4754,9 @@ class Medicoe extends DataClass implements Insertable<Medicoe> {
     return Medicoe(
       id: data.id.present ? data.id.value : this.id,
       servicoId: data.servicoId.present ? data.servicoId.value : this.servicoId,
+      vistoriaServicoId: data.vistoriaServicoId.present
+          ? data.vistoriaServicoId.value
+          : this.vistoriaServicoId,
       percentualExecutado: data.percentualExecutado.present
           ? data.percentualExecutado.value
           : this.percentualExecutado,
@@ -4736,6 +4771,7 @@ class Medicoe extends DataClass implements Insertable<Medicoe> {
     return (StringBuffer('Medicoe(')
           ..write('id: $id, ')
           ..write('servicoId: $servicoId, ')
+          ..write('vistoriaServicoId: $vistoriaServicoId, ')
           ..write('percentualExecutado: $percentualExecutado, ')
           ..write('observacao: $observacao, ')
           ..write('data: $data')
@@ -4744,14 +4780,15 @@ class Medicoe extends DataClass implements Insertable<Medicoe> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, servicoId, percentualExecutado, observacao, data);
+  int get hashCode => Object.hash(
+      id, servicoId, vistoriaServicoId, percentualExecutado, observacao, data);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Medicoe &&
           other.id == this.id &&
           other.servicoId == this.servicoId &&
+          other.vistoriaServicoId == this.vistoriaServicoId &&
           other.percentualExecutado == this.percentualExecutado &&
           other.observacao == this.observacao &&
           other.data == this.data);
@@ -4760,6 +4797,7 @@ class Medicoe extends DataClass implements Insertable<Medicoe> {
 class MedicoesCompanion extends UpdateCompanion<Medicoe> {
   final Value<String> id;
   final Value<String> servicoId;
+  final Value<String?> vistoriaServicoId;
   final Value<double> percentualExecutado;
   final Value<String?> observacao;
   final Value<DateTime> data;
@@ -4767,6 +4805,7 @@ class MedicoesCompanion extends UpdateCompanion<Medicoe> {
   const MedicoesCompanion({
     this.id = const Value.absent(),
     this.servicoId = const Value.absent(),
+    this.vistoriaServicoId = const Value.absent(),
     this.percentualExecutado = const Value.absent(),
     this.observacao = const Value.absent(),
     this.data = const Value.absent(),
@@ -4775,6 +4814,7 @@ class MedicoesCompanion extends UpdateCompanion<Medicoe> {
   MedicoesCompanion.insert({
     required String id,
     required String servicoId,
+    this.vistoriaServicoId = const Value.absent(),
     required double percentualExecutado,
     this.observacao = const Value.absent(),
     required DateTime data,
@@ -4786,6 +4826,7 @@ class MedicoesCompanion extends UpdateCompanion<Medicoe> {
   static Insertable<Medicoe> custom({
     Expression<String>? id,
     Expression<String>? servicoId,
+    Expression<String>? vistoriaServicoId,
     Expression<double>? percentualExecutado,
     Expression<String>? observacao,
     Expression<DateTime>? data,
@@ -4794,6 +4835,7 @@ class MedicoesCompanion extends UpdateCompanion<Medicoe> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (servicoId != null) 'servico_id': servicoId,
+      if (vistoriaServicoId != null) 'vistoria_servico_id': vistoriaServicoId,
       if (percentualExecutado != null)
         'percentual_executado': percentualExecutado,
       if (observacao != null) 'observacao': observacao,
@@ -4805,6 +4847,7 @@ class MedicoesCompanion extends UpdateCompanion<Medicoe> {
   MedicoesCompanion copyWith(
       {Value<String>? id,
       Value<String>? servicoId,
+      Value<String?>? vistoriaServicoId,
       Value<double>? percentualExecutado,
       Value<String?>? observacao,
       Value<DateTime>? data,
@@ -4812,6 +4855,7 @@ class MedicoesCompanion extends UpdateCompanion<Medicoe> {
     return MedicoesCompanion(
       id: id ?? this.id,
       servicoId: servicoId ?? this.servicoId,
+      vistoriaServicoId: vistoriaServicoId ?? this.vistoriaServicoId,
       percentualExecutado: percentualExecutado ?? this.percentualExecutado,
       observacao: observacao ?? this.observacao,
       data: data ?? this.data,
@@ -4827,6 +4871,9 @@ class MedicoesCompanion extends UpdateCompanion<Medicoe> {
     }
     if (servicoId.present) {
       map['servico_id'] = Variable<String>(servicoId.value);
+    }
+    if (vistoriaServicoId.present) {
+      map['vistoria_servico_id'] = Variable<String>(vistoriaServicoId.value);
     }
     if (percentualExecutado.present) {
       map['percentual_executado'] = Variable<double>(percentualExecutado.value);
@@ -4848,6 +4895,7 @@ class MedicoesCompanion extends UpdateCompanion<Medicoe> {
     return (StringBuffer('MedicoesCompanion(')
           ..write('id: $id, ')
           ..write('servicoId: $servicoId, ')
+          ..write('vistoriaServicoId: $vistoriaServicoId, ')
           ..write('percentualExecutado: $percentualExecutado, ')
           ..write('observacao: $observacao, ')
           ..write('data: $data, ')
@@ -7382,6 +7430,19 @@ class $$VistoriasServicoTableFilterComposer
                     parentComposers)));
     return f(composer);
   }
+
+  ComposableFilter medicoesRefs(
+      ComposableFilter Function($$MedicoesTableFilterComposer f) f) {
+    final $$MedicoesTableFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $state.db.medicoes,
+        getReferencedColumn: (t) => t.vistoriaServicoId,
+        builder: (joinBuilder, parentComposers) =>
+            $$MedicoesTableFilterComposer(ComposerState(
+                $state.db, $state.db.medicoes, joinBuilder, parentComposers)));
+    return f(composer);
+  }
 }
 
 class $$VistoriasServicoTableOrderingComposer
@@ -7778,6 +7839,7 @@ class $$VistoriasMaoDeObraTableOrderingComposer
 typedef $$MedicoesTableCreateCompanionBuilder = MedicoesCompanion Function({
   required String id,
   required String servicoId,
+  Value<String?> vistoriaServicoId,
   required double percentualExecutado,
   Value<String?> observacao,
   required DateTime data,
@@ -7786,6 +7848,7 @@ typedef $$MedicoesTableCreateCompanionBuilder = MedicoesCompanion Function({
 typedef $$MedicoesTableUpdateCompanionBuilder = MedicoesCompanion Function({
   Value<String> id,
   Value<String> servicoId,
+  Value<String?> vistoriaServicoId,
   Value<double> percentualExecutado,
   Value<String?> observacao,
   Value<DateTime> data,
@@ -7811,6 +7874,7 @@ class $$MedicoesTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> servicoId = const Value.absent(),
+            Value<String?> vistoriaServicoId = const Value.absent(),
             Value<double> percentualExecutado = const Value.absent(),
             Value<String?> observacao = const Value.absent(),
             Value<DateTime> data = const Value.absent(),
@@ -7819,6 +7883,7 @@ class $$MedicoesTableTableManager extends RootTableManager<
               MedicoesCompanion(
             id: id,
             servicoId: servicoId,
+            vistoriaServicoId: vistoriaServicoId,
             percentualExecutado: percentualExecutado,
             observacao: observacao,
             data: data,
@@ -7827,6 +7892,7 @@ class $$MedicoesTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             required String servicoId,
+            Value<String?> vistoriaServicoId = const Value.absent(),
             required double percentualExecutado,
             Value<String?> observacao = const Value.absent(),
             required DateTime data,
@@ -7835,6 +7901,7 @@ class $$MedicoesTableTableManager extends RootTableManager<
               MedicoesCompanion.insert(
             id: id,
             servicoId: servicoId,
+            vistoriaServicoId: vistoriaServicoId,
             percentualExecutado: percentualExecutado,
             observacao: observacao,
             data: data,
@@ -7875,6 +7942,19 @@ class $$MedicoesTableFilterComposer
         builder: (joinBuilder, parentComposers) =>
             $$ServicosTableFilterComposer(ComposerState(
                 $state.db, $state.db.servicos, joinBuilder, parentComposers)));
+    return composer;
+  }
+
+  $$VistoriasServicoTableFilterComposer get vistoriaServicoId {
+    final $$VistoriasServicoTableFilterComposer composer =
+        $state.composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.vistoriaServicoId,
+            referencedTable: $state.db.vistoriasServico,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder, parentComposers) =>
+                $$VistoriasServicoTableFilterComposer(ComposerState($state.db,
+                    $state.db.vistoriasServico, joinBuilder, parentComposers)));
     return composer;
   }
 
@@ -7924,6 +8004,19 @@ class $$MedicoesTableOrderingComposer
         builder: (joinBuilder, parentComposers) =>
             $$ServicosTableOrderingComposer(ComposerState(
                 $state.db, $state.db.servicos, joinBuilder, parentComposers)));
+    return composer;
+  }
+
+  $$VistoriasServicoTableOrderingComposer get vistoriaServicoId {
+    final $$VistoriasServicoTableOrderingComposer composer = $state
+        .composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.vistoriaServicoId,
+            referencedTable: $state.db.vistoriasServico,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder, parentComposers) =>
+                $$VistoriasServicoTableOrderingComposer(ComposerState($state.db,
+                    $state.db.vistoriasServico, joinBuilder, parentComposers)));
     return composer;
   }
 }

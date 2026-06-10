@@ -21,6 +21,15 @@ final medicoesServicoStreamProvider =
       .watchMedicoesDoServico(servicoId);
 });
 
+final medicoesFiscalizacaoStreamProvider =
+    StreamProvider.family.autoDispose<List<Medicao>, String>(
+  (ref, vistoriaServicoId) {
+    return ref
+        .watch(medicoesRepositoryProvider)
+        .watchMedicoesDaFiscalizacao(vistoriaServicoId);
+  },
+);
+
 final medicoesControllerProvider =
     StateNotifierProvider<MedicoesController, AsyncValue<void>>((ref) {
   return MedicoesController(
@@ -98,6 +107,7 @@ class MedicoesController extends StateNotifier<AsyncValue<void>> {
         Medicao(
           id: id ?? _novoId(),
           servicoId: servicoIdNormalizado,
+          vistoriaServicoId: null,
           percentualExecutado: _arredondar(percentualExecutado),
           observacao: _normalizarTextoOpcional(observacao),
           data: dataNormalizada,
@@ -111,6 +121,65 @@ class MedicoesController extends StateNotifier<AsyncValue<void>> {
 
       await _servicosRepository.atualizarProgressoFisico(
         id: servicoIdNormalizado,
+        progressoFisico: progresso,
+      );
+    });
+  }
+
+  Future<void> salvarDaFiscalizacao({
+    String? id,
+    required String vistoriaServicoId,
+    required double percentualExecutado,
+    String? observacao,
+    required DateTime data,
+  }) async {
+    final vistoriaServicoIdNormalizado = vistoriaServicoId.trim();
+
+    if (vistoriaServicoIdNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Fiscalizacao da medicao e obrigatoria.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    if (percentualExecutado < 0 || percentualExecutado > 100) {
+      state = AsyncError(
+        ArgumentError('Percentual executado deve estar entre 0 e 100.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      final servicoId = await _medicoesRepository.buscarServicoIdDaFiscalizacao(
+        vistoriaServicoIdNormalizado,
+      );
+
+      if (servicoId == null) {
+        throw ArgumentError('Fiscalizacao da medicao nao encontrada.');
+      }
+
+      final dataNormalizada = DateTime(data.year, data.month, data.day);
+      await _medicoesRepository.salvarMedicao(
+        Medicao(
+          id: id ?? _novoId(),
+          servicoId: servicoId,
+          vistoriaServicoId: vistoriaServicoIdNormalizado,
+          percentualExecutado: _arredondar(percentualExecutado),
+          observacao: _normalizarTextoOpcional(observacao),
+          data: dataNormalizada,
+        ),
+      );
+
+      final medicoes =
+          await _medicoesRepository.watchMedicoesDoServico(servicoId).first;
+      final progresso = ProgressoFisico.calcularServicoPorMedicoes(medicoes);
+
+      await _servicosRepository.atualizarProgressoFisico(
+        id: servicoId,
         progressoFisico: progresso,
       );
     });
