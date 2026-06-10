@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
@@ -7,7 +8,9 @@ import '../domain/etapa.dart';
 import 'etapas_controller.dart';
 
 class EtapasPage extends ConsumerStatefulWidget {
-  const EtapasPage({super.key});
+  const EtapasPage({super.key, this.obraId});
+
+  final String? obraId;
 
   @override
   ConsumerState<EtapasPage> createState() => _EtapasPageState();
@@ -24,7 +27,7 @@ class _EtapasPageState extends ConsumerState<EtapasPage> {
 
   @override
   Widget build(BuildContext context) {
-    final obraId = _obraIdController.text.trim();
+    final obraId = widget.obraId ?? _obraIdController.text.trim();
     final etapas = obraId.isEmpty
         ? const AsyncData(<Etapa>[])
         : ref.watch(etapasObraStreamProvider(obraId));
@@ -40,24 +43,32 @@ class _EtapasPageState extends ConsumerState<EtapasPage> {
     return Scaffold(
       appBar: AppBar(
         leading: const AppBackButton(),
-        title: const Text('Etapas'),
+        title: const Text('Etapas da obra'),
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _obraIdController,
-              decoration: const InputDecoration(
-                labelText: 'ID da obra',
-                border: OutlineInputBorder(),
+          if (widget.obraId == null)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextField(
+                controller: _obraIdController,
+                decoration: const InputDecoration(
+                  labelText: 'ID da obra',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) => setState(() {}),
               ),
-              onChanged: (_) => setState(() {}),
             ),
-          ),
           Expanded(
             child: etapas.when(
-              data: (items) => _EtapasList(etapas: items),
+              data: (items) => _EtapasList(
+                etapas: items,
+                onEdit: (etapa) => _abrirFormulario(
+                  context,
+                  obraId: etapa.obraId,
+                  etapa: etapa,
+                ),
+              ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stackTrace) => Center(
                 child: Text('Erro ao carregar etapas: $error'),
@@ -90,9 +101,13 @@ class _EtapasPageState extends ConsumerState<EtapasPage> {
 }
 
 class _EtapasList extends StatelessWidget {
-  const _EtapasList({required this.etapas});
+  const _EtapasList({
+    required this.etapas,
+    required this.onEdit,
+  });
 
   final List<Etapa> etapas;
+  final ValueChanged<Etapa> onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -107,14 +122,13 @@ class _EtapasList extends StatelessWidget {
         return ListTile(
           title: Text(etapa.nome),
           subtitle: Text(_subtitle(etapa)),
-          trailing: const Icon(Icons.edit),
-          onTap: () => showModalBottomSheet<void>(
-            context: context,
-            isScrollControlled: true,
-            builder: (context) => _EtapaForm(
-              obraId: etapa.obraId,
-              etapa: etapa,
-            ),
+          trailing: IconButton(
+            tooltip: 'Editar etapa',
+            icon: const Icon(Icons.edit),
+            onPressed: () => onEdit(etapa),
+          ),
+          onTap: () => context.push(
+            '/obras/${etapa.obraId}/etapas/${etapa.id}/servicos',
           ),
         );
       },

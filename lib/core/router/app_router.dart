@@ -24,6 +24,29 @@ final appRouter = GoRouter(
       builder: (context, state) => const ObrasPage(),
     ),
     GoRoute(
+      name: 'obra-etapas',
+      path: '/obras/:obraId/etapas',
+      builder: (context, state) {
+        return EtapasPage(obraId: state.pathParameters['obraId']);
+      },
+    ),
+    GoRoute(
+      name: 'etapa-servicos',
+      path: '/obras/:obraId/etapas/:etapaId/servicos',
+      builder: (context, state) {
+        return ServicosPage(etapaId: state.pathParameters['etapaId']);
+      },
+    ),
+    GoRoute(
+      name: 'servico-fiscalizacoes',
+      path: '/etapas/:etapaId/servicos/:servicoId/fiscalizacoes',
+      builder: (context, state) {
+        return FiscalizacoesPage(
+          servicoId: state.pathParameters['servicoId'],
+        );
+      },
+    ),
+    GoRoute(
       name: 'empresas',
       path: '/empresas',
       builder: (context, state) => const EmpresasPage(),

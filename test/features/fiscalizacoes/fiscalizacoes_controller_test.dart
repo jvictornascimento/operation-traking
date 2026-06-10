@@ -90,6 +90,23 @@ void main() {
       expect(vistoria.comentario, 'Dia produtivo');
     });
 
+    test('deriva obra pelo servico quando obra nao foi informada', () async {
+      final repository = _FakeVistoriasServicoRepository()
+        ..obraPorServico['servico-1'] = 'obra-1';
+      final controller = FiscalizacoesController(repository);
+
+      await controller.salvar(
+        servicoId: 'servico-1',
+        obraId: ' ',
+        contratanteId: 'contratante-1',
+        responsavelId: 'responsavel-1',
+        data: DateTime(2026, 5, 20),
+      );
+
+      expect(controller.state, isA<AsyncData<void>>());
+      expect(repository.vistorias.single.obraId, 'obra-1');
+    });
+
     test('gera numero quando campo fica vazio', () async {
       final repository = _FakeVistoriasServicoRepository();
       final controller = FiscalizacoesController(repository);
@@ -144,6 +161,12 @@ void main() {
 
 class _FakeVistoriasServicoRepository implements VistoriasServicoRepository {
   final vistorias = <VistoriaServico>[];
+  final obraPorServico = <String, String>{};
+
+  @override
+  Future<String?> buscarObraIdDoServico(String servicoId) async {
+    return obraPorServico[servicoId];
+  }
 
   @override
   Future<void> salvarVistoria(VistoriaServico vistoria) async {

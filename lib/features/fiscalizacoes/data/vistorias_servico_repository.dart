@@ -7,6 +7,8 @@ import '../domain/vistoria_servico.dart';
 abstract class VistoriasServicoRepository {
   Stream<List<VistoriaServico>> watchVistoriasDoServico(String servicoId);
 
+  Future<String?> buscarObraIdDoServico(String servicoId);
+
   Future<void> salvarVistoria(VistoriaServico vistoria);
 }
 
@@ -46,6 +48,23 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
       ..orderBy([(table) => OrderingTerm.desc(table.data)]);
 
     return query.watch().map((rows) => rows.map(_mapVistoria).toList());
+  }
+
+  @override
+  Future<String?> buscarObraIdDoServico(String servicoId) async {
+    final servico = await (_database.select(_database.servicos)
+          ..where((table) => table.id.equals(servicoId)))
+        .getSingleOrNull();
+
+    if (servico == null) {
+      return null;
+    }
+
+    final etapa = await (_database.select(_database.etapas)
+          ..where((table) => table.id.equals(servico.etapaId)))
+        .getSingleOrNull();
+
+    return etapa?.obraId;
   }
 
   @override

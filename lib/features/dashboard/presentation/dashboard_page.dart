@@ -41,26 +41,6 @@ class DashboardPage extends ConsumerWidget {
             onTap: () => context.push('/contratantes'),
           ),
           _DashboardAction(
-            title: 'Etapas',
-            subtitle: 'Organizacao das fases da obra',
-            onTap: () => context.push('/etapas'),
-          ),
-          _DashboardAction(
-            title: 'Servicos',
-            subtitle: 'Quantidade, unidade, valor e progresso',
-            onTap: () => context.push('/servicos'),
-          ),
-          _DashboardAction(
-            title: 'Fiscalizacoes',
-            subtitle: 'Vistorias diarias por servico',
-            onTap: () => context.push('/fiscalizacoes'),
-          ),
-          _DashboardAction(
-            title: 'Medicoes',
-            subtitle: 'Progresso fisico por servico',
-            onTap: () => context.push('/medicoes'),
-          ),
-          _DashboardAction(
             title: 'Relatorios',
             subtitle: 'PDFs locais para compartilhar',
             onTap: () => context.push('/relatorios'),

@@ -13,7 +13,9 @@ import '../domain/vistoria_servico.dart';
 import 'fiscalizacoes_controller.dart';
 
 class FiscalizacoesPage extends ConsumerStatefulWidget {
-  const FiscalizacoesPage({super.key});
+  const FiscalizacoesPage({super.key, this.servicoId});
+
+  final String? servicoId;
 
   @override
   ConsumerState<FiscalizacoesPage> createState() => _FiscalizacoesPageState();
@@ -30,7 +32,7 @@ class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final servicoId = _servicoIdController.text.trim();
+    final servicoId = widget.servicoId ?? _servicoIdController.text.trim();
     final vistorias = servicoId.isEmpty
         ? const AsyncData(<VistoriaServico>[])
         : ref.watch(vistoriasServicoStreamProvider(servicoId));
@@ -46,21 +48,22 @@ class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
     return Scaffold(
       appBar: AppBar(
         leading: const AppBackButton(),
-        title: const Text('Fiscalizacoes'),
+        title: const Text('Fiscalizacoes do servico'),
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _servicoIdController,
-              decoration: const InputDecoration(
-                labelText: 'ID do servico',
-                border: OutlineInputBorder(),
+          if (widget.servicoId == null)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextField(
+                controller: _servicoIdController,
+                decoration: const InputDecoration(
+                  labelText: 'ID do servico',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) => setState(() {}),
               ),
-              onChanged: (_) => setState(() {}),
             ),
-          ),
           Expanded(
             child: vistorias.when(
               data: (items) => _FiscalizacoesList(vistorias: items),
@@ -232,15 +235,17 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
               ),
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: _obraIdController,
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'ID da obra',
-                border: OutlineInputBorder(),
+            if (widget.vistoria != null || widget.servicoId.isEmpty) ...[
+              TextField(
+                controller: _obraIdController,
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
+                  labelText: 'ID da obra',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
+            ],
             TextField(
               controller: _contratanteIdController,
               textInputAction: TextInputAction.next,

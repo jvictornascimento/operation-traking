@@ -102,7 +102,6 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
     String? comentario,
   }) async {
     final servicoIdNormalizado = servicoId.trim();
-    final obraIdNormalizado = obraId.trim();
     final contratanteIdNormalizado = contratanteId.trim();
     final responsavelIdNormalizado = responsavelId.trim();
     final numeroNormalizado = _normalizarTextoOpcional(numero);
@@ -115,7 +114,11 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
       return;
     }
 
-    if (obraIdNormalizado.isEmpty) {
+    final obraIdNormalizado = obraId.trim().isEmpty
+        ? await _repository.buscarObraIdDoServico(servicoIdNormalizado)
+        : obraId.trim();
+
+    if (obraIdNormalizado == null || obraIdNormalizado.isEmpty) {
       state = AsyncError(
         ArgumentError('Obra da fiscalizacao e obrigatoria.'),
         StackTrace.current,

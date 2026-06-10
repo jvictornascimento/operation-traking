@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
@@ -26,7 +27,10 @@ class ObrasPage extends ConsumerWidget {
         title: const Text('Obras'),
       ),
       body: obras.when(
-        data: (items) => _ObrasList(obras: items),
+        data: (items) => _ObrasList(
+          obras: items,
+          onEdit: (obra) => _abrirFormulario(context, obra: obra),
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => Center(
           child: Text('Erro ao carregar obras: $error'),
@@ -50,9 +54,13 @@ class ObrasPage extends ConsumerWidget {
 }
 
 class _ObrasList extends StatelessWidget {
-  const _ObrasList({required this.obras});
+  const _ObrasList({
+    required this.obras,
+    required this.onEdit,
+  });
 
   final List<Obra> obras;
+  final ValueChanged<Obra> onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -67,12 +75,12 @@ class _ObrasList extends StatelessWidget {
         return ListTile(
           title: Text(obra.nome),
           subtitle: Text(_subtitle(obra)),
-          trailing: const Icon(Icons.edit),
-          onTap: () => showModalBottomSheet<void>(
-            context: context,
-            isScrollControlled: true,
-            builder: (context) => _ObraForm(obra: obra),
+          trailing: IconButton(
+            tooltip: 'Editar obra',
+            icon: const Icon(Icons.edit),
+            onPressed: () => onEdit(obra),
           ),
+          onTap: () => context.push('/obras/${obra.id}/etapas'),
         );
       },
       separatorBuilder: (context, index) => const Divider(height: 1),

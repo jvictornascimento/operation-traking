@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
@@ -8,7 +9,9 @@ import '../domain/servico.dart';
 import 'servicos_controller.dart';
 
 class ServicosPage extends ConsumerStatefulWidget {
-  const ServicosPage({super.key});
+  const ServicosPage({super.key, this.etapaId});
+
+  final String? etapaId;
 
   @override
   ConsumerState<ServicosPage> createState() => _ServicosPageState();
@@ -25,7 +28,7 @@ class _ServicosPageState extends ConsumerState<ServicosPage> {
 
   @override
   Widget build(BuildContext context) {
-    final etapaId = _etapaIdController.text.trim();
+    final etapaId = widget.etapaId ?? _etapaIdController.text.trim();
     final servicos = etapaId.isEmpty
         ? const AsyncData(<Servico>[])
         : ref.watch(servicosEtapaStreamProvider(etapaId));
@@ -41,24 +44,32 @@ class _ServicosPageState extends ConsumerState<ServicosPage> {
     return Scaffold(
       appBar: AppBar(
         leading: const AppBackButton(),
-        title: const Text('Servicos'),
+        title: const Text('Servicos da etapa'),
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _etapaIdController,
-              decoration: const InputDecoration(
-                labelText: 'ID da etapa',
-                border: OutlineInputBorder(),
+          if (widget.etapaId == null)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextField(
+                controller: _etapaIdController,
+                decoration: const InputDecoration(
+                  labelText: 'ID da etapa',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) => setState(() {}),
               ),
-              onChanged: (_) => setState(() {}),
             ),
-          ),
           Expanded(
             child: servicos.when(
-              data: (items) => _ServicosList(servicos: items),
+              data: (items) => _ServicosList(
+                servicos: items,
+                onEdit: (servico) => _abrirFormulario(
+                  context,
+                  etapaId: servico.etapaId,
+                  servico: servico,
+                ),
+              ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stackTrace) => Center(
                 child: Text('Erro ao carregar servicos: $error'),
@@ -91,9 +102,13 @@ class _ServicosPageState extends ConsumerState<ServicosPage> {
 }
 
 class _ServicosList extends StatelessWidget {
-  const _ServicosList({required this.servicos});
+  const _ServicosList({
+    required this.servicos,
+    required this.onEdit,
+  });
 
   final List<Servico> servicos;
+  final ValueChanged<Servico> onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -108,14 +123,13 @@ class _ServicosList extends StatelessWidget {
         return ListTile(
           title: Text(servico.nome),
           subtitle: Text(_subtitle(servico)),
-          trailing: const Icon(Icons.edit),
-          onTap: () => showModalBottomSheet<void>(
-            context: context,
-            isScrollControlled: true,
-            builder: (context) => _ServicoForm(
-              etapaId: servico.etapaId,
-              servico: servico,
-            ),
+          trailing: IconButton(
+            tooltip: 'Editar servico',
+            icon: const Icon(Icons.edit),
+            onPressed: () => onEdit(servico),
+          ),
+          onTap: () => context.push(
+            '/etapas/${servico.etapaId}/servicos/${servico.id}/fiscalizacoes',
           ),
         );
       },
