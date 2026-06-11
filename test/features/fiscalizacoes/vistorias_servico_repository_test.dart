@@ -114,6 +114,36 @@ void main() {
       expect(rows.single.comentario, 'Atualizado em campo');
     });
 
+    test('registra historico quando status da vistoria muda', () async {
+      await repository.salvarVistoria(
+        _vistoria(
+          id: 'vistoria-1',
+          numero: '001',
+          data: DateTime(2026, 5, 20),
+        ),
+      );
+
+      await repository.salvarVistoria(
+        _vistoria(
+          id: 'vistoria-1',
+          numero: '001',
+          data: DateTime(2026, 5, 20),
+          status: StatusFiscalizacao.aprovada,
+        ),
+      );
+
+      final historicos =
+          await database.select(database.historicosAlteracao).get();
+
+      expect(historicos, hasLength(1));
+      expect(historicos.single.entidade, 'fiscalizacao');
+      expect(historicos.single.entidadeId, 'vistoria-1');
+      expect(historicos.single.campo, 'status');
+      expect(historicos.single.valorAnterior, 'emAndamento');
+      expect(historicos.single.valorNovo, 'aprovada');
+      expect(historicos.single.usuario, 'local');
+    });
+
     test('rejeita numero duplicado em vistorias diferentes', () async {
       await repository.salvarVistoria(
         _vistoria(
@@ -171,6 +201,7 @@ VistoriaServico _vistoria({
   required String numero,
   required DateTime data,
   String? comentario,
+  StatusFiscalizacao status = StatusFiscalizacao.emAndamento,
 }) {
   return VistoriaServico(
     id: id,
@@ -181,7 +212,7 @@ VistoriaServico _vistoria({
     numero: numero,
     data: data,
     diaSemana: data.weekday,
-    status: StatusFiscalizacao.emAndamento,
+    status: status,
     comentario: comentario,
   );
 }

@@ -107,6 +107,21 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
       await (_database.update(_database.vistoriasServico)
             ..where((table) => table.id.equals(vistoria.id)))
           .write(companion);
+
+      if (existente.status != vistoria.status.name) {
+        await _database.into(_database.historicosAlteracao).insert(
+              db.HistoricosAlteracaoCompanion.insert(
+                id: _novoHistoricoId(),
+                entidade: 'fiscalizacao',
+                entidadeId: vistoria.id,
+                campo: 'status',
+                valorAnterior: Value(existente.status),
+                valorNovo: Value(vistoria.status.name),
+                data: DateTime.now(),
+                usuario: const Value('local'),
+              ),
+            );
+      }
     });
   }
 
@@ -161,5 +176,9 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
 
   DateTime _normalizarData(DateTime data) {
     return DateTime(data.year, data.month, data.day);
+  }
+
+  String _novoHistoricoId() {
+    return 'historico-${DateTime.now().microsecondsSinceEpoch}';
   }
 }

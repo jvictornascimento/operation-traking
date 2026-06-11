@@ -167,6 +167,7 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
   late final TextEditingController _ocorrenciaController;
   late final TextEditingController _comentarioController;
   late DateTime _data;
+  late StatusFiscalizacao _status;
 
   @override
   void initState() {
@@ -183,6 +184,7 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
     _ocorrenciaController = TextEditingController(text: vistoria?.ocorrencia);
     _comentarioController = TextEditingController(text: vistoria?.comentario);
     _data = vistoria?.data ?? DateTime.now();
+    _status = vistoria?.status ?? StatusFiscalizacao.emAndamento;
   }
 
   @override
@@ -214,16 +216,32 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
               vistoria == null ? 'Nova fiscalizacao' : 'Editar fiscalizacao',
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Status: ${(vistoria?.status.name) ?? 'emAndamento'}',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
             const SizedBox(height: 16),
             _DateTile(
               label: 'Data',
               value: _data,
               onTap: _selecionarData,
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<StatusFiscalizacao>(
+              initialValue: _status,
+              decoration: const InputDecoration(
+                labelText: 'Status',
+                border: OutlineInputBorder(),
+              ),
+              items: StatusFiscalizacao.values
+                  .map(
+                    (status) => DropdownMenuItem(
+                      value: status,
+                      child: Text(status.name),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _status = value);
+                }
+              },
             ),
             const SizedBox(height: 12),
             TextField(
@@ -333,7 +351,7 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
           responsavelId: _responsavelIdController.text,
           numero: _numeroController.text,
           data: _data,
-          status: vistoria?.status,
+          status: _status,
           ocorrencia: _ocorrenciaController.text,
           comentario: _comentarioController.text,
         );
