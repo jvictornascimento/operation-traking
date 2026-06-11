@@ -40,11 +40,6 @@ class DashboardPage extends ConsumerWidget {
             subtitle: 'Clientes, responsaveis e contatos',
             onTap: () => context.push('/contratantes'),
           ),
-          _DashboardAction(
-            title: 'Relatorios',
-            subtitle: 'PDFs locais para compartilhar',
-            onTap: () => context.push('/relatorios'),
-          ),
         ],
       ),
     );
