@@ -7,6 +7,7 @@ import '../../../core/widgets/app_back_button.dart';
 import '../../cadastros/domain/funcionario.dart';
 import '../../medicoes/domain/medicao.dart';
 import '../../medicoes/presentation/medicoes_controller.dart';
+import '../../relatorios/presentation/relatorios_controller.dart';
 import '../domain/vistoria_mao_de_obra.dart';
 import '../domain/vistoria_periodo.dart';
 import '../domain/vistoria_servico.dart';
@@ -294,6 +295,8 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
               _MedicoesFiscalizacaoSection(
                 vistoriaServicoId: vistoria.id,
               ),
+              const SizedBox(height: 16),
+              _RelatorioFiscalizacaoSection(vistoriaServicoId: vistoria.id),
             ],
             const SizedBox(height: 16),
             FilledButton(
@@ -944,6 +947,50 @@ class _MedicoesFiscalizacaoList extends StatelessWidget {
     }
 
     return '$data | $observacao';
+  }
+}
+
+class _RelatorioFiscalizacaoSection extends ConsumerWidget {
+  const _RelatorioFiscalizacaoSection({required this.vistoriaServicoId});
+
+  final String vistoriaServicoId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(relatoriosControllerProvider);
+
+    ref.listen(relatoriosControllerProvider, (previous, next) {
+      final relatorio = next.valueOrNull;
+      if (next.hasError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error.toString())),
+        );
+        return;
+      }
+
+      if ((previous?.isLoading ?? false) && relatorio != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('PDF gerado: ${relatorio.caminhoArquivo}')),
+        );
+      }
+    });
+
+    return Align(
+      alignment: Alignment.centerRight,
+      child: FilledButton.icon(
+        onPressed: state.isLoading
+            ? null
+            : () {
+                ref
+                    .read(relatoriosControllerProvider.notifier)
+                    .gerarRelatorioFiscalizacao(vistoriaServicoId);
+              },
+        icon: const Icon(Icons.picture_as_pdf),
+        label: Text(
+          state.isLoading ? 'Gerando PDF...' : 'Gerar PDF da fiscalizacao',
+        ),
+      ),
+    );
   }
 }
 

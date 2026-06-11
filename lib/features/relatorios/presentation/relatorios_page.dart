@@ -17,11 +17,11 @@ class RelatoriosPage extends ConsumerStatefulWidget {
 }
 
 class _RelatoriosPageState extends ConsumerState<RelatoriosPage> {
-  final _obraIdController = TextEditingController();
+  final _fiscalizacaoIdController = TextEditingController();
 
   @override
   void dispose() {
-    _obraIdController.dispose();
+    _fiscalizacaoIdController.dispose();
     super.dispose();
   }
 
@@ -46,9 +46,9 @@ class _RelatoriosPageState extends ConsumerState<RelatoriosPage> {
         padding: const EdgeInsets.all(16),
         children: [
           TextField(
-            controller: _obraIdController,
+            controller: _fiscalizacaoIdController,
             decoration: const InputDecoration(
-              labelText: 'ID da obra',
+              labelText: 'ID da fiscalizacao',
               border: OutlineInputBorder(),
             ),
           ),
@@ -56,7 +56,9 @@ class _RelatoriosPageState extends ConsumerState<RelatoriosPage> {
           FilledButton.icon(
             onPressed: state.isLoading ? null : _gerarRelatorio,
             icon: const Icon(Icons.picture_as_pdf),
-            label: Text(state.isLoading ? 'Gerando...' : 'Gerar PDF'),
+            label: Text(
+              state.isLoading ? 'Gerando...' : 'Gerar PDF da fiscalizacao',
+            ),
           ),
           const SizedBox(height: 16),
           state.when(
@@ -78,7 +80,7 @@ class _RelatoriosPageState extends ConsumerState<RelatoriosPage> {
   Future<void> _gerarRelatorio() {
     return ref
         .read(relatoriosControllerProvider.notifier)
-        .gerarRelatorioObra(_obraIdController.text);
+        .gerarRelatorioFiscalizacao(_fiscalizacaoIdController.text);
   }
 }
 

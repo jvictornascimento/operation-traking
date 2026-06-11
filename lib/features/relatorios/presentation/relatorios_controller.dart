@@ -5,12 +5,18 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../core/database/database_provider.dart';
+import '../data/relatorio_fiscalizacao_repository.dart';
 import '../data/relatorio_obra_repository.dart';
 import '../data/relatorio_pdf_generator.dart';
 import '../domain/relatorio.dart';
 
 final relatorioObraRepositoryProvider = Provider<RelatorioObraRepository>(
   (ref) => DriftRelatorioObraRepository(ref.watch(appDatabaseProvider)),
+);
+
+final relatorioFiscalizacaoRepositoryProvider =
+    Provider<RelatorioFiscalizacaoRepository>(
+  (ref) => DriftRelatorioFiscalizacaoRepository(ref.watch(appDatabaseProvider)),
 );
 
 final relatorioPdfGeneratorProvider = Provider<RelatorioPdfGenerator>(
@@ -20,20 +26,24 @@ final relatorioPdfGeneratorProvider = Provider<RelatorioPdfGenerator>(
 final relatoriosControllerProvider =
     StateNotifierProvider<RelatoriosController, AsyncValue<Relatorio?>>((ref) {
   return RelatoriosController(
-    repository: ref.watch(relatorioObraRepositoryProvider),
+    obraRepository: ref.watch(relatorioObraRepositoryProvider),
+    fiscalizacaoRepository: ref.watch(relatorioFiscalizacaoRepositoryProvider),
     generator: ref.watch(relatorioPdfGeneratorProvider),
   );
 });
 
 class RelatoriosController extends StateNotifier<AsyncValue<Relatorio?>> {
   RelatoriosController({
-    required RelatorioObraRepository repository,
+    required RelatorioObraRepository obraRepository,
+    required RelatorioFiscalizacaoRepository fiscalizacaoRepository,
     required RelatorioPdfGenerator generator,
-  })  : _repository = repository,
+  })  : _obraRepository = obraRepository,
+        _fiscalizacaoRepository = fiscalizacaoRepository,
         _generator = generator,
         super(const AsyncData(null));
 
-  final RelatorioObraRepository _repository;
+  final RelatorioObraRepository _obraRepository;
+  final RelatorioFiscalizacaoRepository _fiscalizacaoRepository;
   final RelatorioPdfGenerator _generator;
 
   Future<void> gerarRelatorioObra(String obraId) async {
@@ -50,7 +60,9 @@ class RelatoriosController extends StateNotifier<AsyncValue<Relatorio?>> {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
-      final dados = await _repository.carregarDadosDaObra(obraIdNormalizado);
+      final dados = await _obraRepository.carregarDadosDaObra(
+        obraIdNormalizado,
+      );
       final bytes = await _generator.gerarRelatorioObra(dados);
       final criadoEm = DateTime.now();
       final id = 'relatorio-${criadoEm.microsecondsSinceEpoch}';
@@ -62,6 +74,41 @@ class RelatoriosController extends StateNotifier<AsyncValue<Relatorio?>> {
       return Relatorio(
         id: id,
         obraId: obraIdNormalizado,
+        criadoEm: criadoEm,
+        caminhoArquivo: caminhoArquivo,
+      );
+    });
+  }
+
+  Future<void> gerarRelatorioFiscalizacao(String vistoriaServicoId) async {
+    final vistoriaServicoIdNormalizado = vistoriaServicoId.trim();
+
+    if (vistoriaServicoIdNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Fiscalizacao do relatorio e obrigatoria.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      final dados = await _fiscalizacaoRepository.carregarDadosDaFiscalizacao(
+        vistoriaServicoIdNormalizado,
+      );
+      final bytes = await _generator.gerarRelatorioFiscalizacao(dados);
+      final criadoEm = DateTime.now();
+      final id = 'relatorio-fiscalizacao-${criadoEm.microsecondsSinceEpoch}';
+      final caminhoArquivo = await _salvarPdfLocal(
+        id: id,
+        bytes: bytes,
+      );
+
+      return Relatorio(
+        id: id,
+        obraId: dados.obra.id,
+        fiscalizacaoId: vistoriaServicoIdNormalizado,
         criadoEm: criadoEm,
         caminhoArquivo: caminhoArquivo,
       );
