@@ -2,12 +2,18 @@ import 'package:drift/drift.dart';
 
 import '../../../core/database/app_database.dart' as db;
 import '../../../core/domain/domain_enums.dart';
+import '../../cadastros/domain/endereco.dart';
 import '../domain/obra.dart';
 
 abstract class ObrasRepository {
   Stream<List<Obra>> watchObras();
 
   Future<void> salvarObra(Obra obra);
+
+  Future<void> salvarObraComEndereco({
+    required Obra obra,
+    required Endereco endereco,
+  });
 }
 
 class DriftObrasRepository implements ObrasRepository {
@@ -38,6 +44,33 @@ class DriftObrasRepository implements ObrasRepository {
             progressoPrazoDias: Value(obra.progressoPrazoDias),
           ),
         );
+  }
+
+  @override
+  Future<void> salvarObraComEndereco({
+    required Obra obra,
+    required Endereco endereco,
+  }) {
+    return _database.transaction(() async {
+      await _database.into(_database.enderecos).insertOnConflictUpdate(
+            db.EnderecosCompanion.insert(
+              id: endereco.id,
+              entidade: endereco.entidade.name,
+              entidadeId: endereco.entidadeId,
+              tipo: endereco.tipo,
+              cep: Value(endereco.cep),
+              logradouro: Value(endereco.logradouro),
+              numero: Value(endereco.numero),
+              complemento: Value(endereco.complemento),
+              bairro: Value(endereco.bairro),
+              cidade: endereco.cidade,
+              estado: endereco.estado,
+              pais: Value(endereco.pais),
+            ),
+          );
+
+      await salvarObra(obra);
+    });
   }
 
   Obra _mapObra(db.Obra row) {
