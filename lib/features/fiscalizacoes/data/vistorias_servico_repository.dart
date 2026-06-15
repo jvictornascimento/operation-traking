@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../../core/database/app_database.dart' as db;
 import '../../../core/domain/domain_enums.dart';
+import '../../historico/data/historicos_repository.dart';
 import '../domain/vistoria_servico.dart';
 
 abstract class VistoriasServicoRepository {
@@ -46,6 +47,10 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
   const DriftVistoriasServicoRepository(this._database);
 
   final db.AppDatabase _database;
+
+  DriftHistoricosRepository get _historicosRepository {
+    return DriftHistoricosRepository(_database);
+  }
 
   @override
   Stream<List<VistoriaServico>> watchVistoriasDoServico(String servicoId) {
@@ -115,7 +120,8 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
           .write(companion);
 
       if (existente.status != vistoria.status.name) {
-        await _registrarHistorico(
+        await _historicosRepository.registrarAlteracao(
+          entidade: 'fiscalizacao',
           entidadeId: vistoria.id,
           campo: 'status',
           valorAnterior: existente.status,
@@ -123,13 +129,15 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
         );
       }
 
-      await _registrarHistoricoSeAlterado(
+      await _historicosRepository.registrarAlteracaoSeMudou(
+        entidade: 'fiscalizacao',
         entidadeId: vistoria.id,
         campo: 'ocorrencia',
         valorAnterior: existente.ocorrencia,
         valorNovo: vistoria.ocorrencia,
       );
-      await _registrarHistoricoSeAlterado(
+      await _historicosRepository.registrarAlteracaoSeMudou(
+        entidade: 'fiscalizacao',
         entidadeId: vistoria.id,
         campo: 'comentario',
         valorAnterior: existente.comentario,
@@ -162,13 +170,15 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
         ),
       );
 
-      await _registrarHistoricoSeAlterado(
+      await _historicosRepository.registrarAlteracaoSeMudou(
+        entidade: 'fiscalizacao',
         entidadeId: id,
         campo: 'ocorrencia',
         valorAnterior: existente.ocorrencia,
         valorNovo: ocorrencia,
       );
-      await _registrarHistoricoSeAlterado(
+      await _historicosRepository.registrarAlteracaoSeMudou(
+        entidade: 'fiscalizacao',
         entidadeId: id,
         campo: 'comentario',
         valorAnterior: existente.comentario,
@@ -228,48 +238,6 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
 
   DateTime _normalizarData(DateTime data) {
     return DateTime(data.year, data.month, data.day);
-  }
-
-  Future<void> _registrarHistoricoSeAlterado({
-    required String entidadeId,
-    required String campo,
-    String? valorAnterior,
-    String? valorNovo,
-  }) async {
-    if (valorAnterior == valorNovo) {
-      return;
-    }
-
-    await _registrarHistorico(
-      entidadeId: entidadeId,
-      campo: campo,
-      valorAnterior: valorAnterior,
-      valorNovo: valorNovo,
-    );
-  }
-
-  Future<void> _registrarHistorico({
-    required String entidadeId,
-    required String campo,
-    String? valorAnterior,
-    String? valorNovo,
-  }) {
-    return _database.into(_database.historicosAlteracao).insert(
-          db.HistoricosAlteracaoCompanion.insert(
-            id: '${_novoHistoricoId()}-$campo',
-            entidade: 'fiscalizacao',
-            entidadeId: entidadeId,
-            campo: campo,
-            valorAnterior: Value(valorAnterior),
-            valorNovo: Value(valorNovo),
-            data: DateTime.now(),
-            usuario: const Value('local'),
-          ),
-        );
-  }
-
-  String _novoHistoricoId() {
-    return 'historico-${DateTime.now().microsecondsSinceEpoch}';
   }
 }
 

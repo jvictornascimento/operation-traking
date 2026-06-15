@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../../../core/database/app_database.dart' as db;
+import '../../historico/data/historicos_repository.dart';
 import '../domain/medicao.dart';
 
 abstract class MedicoesRepository {
@@ -28,6 +29,10 @@ class DriftMedicoesRepository implements MedicoesRepository {
   const DriftMedicoesRepository(this._database);
 
   final db.AppDatabase _database;
+
+  DriftHistoricosRepository get _historicosRepository {
+    return DriftHistoricosRepository(_database);
+  }
 
   @override
   Stream<List<Medicao>> watchMedicoesDoServico(String servicoId) {
@@ -90,21 +95,13 @@ class DriftMedicoesRepository implements MedicoesRepository {
         return;
       }
 
-      await _database.into(_database.historicosAlteracao).insert(
-            db.HistoricosAlteracaoCompanion.insert(
-              id: _novoHistoricoId(),
-              entidade: 'medicao',
-              entidadeId: medicao.id,
-              campo: 'percentualExecutado',
-              valorAnterior: Value(
-                _formatarPercentual(existente.percentualExecutado),
-              ),
-              valorNovo:
-                  Value(_formatarPercentual(medicao.percentualExecutado)),
-              data: DateTime.now(),
-              usuario: const Value('local'),
-            ),
-          );
+      await _historicosRepository.registrarAlteracao(
+        entidade: 'medicao',
+        entidadeId: medicao.id,
+        campo: 'percentualExecutado',
+        valorAnterior: _formatarPercentual(existente.percentualExecutado),
+        valorNovo: _formatarPercentual(medicao.percentualExecutado),
+      );
     });
   }
 
@@ -117,10 +114,6 @@ class DriftMedicoesRepository implements MedicoesRepository {
       observacao: row.observacao,
       data: row.data,
     );
-  }
-
-  String _novoHistoricoId() {
-    return 'historico-${DateTime.now().microsecondsSinceEpoch}-medicao';
   }
 
   String _formatarPercentual(double value) {

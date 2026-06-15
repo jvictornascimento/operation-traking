@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../../core/database/app_database.dart' as db;
 import '../../../core/domain/domain_enums.dart';
+import '../../historico/data/historicos_repository.dart';
 import '../domain/servico.dart';
 
 abstract class ServicosRepository {
@@ -19,6 +20,10 @@ class DriftServicosRepository implements ServicosRepository {
   const DriftServicosRepository(this._database);
 
   final db.AppDatabase _database;
+
+  DriftHistoricosRepository get _historicosRepository {
+    return DriftHistoricosRepository(_database);
+  }
 
   @override
   Stream<List<Servico>> watchServicosDaEtapa(String etapaId) {
@@ -53,13 +58,31 @@ class DriftServicosRepository implements ServicosRepository {
     required String id,
     required double progressoFisico,
   }) {
-    return (_database.update(_database.servicos)
-          ..where((table) => table.id.equals(id)))
-        .write(
-      db.ServicosCompanion(
-        progressoFisico: Value(progressoFisico),
-      ),
-    );
+    return _database.transaction(() async {
+      final existente = await (_database.select(_database.servicos)
+            ..where((table) => table.id.equals(id)))
+          .getSingleOrNull();
+
+      await (_database.update(_database.servicos)
+            ..where((table) => table.id.equals(id)))
+          .write(
+        db.ServicosCompanion(
+          progressoFisico: Value(progressoFisico),
+        ),
+      );
+
+      if (existente == null || existente.progressoFisico == progressoFisico) {
+        return;
+      }
+
+      await _historicosRepository.registrarAlteracao(
+        entidade: 'servico',
+        entidadeId: id,
+        campo: 'progressoFisico',
+        valorAnterior: _formatarPercentual(existente.progressoFisico),
+        valorNovo: _formatarPercentual(progressoFisico),
+      );
+    });
   }
 
   Servico _mapServico(db.Servico row) {
@@ -76,5 +99,9 @@ class DriftServicosRepository implements ServicosRepository {
       progressoFisico: row.progressoFisico,
       progressoPrazoDias: row.progressoPrazoDias,
     );
+  }
+
+  String _formatarPercentual(double value) {
+    return value.toStringAsFixed(2);
   }
 }
