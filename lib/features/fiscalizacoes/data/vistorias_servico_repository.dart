@@ -10,6 +10,12 @@ abstract class VistoriasServicoRepository {
   Future<String?> buscarObraIdDoServico(String servicoId);
 
   Future<void> salvarVistoria(VistoriaServico vistoria);
+
+  Future<void> atualizarTextosDaVistoria({
+    required String id,
+    String? ocorrencia,
+    String? comentario,
+  });
 }
 
 class VistoriaServicoDuplicadaException implements Exception {
@@ -109,19 +115,65 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
           .write(companion);
 
       if (existente.status != vistoria.status.name) {
-        await _database.into(_database.historicosAlteracao).insert(
-              db.HistoricosAlteracaoCompanion.insert(
-                id: _novoHistoricoId(),
-                entidade: 'fiscalizacao',
-                entidadeId: vistoria.id,
-                campo: 'status',
-                valorAnterior: Value(existente.status),
-                valorNovo: Value(vistoria.status.name),
-                data: DateTime.now(),
-                usuario: const Value('local'),
-              ),
-            );
+        await _registrarHistorico(
+          entidadeId: vistoria.id,
+          campo: 'status',
+          valorAnterior: existente.status,
+          valorNovo: vistoria.status.name,
+        );
       }
+
+      await _registrarHistoricoSeAlterado(
+        entidadeId: vistoria.id,
+        campo: 'ocorrencia',
+        valorAnterior: existente.ocorrencia,
+        valorNovo: vistoria.ocorrencia,
+      );
+      await _registrarHistoricoSeAlterado(
+        entidadeId: vistoria.id,
+        campo: 'comentario',
+        valorAnterior: existente.comentario,
+        valorNovo: vistoria.comentario,
+      );
+    });
+  }
+
+  @override
+  Future<void> atualizarTextosDaVistoria({
+    required String id,
+    String? ocorrencia,
+    String? comentario,
+  }) {
+    return _database.transaction(() async {
+      final existente = await (_database.select(_database.vistoriasServico)
+            ..where((table) => table.id.equals(id)))
+          .getSingleOrNull();
+
+      if (existente == null) {
+        throw VistoriaServicoNaoEncontradaException(id);
+      }
+
+      await (_database.update(_database.vistoriasServico)
+            ..where((table) => table.id.equals(id)))
+          .write(
+        db.VistoriasServicoCompanion(
+          ocorrencia: Value(ocorrencia),
+          comentario: Value(comentario),
+        ),
+      );
+
+      await _registrarHistoricoSeAlterado(
+        entidadeId: id,
+        campo: 'ocorrencia',
+        valorAnterior: existente.ocorrencia,
+        valorNovo: ocorrencia,
+      );
+      await _registrarHistoricoSeAlterado(
+        entidadeId: id,
+        campo: 'comentario',
+        valorAnterior: existente.comentario,
+        valorNovo: comentario,
+      );
     });
   }
 
@@ -178,7 +230,56 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
     return DateTime(data.year, data.month, data.day);
   }
 
+  Future<void> _registrarHistoricoSeAlterado({
+    required String entidadeId,
+    required String campo,
+    String? valorAnterior,
+    String? valorNovo,
+  }) async {
+    if (valorAnterior == valorNovo) {
+      return;
+    }
+
+    await _registrarHistorico(
+      entidadeId: entidadeId,
+      campo: campo,
+      valorAnterior: valorAnterior,
+      valorNovo: valorNovo,
+    );
+  }
+
+  Future<void> _registrarHistorico({
+    required String entidadeId,
+    required String campo,
+    String? valorAnterior,
+    String? valorNovo,
+  }) {
+    return _database.into(_database.historicosAlteracao).insert(
+          db.HistoricosAlteracaoCompanion.insert(
+            id: '${_novoHistoricoId()}-$campo',
+            entidade: 'fiscalizacao',
+            entidadeId: entidadeId,
+            campo: campo,
+            valorAnterior: Value(valorAnterior),
+            valorNovo: Value(valorNovo),
+            data: DateTime.now(),
+            usuario: const Value('local'),
+          ),
+        );
+  }
+
   String _novoHistoricoId() {
     return 'historico-${DateTime.now().microsecondsSinceEpoch}';
+  }
+}
+
+class VistoriaServicoNaoEncontradaException implements Exception {
+  const VistoriaServicoNaoEncontradaException(this.id);
+
+  final String id;
+
+  @override
+  String toString() {
+    return 'Fiscalizacao $id nao encontrada.';
   }
 }

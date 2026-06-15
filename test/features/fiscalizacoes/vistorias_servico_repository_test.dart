@@ -144,6 +144,70 @@ void main() {
       expect(historicos.single.usuario, 'local');
     });
 
+    test('atualiza textos da vistoria e registra historico', () async {
+      await repository.salvarVistoria(
+        _vistoria(
+          id: 'vistoria-1',
+          numero: '001',
+          data: DateTime(2026, 5, 20),
+          ocorrencia: 'Sem ocorrencias',
+          comentario: 'Inicio do dia',
+        ),
+      );
+
+      await repository.atualizarTextosDaVistoria(
+        id: 'vistoria-1',
+        ocorrencia: 'Chuva forte',
+        comentario: 'Servico pausado',
+      );
+
+      final rows = await database.select(database.vistoriasServico).get();
+      expect(rows.single.ocorrencia, 'Chuva forte');
+      expect(rows.single.comentario, 'Servico pausado');
+
+      final historicos =
+          await database.select(database.historicosAlteracao).get();
+      expect(historicos, hasLength(2));
+      expect(
+        historicos.map((historico) => historico.campo),
+        containsAll(['ocorrencia', 'comentario']),
+      );
+
+      final ocorrencia = historicos.singleWhere(
+        (historico) => historico.campo == 'ocorrencia',
+      );
+      expect(ocorrencia.valorAnterior, 'Sem ocorrencias');
+      expect(ocorrencia.valorNovo, 'Chuva forte');
+
+      final comentario = historicos.singleWhere(
+        (historico) => historico.campo == 'comentario',
+      );
+      expect(comentario.valorAnterior, 'Inicio do dia');
+      expect(comentario.valorNovo, 'Servico pausado');
+    });
+
+    test('nao registra historico quando textos nao mudam', () async {
+      await repository.salvarVistoria(
+        _vistoria(
+          id: 'vistoria-1',
+          numero: '001',
+          data: DateTime(2026, 5, 20),
+          ocorrencia: 'Sem ocorrencias',
+          comentario: 'Inicio do dia',
+        ),
+      );
+
+      await repository.atualizarTextosDaVistoria(
+        id: 'vistoria-1',
+        ocorrencia: 'Sem ocorrencias',
+        comentario: 'Inicio do dia',
+      );
+
+      final historicos =
+          await database.select(database.historicosAlteracao).get();
+      expect(historicos, isEmpty);
+    });
+
     test('rejeita numero duplicado em vistorias diferentes', () async {
       await repository.salvarVistoria(
         _vistoria(
@@ -200,6 +264,7 @@ VistoriaServico _vistoria({
   required String id,
   required String numero,
   required DateTime data,
+  String? ocorrencia,
   String? comentario,
   StatusFiscalizacao status = StatusFiscalizacao.emAndamento,
 }) {
@@ -213,6 +278,7 @@ VistoriaServico _vistoria({
     data: data,
     diaSemana: data.weekday,
     status: status,
+    ocorrencia: ocorrencia,
     comentario: comentario,
   );
 }

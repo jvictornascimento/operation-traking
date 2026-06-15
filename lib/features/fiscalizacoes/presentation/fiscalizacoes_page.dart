@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -168,6 +170,10 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
   late final TextEditingController _comentarioController;
   late DateTime _data;
   late StatusFiscalizacao _status;
+  Timer? _autoSaveTimer;
+  String? _ultimaOcorrenciaSalva;
+  String? _ultimoComentarioSalvo;
+  _AutoSaveStatus _autoSaveStatus = _AutoSaveStatus.salvo;
 
   @override
   void initState() {
@@ -185,10 +191,18 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
     _comentarioController = TextEditingController(text: vistoria?.comentario);
     _data = vistoria?.data ?? DateTime.now();
     _status = vistoria?.status ?? StatusFiscalizacao.emAndamento;
+    _ultimaOcorrenciaSalva = _normalizarTextoOpcional(vistoria?.ocorrencia);
+    _ultimoComentarioSalvo = _normalizarTextoOpcional(vistoria?.comentario);
+
+    if (vistoria != null) {
+      _ocorrenciaController.addListener(_agendarAutoSaveTextos);
+      _comentarioController.addListener(_agendarAutoSaveTextos);
+    }
   }
 
   @override
   void dispose() {
+    _autoSaveTimer?.cancel();
     _obraIdController.dispose();
     _contratanteIdController.dispose();
     _responsavelIdController.dispose();
@@ -305,6 +319,10 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
               ),
             ),
             if (vistoria != null) ...[
+              const SizedBox(height: 8),
+              _AutoSaveTextStatus(status: _autoSaveStatus),
+            ],
+            if (vistoria != null) ...[
               const SizedBox(height: 16),
               _PeriodosSection(vistoriaServicoId: vistoria.id),
               const SizedBox(height: 16),
@@ -364,6 +382,125 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
     if (!state.hasError) {
       Navigator.of(context).pop();
     }
+  }
+
+  void _agendarAutoSaveTextos() {
+    final ocorrencia = _normalizarTextoOpcional(_ocorrenciaController.text);
+    final comentario = _normalizarTextoOpcional(_comentarioController.text);
+
+    if (ocorrencia == _ultimaOcorrenciaSalva &&
+        comentario == _ultimoComentarioSalvo) {
+      return;
+    }
+
+    _autoSaveTimer?.cancel();
+    setState(() => _autoSaveStatus = _AutoSaveStatus.pendente);
+    _autoSaveTimer = Timer(
+      const Duration(milliseconds: 800),
+      _salvarTextosAutomaticamente,
+    );
+  }
+
+  Future<void> _salvarTextosAutomaticamente() async {
+    final vistoria = widget.vistoria;
+    if (vistoria == null) {
+      return;
+    }
+
+    final ocorrencia = _normalizarTextoOpcional(_ocorrenciaController.text);
+    final comentario = _normalizarTextoOpcional(_comentarioController.text);
+
+    if (ocorrencia == _ultimaOcorrenciaSalva &&
+        comentario == _ultimoComentarioSalvo) {
+      if (mounted) {
+        setState(() => _autoSaveStatus = _AutoSaveStatus.salvo);
+      }
+      return;
+    }
+
+    if (mounted) {
+      setState(() => _autoSaveStatus = _AutoSaveStatus.salvando);
+    }
+
+    await ref.read(fiscalizacoesControllerProvider.notifier).salvarTextos(
+          id: vistoria.id,
+          ocorrencia: ocorrencia,
+          comentario: comentario,
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    final state = ref.read(fiscalizacoesControllerProvider);
+    if (state.hasError) {
+      setState(() => _autoSaveStatus = _AutoSaveStatus.erro);
+      return;
+    }
+
+    _ultimaOcorrenciaSalva = ocorrencia;
+    _ultimoComentarioSalvo = comentario;
+    setState(() => _autoSaveStatus = _AutoSaveStatus.salvo);
+  }
+
+  String? _normalizarTextoOpcional(String? value) {
+    final texto = value?.trim();
+    if (texto == null || texto.isEmpty) {
+      return null;
+    }
+    return texto;
+  }
+}
+
+enum _AutoSaveStatus {
+  salvo,
+  pendente,
+  salvando,
+  erro,
+}
+
+class _AutoSaveTextStatus extends StatelessWidget {
+  const _AutoSaveTextStatus({required this.status});
+
+  final _AutoSaveStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final (icon, label, color) = switch (status) {
+      _AutoSaveStatus.salvo => (
+          Icons.check_circle_outline,
+          'Textos salvos',
+          colorScheme.primary,
+        ),
+      _AutoSaveStatus.pendente => (
+          Icons.schedule,
+          'Salvamento pendente',
+          colorScheme.secondary,
+        ),
+      _AutoSaveStatus.salvando => (
+          Icons.sync,
+          'Salvando textos...',
+          colorScheme.secondary,
+        ),
+      _AutoSaveStatus.erro => (
+          Icons.error_outline,
+          'Erro ao salvar textos',
+          colorScheme.error,
+        ),
+    };
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
+        ),
+      ],
+    );
   }
 }
 

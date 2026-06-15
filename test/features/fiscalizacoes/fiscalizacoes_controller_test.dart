@@ -156,6 +156,35 @@ void main() {
       expect(repository.vistorias.single.status, StatusFiscalizacao.aprovada);
       expect(repository.vistorias.single.comentario, 'Revisado');
     });
+
+    test('salva textos da vistoria existente sem exigir botao salvar',
+        () async {
+      final repository = _FakeVistoriasServicoRepository();
+      final controller = FiscalizacoesController(repository);
+
+      await controller.salvar(
+        id: 'vistoria-1',
+        servicoId: 'servico-1',
+        obraId: 'obra-1',
+        contratanteId: 'contratante-1',
+        responsavelId: 'responsavel-1',
+        numero: '001',
+        data: DateTime(2026, 5, 20),
+      );
+
+      await controller.salvarTextos(
+        id: ' vistoria-1 ',
+        ocorrencia: ' Sem acesso ao pavimento ',
+        comentario: ' Equipe reprogramou a atividade ',
+      );
+
+      expect(controller.state, isA<AsyncData<void>>());
+      expect(repository.vistorias.single.ocorrencia, 'Sem acesso ao pavimento');
+      expect(
+        repository.vistorias.single.comentario,
+        'Equipe reprogramou a atividade',
+      );
+    });
   });
 }
 
@@ -177,6 +206,33 @@ class _FakeVistoriasServicoRepository implements VistoriasServicoRepository {
     }
 
     vistorias[index] = vistoria;
+  }
+
+  @override
+  Future<void> atualizarTextosDaVistoria({
+    required String id,
+    String? ocorrencia,
+    String? comentario,
+  }) async {
+    final index = vistorias.indexWhere((item) => item.id == id);
+    if (index == -1) {
+      return;
+    }
+
+    final vistoria = vistorias[index];
+    vistorias[index] = VistoriaServico(
+      id: vistoria.id,
+      servicoId: vistoria.servicoId,
+      obraId: vistoria.obraId,
+      contratanteId: vistoria.contratanteId,
+      responsavelId: vistoria.responsavelId,
+      numero: vistoria.numero,
+      data: vistoria.data,
+      diaSemana: vistoria.diaSemana,
+      status: vistoria.status,
+      ocorrencia: ocorrencia?.trim(),
+      comentario: comentario?.trim(),
+    );
   }
 
   @override

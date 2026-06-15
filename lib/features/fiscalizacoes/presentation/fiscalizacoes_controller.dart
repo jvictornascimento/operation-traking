@@ -166,6 +166,32 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
     });
   }
 
+  Future<void> salvarTextos({
+    required String id,
+    String? ocorrencia,
+    String? comentario,
+  }) async {
+    final idNormalizado = id.trim();
+
+    if (idNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Fiscalizacao e obrigatoria para salvar textos.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() {
+      return _repository.atualizarTextosDaVistoria(
+        id: idNormalizado,
+        ocorrencia: _normalizarTextoOpcional(ocorrencia),
+        comentario: _normalizarTextoOpcional(comentario),
+      );
+    });
+  }
+
   String _novoId() {
     return 'vistoria-${DateTime.now().microsecondsSinceEpoch}';
   }
