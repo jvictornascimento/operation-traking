@@ -69,16 +69,43 @@ class DriftMedicoesRepository implements MedicoesRepository {
       throw PercentualMedicaoInvalidoException(medicao.percentualExecutado);
     }
 
-    return _database.into(_database.medicoes).insertOnConflictUpdate(
-          db.MedicoesCompanion.insert(
-            id: medicao.id,
-            servicoId: medicao.servicoId,
-            percentualExecutado: medicao.percentualExecutado,
-            data: medicao.data,
-            vistoriaServicoId: Value(medicao.vistoriaServicoId),
-            observacao: Value(medicao.observacao),
-          ),
-        );
+    return _database.transaction(() async {
+      final existente = await (_database.select(_database.medicoes)
+            ..where((table) => table.id.equals(medicao.id)))
+          .getSingleOrNull();
+
+      await _database.into(_database.medicoes).insertOnConflictUpdate(
+            db.MedicoesCompanion.insert(
+              id: medicao.id,
+              servicoId: medicao.servicoId,
+              percentualExecutado: medicao.percentualExecutado,
+              data: medicao.data,
+              vistoriaServicoId: Value(medicao.vistoriaServicoId),
+              observacao: Value(medicao.observacao),
+            ),
+          );
+
+      if (existente == null ||
+          existente.percentualExecutado == medicao.percentualExecutado) {
+        return;
+      }
+
+      await _database.into(_database.historicosAlteracao).insert(
+            db.HistoricosAlteracaoCompanion.insert(
+              id: _novoHistoricoId(),
+              entidade: 'medicao',
+              entidadeId: medicao.id,
+              campo: 'percentualExecutado',
+              valorAnterior: Value(
+                _formatarPercentual(existente.percentualExecutado),
+              ),
+              valorNovo:
+                  Value(_formatarPercentual(medicao.percentualExecutado)),
+              data: DateTime.now(),
+              usuario: const Value('local'),
+            ),
+          );
+    });
   }
 
   Medicao _mapMedicao(db.Medicoe row) {
@@ -90,5 +117,13 @@ class DriftMedicoesRepository implements MedicoesRepository {
       observacao: row.observacao,
       data: row.data,
     );
+  }
+
+  String _novoHistoricoId() {
+    return 'historico-${DateTime.now().microsecondsSinceEpoch}-medicao';
+  }
+
+  String _formatarPercentual(double value) {
+    return value.toStringAsFixed(2);
   }
 }

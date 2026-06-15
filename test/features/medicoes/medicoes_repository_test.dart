@@ -92,6 +92,70 @@ void main() {
       expect(rows.single.observacao, 'Revisado');
     });
 
+    test('nao registra historico ao criar medicao', () async {
+      await repository.salvarMedicao(
+        _medicao(
+          id: 'medicao-1',
+          percentualExecutado: 25,
+        ),
+      );
+
+      final historicos =
+          await database.select(database.historicosAlteracao).get();
+
+      expect(historicos, isEmpty);
+    });
+
+    test('registra historico quando percentual da medicao muda', () async {
+      await repository.salvarMedicao(
+        _medicao(
+          id: 'medicao-1',
+          percentualExecutado: 25,
+        ),
+      );
+      await repository.salvarMedicao(
+        _medicao(
+          id: 'medicao-1',
+          percentualExecutado: 60.5,
+          observacao: 'Revisado',
+        ),
+      );
+
+      final historicos =
+          await database.select(database.historicosAlteracao).get();
+
+      expect(historicos, hasLength(1));
+      expect(historicos.single.entidade, 'medicao');
+      expect(historicos.single.entidadeId, 'medicao-1');
+      expect(historicos.single.campo, 'percentualExecutado');
+      expect(historicos.single.valorAnterior, '25.00');
+      expect(historicos.single.valorNovo, '60.50');
+      expect(historicos.single.usuario, 'local');
+    });
+
+    test('nao registra historico quando percentual da medicao nao muda',
+        () async {
+      await repository.salvarMedicao(
+        _medicao(
+          id: 'medicao-1',
+          percentualExecutado: 25,
+          observacao: 'Inicial',
+        ),
+      );
+      await repository.salvarMedicao(
+        _medicao(
+          id: 'medicao-1',
+          percentualExecutado: 25,
+          observacao: 'Somente observacao revisada',
+        ),
+      );
+
+      final historicos =
+          await database.select(database.historicosAlteracao).get();
+
+      expect(historicos, isEmpty);
+    });
+
     test('salva e lista medicao vinculada a fiscalizacao', () async {
       await repository.salvarMedicao(
         _medicao(
