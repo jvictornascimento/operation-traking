@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/widgets/app_back_button.dart';
@@ -114,7 +115,19 @@ class _MedicoesList extends StatelessWidget {
         return ListTile(
           title: Text('${medicao.percentualExecutado}% executado'),
           subtitle: Text(_subtitle(medicao)),
-          trailing: const Icon(Icons.edit),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: 'Historico da medicao',
+                icon: const Icon(Icons.history),
+                onPressed: () {
+                  context.push(_historicoPath('medicao', medicao.id));
+                },
+              ),
+              const Icon(Icons.edit),
+            ],
+          ),
           onTap: () => showModalBottomSheet<void>(
             context: context,
             isScrollControlled: true,
@@ -143,6 +156,11 @@ class _MedicoesList extends StatelessWidget {
   String _formatarData(DateTime data) {
     return '${data.day}/${data.month}/${data.year}';
   }
+}
+
+String _historicoPath(String entidade, String entidadeId) {
+  return '/historico/${Uri.encodeComponent(entidade)}/'
+      '${Uri.encodeComponent(entidadeId)}';
 }
 
 class _MedicaoForm extends ConsumerStatefulWidget {

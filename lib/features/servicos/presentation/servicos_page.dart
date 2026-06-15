@@ -123,10 +123,22 @@ class _ServicosList extends StatelessWidget {
         return ListTile(
           title: Text(servico.nome),
           subtitle: Text(_subtitle(servico)),
-          trailing: IconButton(
-            tooltip: 'Editar servico',
-            icon: const Icon(Icons.edit),
-            onPressed: () => onEdit(servico),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: 'Historico do servico',
+                icon: const Icon(Icons.history),
+                onPressed: () {
+                  context.push(_historicoPath('servico', servico.id));
+                },
+              ),
+              IconButton(
+                tooltip: 'Editar servico',
+                icon: const Icon(Icons.edit),
+                onPressed: () => onEdit(servico),
+              ),
+            ],
           ),
           onTap: () => context.push(
             '/etapas/${servico.etapaId}/servicos/${servico.id}/fiscalizacoes',
@@ -149,6 +161,11 @@ class _ServicosList extends StatelessWidget {
     return '${servico.status.name} | $prazoTexto | '
         '${servico.quantidade} ${servico.unidade}';
   }
+}
+
+String _historicoPath(String entidade, String entidadeId) {
+  return '/historico/${Uri.encodeComponent(entidade)}/'
+      '${Uri.encodeComponent(entidadeId)}';
 }
 
 class _ServicoForm extends ConsumerStatefulWidget {

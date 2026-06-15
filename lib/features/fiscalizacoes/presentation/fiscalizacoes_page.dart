@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
@@ -122,7 +123,19 @@ class _FiscalizacoesList extends StatelessWidget {
         return ListTile(
           title: Text(vistoria.numero),
           subtitle: Text(_subtitle(vistoria)),
-          trailing: const Icon(Icons.edit),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: 'Historico da fiscalizacao',
+                icon: const Icon(Icons.history),
+                onPressed: () {
+                  context.push(_historicoPath('fiscalizacao', vistoria.id));
+                },
+              ),
+              const Icon(Icons.edit),
+            ],
+          ),
           onTap: () => showModalBottomSheet<void>(
             context: context,
             isScrollControlled: true,
@@ -146,6 +159,11 @@ class _FiscalizacoesList extends StatelessWidget {
   String _formatarData(DateTime data) {
     return '${data.day}/${data.month}/${data.year}';
   }
+}
+
+String _historicoPath(String entidade, String entidadeId) {
+  return '/historico/${Uri.encodeComponent(entidade)}/'
+      '${Uri.encodeComponent(entidadeId)}';
 }
 
 class _FiscalizacaoForm extends ConsumerStatefulWidget {
@@ -1086,7 +1104,19 @@ class _MedicoesFiscalizacaoList extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             title: Text('${medicao.percentualExecutado}% executado'),
             subtitle: Text(_subtitle(medicao)),
-            trailing: const Icon(Icons.edit),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: 'Historico da medicao',
+                  icon: const Icon(Icons.history),
+                  onPressed: () {
+                    context.push(_historicoPath('medicao', medicao.id));
+                  },
+                ),
+                const Icon(Icons.edit),
+              ],
+            ),
             onTap: () => onSelect(medicao),
           ),
       ],

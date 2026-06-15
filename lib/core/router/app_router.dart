@@ -5,6 +5,7 @@ import '../../features/cadastros/presentation/empresas_page.dart';
 import '../../features/dashboard/presentation/dashboard_page.dart';
 import '../../features/etapas/presentation/etapas_page.dart';
 import '../../features/fiscalizacoes/presentation/fiscalizacoes_page.dart';
+import '../../features/historico/presentation/historico_page.dart';
 import '../../features/medicoes/presentation/medicoes_page.dart';
 import '../../features/obras/presentation/obras_page.dart';
 import '../../features/servicos/presentation/servicos_page.dart';
@@ -74,6 +75,20 @@ final appRouter = GoRouter(
       name: 'medicoes',
       path: '/medicoes',
       builder: (context, state) => const MedicoesPage(),
+    ),
+    GoRoute(
+      name: 'historico-entidade',
+      path: '/historico/:entidade/:entidadeId',
+      builder: (context, state) {
+        return HistoricoPage(
+          entidade: Uri.decodeComponent(
+            state.pathParameters['entidade'] ?? '',
+          ),
+          entidadeId: Uri.decodeComponent(
+            state.pathParameters['entidadeId'] ?? '',
+          ),
+        );
+      },
     ),
   ],
 );
