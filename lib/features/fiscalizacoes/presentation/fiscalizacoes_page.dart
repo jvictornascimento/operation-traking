@@ -325,6 +325,7 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
   late DateTime _data;
   late StatusFiscalizacao _status;
   Timer? _autoSaveTimer;
+  String? _vistoriaCriadaId;
   String? _ultimaOcorrenciaSalva;
   String? _ultimoComentarioSalvo;
   _AutoSaveStatus _autoSaveStatus = _AutoSaveStatus.salvo;
@@ -370,6 +371,8 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
   Widget build(BuildContext context) {
     final saving = ref.watch(fiscalizacoesControllerProvider).isLoading;
     final vistoria = widget.vistoria;
+    final vistoriaServicoId = _vistoriaServicoIdAtual;
+    final fiscalizacaoSalva = vistoriaServicoId != null;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -472,21 +475,23 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
                 border: OutlineInputBorder(),
               ),
             ),
-            if (vistoria != null) ...[
+            if (fiscalizacaoSalva) ...[
               const SizedBox(height: 8),
               _AutoSaveTextStatus(status: _autoSaveStatus),
             ],
-            if (vistoria != null) ...[
+            if (fiscalizacaoSalva) ...[
               const SizedBox(height: 16),
-              _PeriodosSection(vistoriaServicoId: vistoria.id),
+              _PeriodosSection(vistoriaServicoId: vistoriaServicoId),
               const SizedBox(height: 16),
-              _MaoDeObraSection(vistoriaServicoId: vistoria.id),
+              _MaoDeObraSection(vistoriaServicoId: vistoriaServicoId),
               const SizedBox(height: 16),
               _MedicoesFiscalizacaoSection(
-                vistoriaServicoId: vistoria.id,
+                vistoriaServicoId: vistoriaServicoId,
               ),
               const SizedBox(height: 16),
-              _RelatorioFiscalizacaoSection(vistoriaServicoId: vistoria.id),
+              _RelatorioFiscalizacaoSection(
+                vistoriaServicoId: vistoriaServicoId,
+              ),
             ],
             const SizedBox(height: 16),
             FilledButton(
@@ -514,9 +519,11 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
 
   Future<void> _salvar() async {
     final vistoria = widget.vistoria;
+    final novaFiscalizacao = vistoria == null && _vistoriaCriadaId == null;
+    final id = vistoria?.id ?? _vistoriaCriadaId ?? _novoId();
 
     await ref.read(fiscalizacoesControllerProvider.notifier).salvar(
-          id: vistoria?.id,
+          id: id,
           servicoId: widget.servicoId,
           obraId: _obraIdController.text,
           contratanteId: _contratanteIdController.text,
@@ -534,6 +541,20 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
 
     final state = ref.read(fiscalizacoesControllerProvider);
     if (!state.hasError) {
+      if (novaFiscalizacao) {
+        setState(() {
+          _vistoriaCriadaId = id;
+          _autoSaveStatus = _AutoSaveStatus.salvo;
+          _ultimaOcorrenciaSalva =
+              _normalizarTextoOpcional(_ocorrenciaController.text);
+          _ultimoComentarioSalvo =
+              _normalizarTextoOpcional(_comentarioController.text);
+        });
+        _ocorrenciaController.addListener(_agendarAutoSaveTextos);
+        _comentarioController.addListener(_agendarAutoSaveTextos);
+        return;
+      }
+
       Navigator.of(context).pop();
     }
   }
@@ -556,8 +577,8 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
   }
 
   Future<void> _salvarTextosAutomaticamente() async {
-    final vistoria = widget.vistoria;
-    if (vistoria == null) {
+    final vistoriaServicoId = _vistoriaServicoIdAtual;
+    if (vistoriaServicoId == null) {
       return;
     }
 
@@ -577,7 +598,7 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
     }
 
     await ref.read(fiscalizacoesControllerProvider.notifier).salvarTextos(
-          id: vistoria.id,
+          id: vistoriaServicoId,
           ocorrencia: ocorrencia,
           comentario: comentario,
         );
@@ -603,6 +624,13 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
       return null;
     }
     return texto;
+  }
+
+  String? get _vistoriaServicoIdAtual =>
+      widget.vistoria?.id ?? _vistoriaCriadaId;
+
+  String _novoId() {
+    return 'vistoria-${DateTime.now().microsecondsSinceEpoch}';
   }
 }
 

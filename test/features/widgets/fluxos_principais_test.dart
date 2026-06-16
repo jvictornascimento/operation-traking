@@ -146,7 +146,7 @@ void main() {
       await tester.enterText(_field('Comentario'), 'Servico liberado');
       await _scrollUntilText(tester, 'Salvar');
       await tester.tap(find.text('Salvar'));
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       expect(fiscalizacoesRepository.vistorias, hasLength(1));
       expect(fiscalizacoesRepository.vistorias.single.servicoId, 'servico-1');
