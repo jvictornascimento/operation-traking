@@ -35,8 +35,11 @@ class DriftObrasRepository implements ObrasRepository {
           db.ObrasCompanion.insert(
             id: obra.id,
             empresaId: obra.empresaId,
+            contratanteId: Value(obra.contratanteId),
             enderecoId: obra.enderecoId,
             nome: obra.nome,
+            responsavelNome: Value(obra.responsavelNome),
+            responsavelContato: Value(obra.responsavelContato),
             dataInicio: obra.dataInicio,
             dataFim: obra.dataFim,
             status: obra.status.name,
@@ -77,8 +80,11 @@ class DriftObrasRepository implements ObrasRepository {
     return Obra(
       id: row.id,
       empresaId: row.empresaId,
+      contratanteId: row.contratanteId,
       enderecoId: row.enderecoId,
       nome: row.nome,
+      responsavelNome: row.responsavelNome,
+      responsavelContato: row.responsavelContato,
       dataInicio: row.dataInicio,
       dataFim: row.dataFim,
       status: StatusExecucao.values.byName(row.status),

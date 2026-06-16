@@ -1833,6 +1833,15 @@ class $ObrasTable extends Obras with TableInfo<$ObrasTable, Obra> {
       requiredDuringInsert: true,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('REFERENCES empresas (id)'));
+  static const VerificationMeta _contratanteIdMeta =
+      const VerificationMeta('contratanteId');
+  @override
+  late final GeneratedColumn<String> contratanteId = GeneratedColumn<String>(
+      'contratante_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES contratantes (id)'));
   static const VerificationMeta _enderecoIdMeta =
       const VerificationMeta('enderecoId');
   @override
@@ -1847,6 +1856,18 @@ class $ObrasTable extends Obras with TableInfo<$ObrasTable, Obra> {
   late final GeneratedColumn<String> nome = GeneratedColumn<String>(
       'nome', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _responsavelNomeMeta =
+      const VerificationMeta('responsavelNome');
+  @override
+  late final GeneratedColumn<String> responsavelNome = GeneratedColumn<String>(
+      'responsavel_nome', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _responsavelContatoMeta =
+      const VerificationMeta('responsavelContato');
+  @override
+  late final GeneratedColumn<String> responsavelContato =
+      GeneratedColumn<String>('responsavel_contato', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _dataInicioMeta =
       const VerificationMeta('dataInicio');
   @override
@@ -1884,8 +1905,11 @@ class $ObrasTable extends Obras with TableInfo<$ObrasTable, Obra> {
   List<GeneratedColumn> get $columns => [
         id,
         empresaId,
+        contratanteId,
         enderecoId,
         nome,
+        responsavelNome,
+        responsavelContato,
         dataInicio,
         dataFim,
         status,
@@ -1913,6 +1937,12 @@ class $ObrasTable extends Obras with TableInfo<$ObrasTable, Obra> {
     } else if (isInserting) {
       context.missing(_empresaIdMeta);
     }
+    if (data.containsKey('contratante_id')) {
+      context.handle(
+          _contratanteIdMeta,
+          contratanteId.isAcceptableOrUnknown(
+              data['contratante_id']!, _contratanteIdMeta));
+    }
     if (data.containsKey('endereco_id')) {
       context.handle(
           _enderecoIdMeta,
@@ -1926,6 +1956,18 @@ class $ObrasTable extends Obras with TableInfo<$ObrasTable, Obra> {
           _nomeMeta, nome.isAcceptableOrUnknown(data['nome']!, _nomeMeta));
     } else if (isInserting) {
       context.missing(_nomeMeta);
+    }
+    if (data.containsKey('responsavel_nome')) {
+      context.handle(
+          _responsavelNomeMeta,
+          responsavelNome.isAcceptableOrUnknown(
+              data['responsavel_nome']!, _responsavelNomeMeta));
+    }
+    if (data.containsKey('responsavel_contato')) {
+      context.handle(
+          _responsavelContatoMeta,
+          responsavelContato.isAcceptableOrUnknown(
+              data['responsavel_contato']!, _responsavelContatoMeta));
     }
     if (data.containsKey('data_inicio')) {
       context.handle(
@@ -1972,10 +2014,16 @@ class $ObrasTable extends Obras with TableInfo<$ObrasTable, Obra> {
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       empresaId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}empresa_id'])!,
+      contratanteId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}contratante_id']),
       enderecoId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}endereco_id'])!,
       nome: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}nome'])!,
+      responsavelNome: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}responsavel_nome']),
+      responsavelContato: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}responsavel_contato']),
       dataInicio: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}data_inicio'])!,
       dataFim: attachedDatabase.typeMapping
@@ -1998,8 +2046,11 @@ class $ObrasTable extends Obras with TableInfo<$ObrasTable, Obra> {
 class Obra extends DataClass implements Insertable<Obra> {
   final String id;
   final String empresaId;
+  final String? contratanteId;
   final String enderecoId;
   final String nome;
+  final String? responsavelNome;
+  final String? responsavelContato;
   final DateTime dataInicio;
   final DateTime dataFim;
   final String status;
@@ -2008,8 +2059,11 @@ class Obra extends DataClass implements Insertable<Obra> {
   const Obra(
       {required this.id,
       required this.empresaId,
+      this.contratanteId,
       required this.enderecoId,
       required this.nome,
+      this.responsavelNome,
+      this.responsavelContato,
       required this.dataInicio,
       required this.dataFim,
       required this.status,
@@ -2020,8 +2074,17 @@ class Obra extends DataClass implements Insertable<Obra> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['empresa_id'] = Variable<String>(empresaId);
+    if (!nullToAbsent || contratanteId != null) {
+      map['contratante_id'] = Variable<String>(contratanteId);
+    }
     map['endereco_id'] = Variable<String>(enderecoId);
     map['nome'] = Variable<String>(nome);
+    if (!nullToAbsent || responsavelNome != null) {
+      map['responsavel_nome'] = Variable<String>(responsavelNome);
+    }
+    if (!nullToAbsent || responsavelContato != null) {
+      map['responsavel_contato'] = Variable<String>(responsavelContato);
+    }
     map['data_inicio'] = Variable<DateTime>(dataInicio);
     map['data_fim'] = Variable<DateTime>(dataFim);
     map['status'] = Variable<String>(status);
@@ -2034,8 +2097,17 @@ class Obra extends DataClass implements Insertable<Obra> {
     return ObrasCompanion(
       id: Value(id),
       empresaId: Value(empresaId),
+      contratanteId: contratanteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contratanteId),
       enderecoId: Value(enderecoId),
       nome: Value(nome),
+      responsavelNome: responsavelNome == null && nullToAbsent
+          ? const Value.absent()
+          : Value(responsavelNome),
+      responsavelContato: responsavelContato == null && nullToAbsent
+          ? const Value.absent()
+          : Value(responsavelContato),
       dataInicio: Value(dataInicio),
       dataFim: Value(dataFim),
       status: Value(status),
@@ -2050,8 +2122,12 @@ class Obra extends DataClass implements Insertable<Obra> {
     return Obra(
       id: serializer.fromJson<String>(json['id']),
       empresaId: serializer.fromJson<String>(json['empresaId']),
+      contratanteId: serializer.fromJson<String?>(json['contratanteId']),
       enderecoId: serializer.fromJson<String>(json['enderecoId']),
       nome: serializer.fromJson<String>(json['nome']),
+      responsavelNome: serializer.fromJson<String?>(json['responsavelNome']),
+      responsavelContato:
+          serializer.fromJson<String?>(json['responsavelContato']),
       dataInicio: serializer.fromJson<DateTime>(json['dataInicio']),
       dataFim: serializer.fromJson<DateTime>(json['dataFim']),
       status: serializer.fromJson<String>(json['status']),
@@ -2065,8 +2141,11 @@ class Obra extends DataClass implements Insertable<Obra> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'empresaId': serializer.toJson<String>(empresaId),
+      'contratanteId': serializer.toJson<String?>(contratanteId),
       'enderecoId': serializer.toJson<String>(enderecoId),
       'nome': serializer.toJson<String>(nome),
+      'responsavelNome': serializer.toJson<String?>(responsavelNome),
+      'responsavelContato': serializer.toJson<String?>(responsavelContato),
       'dataInicio': serializer.toJson<DateTime>(dataInicio),
       'dataFim': serializer.toJson<DateTime>(dataFim),
       'status': serializer.toJson<String>(status),
@@ -2078,8 +2157,11 @@ class Obra extends DataClass implements Insertable<Obra> {
   Obra copyWith(
           {String? id,
           String? empresaId,
+          Value<String?> contratanteId = const Value.absent(),
           String? enderecoId,
           String? nome,
+          Value<String?> responsavelNome = const Value.absent(),
+          Value<String?> responsavelContato = const Value.absent(),
           DateTime? dataInicio,
           DateTime? dataFim,
           String? status,
@@ -2088,8 +2170,16 @@ class Obra extends DataClass implements Insertable<Obra> {
       Obra(
         id: id ?? this.id,
         empresaId: empresaId ?? this.empresaId,
+        contratanteId:
+            contratanteId.present ? contratanteId.value : this.contratanteId,
         enderecoId: enderecoId ?? this.enderecoId,
         nome: nome ?? this.nome,
+        responsavelNome: responsavelNome.present
+            ? responsavelNome.value
+            : this.responsavelNome,
+        responsavelContato: responsavelContato.present
+            ? responsavelContato.value
+            : this.responsavelContato,
         dataInicio: dataInicio ?? this.dataInicio,
         dataFim: dataFim ?? this.dataFim,
         status: status ?? this.status,
@@ -2100,9 +2190,18 @@ class Obra extends DataClass implements Insertable<Obra> {
     return Obra(
       id: data.id.present ? data.id.value : this.id,
       empresaId: data.empresaId.present ? data.empresaId.value : this.empresaId,
+      contratanteId: data.contratanteId.present
+          ? data.contratanteId.value
+          : this.contratanteId,
       enderecoId:
           data.enderecoId.present ? data.enderecoId.value : this.enderecoId,
       nome: data.nome.present ? data.nome.value : this.nome,
+      responsavelNome: data.responsavelNome.present
+          ? data.responsavelNome.value
+          : this.responsavelNome,
+      responsavelContato: data.responsavelContato.present
+          ? data.responsavelContato.value
+          : this.responsavelContato,
       dataInicio:
           data.dataInicio.present ? data.dataInicio.value : this.dataInicio,
       dataFim: data.dataFim.present ? data.dataFim.value : this.dataFim,
@@ -2121,8 +2220,11 @@ class Obra extends DataClass implements Insertable<Obra> {
     return (StringBuffer('Obra(')
           ..write('id: $id, ')
           ..write('empresaId: $empresaId, ')
+          ..write('contratanteId: $contratanteId, ')
           ..write('enderecoId: $enderecoId, ')
           ..write('nome: $nome, ')
+          ..write('responsavelNome: $responsavelNome, ')
+          ..write('responsavelContato: $responsavelContato, ')
           ..write('dataInicio: $dataInicio, ')
           ..write('dataFim: $dataFim, ')
           ..write('status: $status, ')
@@ -2133,16 +2235,30 @@ class Obra extends DataClass implements Insertable<Obra> {
   }
 
   @override
-  int get hashCode => Object.hash(id, empresaId, enderecoId, nome, dataInicio,
-      dataFim, status, progressoFisico, progressoPrazoDias);
+  int get hashCode => Object.hash(
+      id,
+      empresaId,
+      contratanteId,
+      enderecoId,
+      nome,
+      responsavelNome,
+      responsavelContato,
+      dataInicio,
+      dataFim,
+      status,
+      progressoFisico,
+      progressoPrazoDias);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Obra &&
           other.id == this.id &&
           other.empresaId == this.empresaId &&
+          other.contratanteId == this.contratanteId &&
           other.enderecoId == this.enderecoId &&
           other.nome == this.nome &&
+          other.responsavelNome == this.responsavelNome &&
+          other.responsavelContato == this.responsavelContato &&
           other.dataInicio == this.dataInicio &&
           other.dataFim == this.dataFim &&
           other.status == this.status &&
@@ -2153,8 +2269,11 @@ class Obra extends DataClass implements Insertable<Obra> {
 class ObrasCompanion extends UpdateCompanion<Obra> {
   final Value<String> id;
   final Value<String> empresaId;
+  final Value<String?> contratanteId;
   final Value<String> enderecoId;
   final Value<String> nome;
+  final Value<String?> responsavelNome;
+  final Value<String?> responsavelContato;
   final Value<DateTime> dataInicio;
   final Value<DateTime> dataFim;
   final Value<String> status;
@@ -2164,8 +2283,11 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
   const ObrasCompanion({
     this.id = const Value.absent(),
     this.empresaId = const Value.absent(),
+    this.contratanteId = const Value.absent(),
     this.enderecoId = const Value.absent(),
     this.nome = const Value.absent(),
+    this.responsavelNome = const Value.absent(),
+    this.responsavelContato = const Value.absent(),
     this.dataInicio = const Value.absent(),
     this.dataFim = const Value.absent(),
     this.status = const Value.absent(),
@@ -2176,8 +2298,11 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
   ObrasCompanion.insert({
     required String id,
     required String empresaId,
+    this.contratanteId = const Value.absent(),
     required String enderecoId,
     required String nome,
+    this.responsavelNome = const Value.absent(),
+    this.responsavelContato = const Value.absent(),
     required DateTime dataInicio,
     required DateTime dataFim,
     required String status,
@@ -2194,8 +2319,11 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
   static Insertable<Obra> custom({
     Expression<String>? id,
     Expression<String>? empresaId,
+    Expression<String>? contratanteId,
     Expression<String>? enderecoId,
     Expression<String>? nome,
+    Expression<String>? responsavelNome,
+    Expression<String>? responsavelContato,
     Expression<DateTime>? dataInicio,
     Expression<DateTime>? dataFim,
     Expression<String>? status,
@@ -2206,8 +2334,11 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (empresaId != null) 'empresa_id': empresaId,
+      if (contratanteId != null) 'contratante_id': contratanteId,
       if (enderecoId != null) 'endereco_id': enderecoId,
       if (nome != null) 'nome': nome,
+      if (responsavelNome != null) 'responsavel_nome': responsavelNome,
+      if (responsavelContato != null) 'responsavel_contato': responsavelContato,
       if (dataInicio != null) 'data_inicio': dataInicio,
       if (dataFim != null) 'data_fim': dataFim,
       if (status != null) 'status': status,
@@ -2221,8 +2352,11 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
   ObrasCompanion copyWith(
       {Value<String>? id,
       Value<String>? empresaId,
+      Value<String?>? contratanteId,
       Value<String>? enderecoId,
       Value<String>? nome,
+      Value<String?>? responsavelNome,
+      Value<String?>? responsavelContato,
       Value<DateTime>? dataInicio,
       Value<DateTime>? dataFim,
       Value<String>? status,
@@ -2232,8 +2366,11 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
     return ObrasCompanion(
       id: id ?? this.id,
       empresaId: empresaId ?? this.empresaId,
+      contratanteId: contratanteId ?? this.contratanteId,
       enderecoId: enderecoId ?? this.enderecoId,
       nome: nome ?? this.nome,
+      responsavelNome: responsavelNome ?? this.responsavelNome,
+      responsavelContato: responsavelContato ?? this.responsavelContato,
       dataInicio: dataInicio ?? this.dataInicio,
       dataFim: dataFim ?? this.dataFim,
       status: status ?? this.status,
@@ -2252,11 +2389,20 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
     if (empresaId.present) {
       map['empresa_id'] = Variable<String>(empresaId.value);
     }
+    if (contratanteId.present) {
+      map['contratante_id'] = Variable<String>(contratanteId.value);
+    }
     if (enderecoId.present) {
       map['endereco_id'] = Variable<String>(enderecoId.value);
     }
     if (nome.present) {
       map['nome'] = Variable<String>(nome.value);
+    }
+    if (responsavelNome.present) {
+      map['responsavel_nome'] = Variable<String>(responsavelNome.value);
+    }
+    if (responsavelContato.present) {
+      map['responsavel_contato'] = Variable<String>(responsavelContato.value);
     }
     if (dataInicio.present) {
       map['data_inicio'] = Variable<DateTime>(dataInicio.value);
@@ -2284,8 +2430,11 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
     return (StringBuffer('ObrasCompanion(')
           ..write('id: $id, ')
           ..write('empresaId: $empresaId, ')
+          ..write('contratanteId: $contratanteId, ')
           ..write('enderecoId: $enderecoId, ')
           ..write('nome: $nome, ')
+          ..write('responsavelNome: $responsavelNome, ')
+          ..write('responsavelContato: $responsavelContato, ')
           ..write('dataInicio: $dataInicio, ')
           ..write('dataFim: $dataFim, ')
           ..write('status: $status, ')
@@ -5863,6 +6012,19 @@ class $$ContratantesTableFilterComposer
     return f(composer);
   }
 
+  ComposableFilter obrasRefs(
+      ComposableFilter Function($$ObrasTableFilterComposer f) f) {
+    final $$ObrasTableFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $state.db.obras,
+        getReferencedColumn: (t) => t.contratanteId,
+        builder: (joinBuilder, parentComposers) => $$ObrasTableFilterComposer(
+            ComposerState(
+                $state.db, $state.db.obras, joinBuilder, parentComposers)));
+    return f(composer);
+  }
+
   ComposableFilter vistoriasServicoRefs(
       ComposableFilter Function($$VistoriasServicoTableFilterComposer f) f) {
     final $$VistoriasServicoTableFilterComposer composer =
@@ -6501,8 +6663,11 @@ class $$ContatosTableOrderingComposer
 typedef $$ObrasTableCreateCompanionBuilder = ObrasCompanion Function({
   required String id,
   required String empresaId,
+  Value<String?> contratanteId,
   required String enderecoId,
   required String nome,
+  Value<String?> responsavelNome,
+  Value<String?> responsavelContato,
   required DateTime dataInicio,
   required DateTime dataFim,
   required String status,
@@ -6513,8 +6678,11 @@ typedef $$ObrasTableCreateCompanionBuilder = ObrasCompanion Function({
 typedef $$ObrasTableUpdateCompanionBuilder = ObrasCompanion Function({
   Value<String> id,
   Value<String> empresaId,
+  Value<String?> contratanteId,
   Value<String> enderecoId,
   Value<String> nome,
+  Value<String?> responsavelNome,
+  Value<String?> responsavelContato,
   Value<DateTime> dataInicio,
   Value<DateTime> dataFim,
   Value<String> status,
@@ -6542,8 +6710,11 @@ class $$ObrasTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> empresaId = const Value.absent(),
+            Value<String?> contratanteId = const Value.absent(),
             Value<String> enderecoId = const Value.absent(),
             Value<String> nome = const Value.absent(),
+            Value<String?> responsavelNome = const Value.absent(),
+            Value<String?> responsavelContato = const Value.absent(),
             Value<DateTime> dataInicio = const Value.absent(),
             Value<DateTime> dataFim = const Value.absent(),
             Value<String> status = const Value.absent(),
@@ -6554,8 +6725,11 @@ class $$ObrasTableTableManager extends RootTableManager<
               ObrasCompanion(
             id: id,
             empresaId: empresaId,
+            contratanteId: contratanteId,
             enderecoId: enderecoId,
             nome: nome,
+            responsavelNome: responsavelNome,
+            responsavelContato: responsavelContato,
             dataInicio: dataInicio,
             dataFim: dataFim,
             status: status,
@@ -6566,8 +6740,11 @@ class $$ObrasTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             required String empresaId,
+            Value<String?> contratanteId = const Value.absent(),
             required String enderecoId,
             required String nome,
+            Value<String?> responsavelNome = const Value.absent(),
+            Value<String?> responsavelContato = const Value.absent(),
             required DateTime dataInicio,
             required DateTime dataFim,
             required String status,
@@ -6578,8 +6755,11 @@ class $$ObrasTableTableManager extends RootTableManager<
               ObrasCompanion.insert(
             id: id,
             empresaId: empresaId,
+            contratanteId: contratanteId,
             enderecoId: enderecoId,
             nome: nome,
+            responsavelNome: responsavelNome,
+            responsavelContato: responsavelContato,
             dataInicio: dataInicio,
             dataFim: dataFim,
             status: status,
@@ -6600,6 +6780,16 @@ class $$ObrasTableFilterComposer
 
   ColumnFilters<String> get nome => $state.composableBuilder(
       column: $state.table.nome,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get responsavelNome => $state.composableBuilder(
+      column: $state.table.responsavelNome,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get responsavelContato => $state.composableBuilder(
+      column: $state.table.responsavelContato,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -6637,6 +6827,18 @@ class $$ObrasTableFilterComposer
         builder: (joinBuilder, parentComposers) =>
             $$EmpresasTableFilterComposer(ComposerState(
                 $state.db, $state.db.empresas, joinBuilder, parentComposers)));
+    return composer;
+  }
+
+  $$ContratantesTableFilterComposer get contratanteId {
+    final $$ContratantesTableFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.contratanteId,
+        referencedTable: $state.db.contratantes,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) =>
+            $$ContratantesTableFilterComposer(ComposerState($state.db,
+                $state.db.contratantes, joinBuilder, parentComposers)));
     return composer;
   }
 
@@ -6693,6 +6895,16 @@ class $$ObrasTableOrderingComposer
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
+  ColumnOrderings<String> get responsavelNome => $state.composableBuilder(
+      column: $state.table.responsavelNome,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get responsavelContato => $state.composableBuilder(
+      column: $state.table.responsavelContato,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
   ColumnOrderings<DateTime> get dataInicio => $state.composableBuilder(
       column: $state.table.dataInicio,
       builder: (column, joinBuilders) =>
@@ -6727,6 +6939,18 @@ class $$ObrasTableOrderingComposer
         builder: (joinBuilder, parentComposers) =>
             $$EmpresasTableOrderingComposer(ComposerState(
                 $state.db, $state.db.empresas, joinBuilder, parentComposers)));
+    return composer;
+  }
+
+  $$ContratantesTableOrderingComposer get contratanteId {
+    final $$ContratantesTableOrderingComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.contratanteId,
+        referencedTable: $state.db.contratantes,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) =>
+            $$ContratantesTableOrderingComposer(ComposerState($state.db,
+                $state.db.contratantes, joinBuilder, parentComposers)));
     return composer;
   }
 

@@ -87,8 +87,11 @@ class DriftObraDetalheRepository implements ObraDetalheRepository {
     return Obra(
       id: row.id,
       empresaId: row.empresaId,
+      contratanteId: row.contratanteId,
       enderecoId: row.enderecoId,
       nome: row.nome,
+      responsavelNome: row.responsavelNome,
+      responsavelContato: row.responsavelContato,
       dataInicio: row.dataInicio,
       dataFim: row.dataFim,
       status: StatusExecucao.values.byName(row.status),

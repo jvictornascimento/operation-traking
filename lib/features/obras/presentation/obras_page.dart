@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
+import '../../cadastros/domain/contratante.dart';
 import '../../cadastros/domain/empresa.dart';
 import '../../cadastros/domain/endereco.dart';
+import '../../cadastros/presentation/contratantes_controller.dart';
 import '../../cadastros/presentation/empresas_controller.dart';
 import '../../cadastros/presentation/enderecos_controller.dart';
 import '../domain/obra.dart';
@@ -230,6 +232,8 @@ class _ObraForm extends ConsumerStatefulWidget {
 
 class _ObraFormState extends ConsumerState<_ObraForm> {
   late final TextEditingController _nomeController;
+  late final TextEditingController _responsavelNomeController;
+  late final TextEditingController _responsavelContatoController;
   late final TextEditingController _enderecoTipoController;
   late final TextEditingController _cepController;
   late final TextEditingController _logradouroController;
@@ -240,6 +244,7 @@ class _ObraFormState extends ConsumerState<_ObraForm> {
   late final TextEditingController _estadoController;
   late final TextEditingController _paisController;
   String? _empresaId;
+  String? _contratanteId;
   String? _enderecoId;
   late DateTime _dataInicio;
   late DateTime _dataFim;
@@ -251,6 +256,12 @@ class _ObraFormState extends ConsumerState<_ObraForm> {
     super.initState();
     final obra = widget.obra;
     _nomeController = TextEditingController(text: obra?.nome);
+    _responsavelNomeController = TextEditingController(
+      text: obra?.responsavelNome,
+    );
+    _responsavelContatoController = TextEditingController(
+      text: obra?.responsavelContato,
+    );
     _enderecoTipoController = TextEditingController(text: 'Principal');
     _cepController = TextEditingController();
     _logradouroController = TextEditingController();
@@ -261,6 +272,7 @@ class _ObraFormState extends ConsumerState<_ObraForm> {
     _estadoController = TextEditingController();
     _paisController = TextEditingController(text: 'Brasil');
     _empresaId = obra?.empresaId;
+    _contratanteId = obra?.contratanteId;
     _enderecoId = obra?.enderecoId;
     _dataInicio = obra?.dataInicio ?? DateTime.now();
     _dataFim = obra?.dataFim ?? DateTime.now();
@@ -270,6 +282,8 @@ class _ObraFormState extends ConsumerState<_ObraForm> {
   @override
   void dispose() {
     _nomeController.dispose();
+    _responsavelNomeController.dispose();
+    _responsavelContatoController.dispose();
     _enderecoTipoController.dispose();
     _cepController.dispose();
     _logradouroController.dispose();
@@ -286,6 +300,7 @@ class _ObraFormState extends ConsumerState<_ObraForm> {
   Widget build(BuildContext context) {
     final saving = ref.watch(obrasControllerProvider).isLoading;
     final empresas = ref.watch(empresasStreamProvider);
+    final contratantes = ref.watch(contratantesStreamProvider);
     final endereco = widget.obra == null
         ? const AsyncData(<Endereco>[])
         : ref.watch(
@@ -336,6 +351,36 @@ class _ObraFormState extends ConsumerState<_ObraForm> {
               error: (error, stackTrace) {
                 return Text('Erro ao carregar empresas: $error');
               },
+            ),
+            const SizedBox(height: 12),
+            contratantes.when(
+              data: (items) => _ContratanteDropdown(
+                contratantes: items,
+                value: _contratanteId,
+                onChanged: (value) => setState(() => _contratanteId = value),
+              ),
+              loading: () => const LinearProgressIndicator(),
+              error: (error, stackTrace) {
+                return Text('Erro ao carregar contratantes: $error');
+              },
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _responsavelNomeController,
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(
+                labelText: 'Responsavel da obra',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _responsavelContatoController,
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(
+                labelText: 'Contato do responsavel',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 12),
             Text(
@@ -507,8 +552,11 @@ class _ObraFormState extends ConsumerState<_ObraForm> {
     await ref.read(obrasControllerProvider.notifier).salvar(
           id: widget.obra?.id,
           empresaId: _empresaId ?? '',
+          contratanteId: _contratanteId,
           enderecoId: _enderecoId,
           nome: _nomeController.text,
+          responsavelNome: _responsavelNomeController.text,
+          responsavelContato: _responsavelContatoController.text,
           dataInicio: _dataInicio,
           dataFim: _dataFim,
           status: _status,
@@ -579,6 +627,45 @@ class _EmpresaDropdown extends StatelessWidget {
           DropdownMenuItem(
             value: empresa.id,
             child: Text(empresa.nome),
+          ),
+      ],
+      onChanged: onChanged,
+    );
+  }
+}
+
+class _ContratanteDropdown extends StatelessWidget {
+  const _ContratanteDropdown({
+    required this.contratantes,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final List<Contratante> contratantes;
+  final String? value;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    if (contratantes.isEmpty) {
+      return const Text('Cadastre um contratante antes de criar a obra.');
+    }
+
+    final selected = contratantes.any((contratante) => contratante.id == value)
+        ? value
+        : null;
+
+    return DropdownButtonFormField<String>(
+      initialValue: selected,
+      decoration: const InputDecoration(
+        labelText: 'Contratante',
+        border: OutlineInputBorder(),
+      ),
+      items: [
+        for (final contratante in contratantes)
+          DropdownMenuItem(
+            value: contratante.id,
+            child: Text(contratante.nome),
           ),
       ],
       onChanged: onChanged,

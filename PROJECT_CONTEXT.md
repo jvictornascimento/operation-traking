@@ -113,8 +113,11 @@ Decisao do MVP:
 obra
 - id
 - empresa_id
+- contratante_id
 - endereco_id
 - nome
+- responsavel_nome
+- responsavel_contato
 - data_inicio
 - data_fim
 - status
@@ -125,8 +128,10 @@ obra
 Relacionamentos:
 
 - Uma obra pertence a uma empresa.
+- Uma obra pode indicar o contratante solicitante.
 - Uma obra possui um endereco.
 - Uma empresa pode ter varias obras.
+- Um contratante pode ter varias obras.
 - Uma obra possui varias etapas.
 - Uma obra pode aparecer em varias fiscalizacoes.
 

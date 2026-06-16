@@ -28,7 +28,10 @@ class ObrasController extends StateNotifier<AsyncValue<void>> {
   Future<void> salvar({
     String? id,
     required String empresaId,
+    String? contratanteId,
     required String nome,
+    String? responsavelNome,
+    String? responsavelContato,
     required DateTime dataInicio,
     required DateTime dataFim,
     StatusExecucao? status,
@@ -45,6 +48,7 @@ class ObrasController extends StateNotifier<AsyncValue<void>> {
     String? enderecoPais,
   }) async {
     final empresaIdNormalizado = empresaId.trim();
+    final contratanteIdNormalizado = _normalizarTextoOpcional(contratanteId);
     final nomeNormalizado = nome.trim();
     final enderecoTipoNormalizado = enderecoTipo.trim();
     final enderecoCidadeNormalizada = enderecoCidade.trim();
@@ -53,6 +57,14 @@ class ObrasController extends StateNotifier<AsyncValue<void>> {
     if (empresaIdNormalizado.isEmpty) {
       state = AsyncError(
         ArgumentError('Empresa da obra e obrigatoria.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    if (contratanteIdNormalizado == null) {
+      state = AsyncError(
+        ArgumentError('Contratante da obra e obrigatorio.'),
         StackTrace.current,
       );
       return;
@@ -105,8 +117,11 @@ class ObrasController extends StateNotifier<AsyncValue<void>> {
         obra: Obra(
           id: obraId,
           empresaId: empresaIdNormalizado,
+          contratanteId: contratanteIdNormalizado,
           enderecoId: enderecoIdFinal,
           nome: nomeNormalizado,
+          responsavelNome: _normalizarTextoOpcional(responsavelNome),
+          responsavelContato: _normalizarTextoOpcional(responsavelContato),
           dataInicio: dataInicio,
           dataFim: dataFim,
           status: statusCalculado,

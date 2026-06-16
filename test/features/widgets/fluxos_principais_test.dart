@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:operational_tracking/core/domain/domain_enums.dart';
+import 'package:operational_tracking/features/cadastros/data/contratantes_repository.dart';
 import 'package:operational_tracking/features/cadastros/data/empresas_repository.dart';
+import 'package:operational_tracking/features/cadastros/domain/contratante.dart';
 import 'package:operational_tracking/features/cadastros/domain/empresa.dart';
 import 'package:operational_tracking/features/cadastros/domain/endereco.dart';
 import 'package:operational_tracking/features/cadastros/domain/funcionario.dart';
+import 'package:operational_tracking/features/cadastros/presentation/contratantes_controller.dart';
 import 'package:operational_tracking/features/cadastros/presentation/empresas_controller.dart';
 import 'package:operational_tracking/features/fiscalizacoes/data/vistorias_mao_de_obra_repository.dart';
 import 'package:operational_tracking/features/fiscalizacoes/data/vistorias_periodo_repository.dart';
@@ -41,12 +44,18 @@ void main() {
       final empresasRepository = _FakeEmpresasRepository([
         const Empresa(id: 'empresa-1', nome: 'Construtora Regis'),
       ]);
+      final contratantesRepository = _FakeContratantesRepository([
+        const Contratante(id: 'contratante-1', nome: 'Cliente Regis'),
+      ]);
 
       await tester.pumpWidget(
         _testApp(
           overrides: [
             obrasRepositoryProvider.overrideWithValue(obrasRepository),
             empresasRepositoryProvider.overrideWithValue(empresasRepository),
+            contratantesRepositoryProvider.overrideWithValue(
+              contratantesRepository,
+            ),
           ],
           child: const ObrasPage(),
         ),
@@ -61,6 +70,12 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Construtora Regis'));
       await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownButtonFormField<String>).at(1));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cliente Regis'));
+      await tester.pumpAndSettle();
+      await tester.enterText(_field('Responsavel da obra'), 'Regis');
+      await tester.enterText(_field('Contato do responsavel'), '11999999999');
       await tester.enterText(_field('Cidade'), 'Sao Paulo');
       await tester.enterText(_field('Estado'), 'SP');
       await _scrollUntilText(tester, 'Salvar');
@@ -70,6 +85,9 @@ void main() {
       expect(obrasRepository.obras, hasLength(1));
       expect(obrasRepository.obras.single.nome, 'Obra Central');
       expect(obrasRepository.obras.single.empresaId, 'empresa-1');
+      expect(obrasRepository.obras.single.contratanteId, 'contratante-1');
+      expect(obrasRepository.obras.single.responsavelNome, 'Regis');
+      expect(obrasRepository.obras.single.responsavelContato, '11999999999');
       expect(obrasRepository.enderecosSalvos.single.cidade, 'Sao Paulo');
     });
 
@@ -256,6 +274,20 @@ class _FakeEmpresasRepository implements EmpresasRepository {
   @override
   Future<void> salvarEmpresa(Empresa empresa) async {
     empresas.add(empresa);
+  }
+}
+
+class _FakeContratantesRepository implements ContratantesRepository {
+  _FakeContratantesRepository(this.contratantes);
+
+  final List<Contratante> contratantes;
+
+  @override
+  Stream<List<Contratante>> watchContratantes() => Stream.value(contratantes);
+
+  @override
+  Future<void> salvarContratante(Contratante contratante) async {
+    contratantes.add(contratante);
   }
 }
 

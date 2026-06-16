@@ -96,7 +96,10 @@ void main() {
       await ObrasController(obrasRepository).salvar(
         id: 'obra-1',
         empresaId: 'empresa-1',
+        contratanteId: 'contratante-1',
         nome: 'Obra Central',
+        responsavelNome: 'Regis',
+        responsavelContato: '11999999999',
         dataInicio: DateTime(2026, 6, 1),
         dataFim: DateTime(2026, 7, 1),
         dataAtual: DateTime(2026, 6, 15),
@@ -203,6 +206,9 @@ void main() {
       expect(contratantes, hasLength(1));
       expect(funcionarios, hasLength(2));
       expect(obras.single.nome, 'Obra Central');
+      expect(obras.single.contratanteId, 'contratante-1');
+      expect(obras.single.responsavelNome, 'Regis');
+      expect(obras.single.responsavelContato, '11999999999');
       expect(etapas.single.obraId, 'obra-1');
       expect(servicos.single.etapaId, 'etapa-1');
       expect(servicos.single.progressoFisico, 65);

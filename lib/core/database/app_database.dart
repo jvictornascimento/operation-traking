@@ -31,13 +31,18 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onUpgrade: (migrator, from, to) async {
           if (from < 2) {
             await migrator.addColumn(medicoes, medicoes.vistoriaServicoId);
+          }
+          if (from < 3) {
+            await migrator.addColumn(obras, obras.contratanteId);
+            await migrator.addColumn(obras, obras.responsavelNome);
+            await migrator.addColumn(obras, obras.responsavelContato);
           }
         },
       );
@@ -117,8 +122,12 @@ class Contatos extends Table {
 class Obras extends Table {
   TextColumn get id => text()();
   TextColumn get empresaId => text().references(Empresas, #id)();
+  TextColumn get contratanteId =>
+      text().nullable().references(Contratantes, #id)();
   TextColumn get enderecoId => text().references(Enderecos, #id)();
   TextColumn get nome => text()();
+  TextColumn get responsavelNome => text().nullable()();
+  TextColumn get responsavelContato => text().nullable()();
   DateTimeColumn get dataInicio => dateTime()();
   DateTimeColumn get dataFim => dateTime()();
   TextColumn get status => text()();

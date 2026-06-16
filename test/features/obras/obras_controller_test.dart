@@ -14,6 +14,7 @@ void main() {
 
       await controller.salvar(
         empresaId: 'empresa-1',
+        contratanteId: 'contratante-1',
         nome: ' ',
         dataInicio: DateTime(2026, 5, 10),
         dataFim: DateTime(2026, 5, 20),
@@ -31,6 +32,7 @@ void main() {
 
       await controller.salvar(
         empresaId: 'empresa-1',
+        contratanteId: 'contratante-1',
         nome: 'Obra Regis',
         dataInicio: DateTime(2026, 5, 20),
         dataFim: DateTime(2026, 5, 10),
@@ -48,7 +50,10 @@ void main() {
 
       await controller.salvar(
         empresaId: ' empresa-1 ',
+        contratanteId: ' contratante-1 ',
         nome: ' Obra Regis ',
+        responsavelNome: ' Regis ',
+        responsavelContato: ' 11999999999 ',
         dataInicio: DateTime(2026, 5, 10),
         dataFim: DateTime(2026, 5, 20),
         dataAtual: DateTime(2026, 5, 18),
@@ -61,6 +66,9 @@ void main() {
       expect(controller.state, isA<AsyncData<void>>());
       expect(repository.obras, hasLength(1));
       expect(repository.obras.single.empresaId, 'empresa-1');
+      expect(repository.obras.single.contratanteId, 'contratante-1');
+      expect(repository.obras.single.responsavelNome, 'Regis');
+      expect(repository.obras.single.responsavelContato, '11999999999');
       expect(repository.enderecos, hasLength(1));
       expect(
           repository.obras.single.enderecoId, repository.enderecos.single.id);
@@ -82,6 +90,7 @@ void main() {
 
       await controller.salvar(
         empresaId: 'empresa-1',
+        contratanteId: 'contratante-1',
         nome: 'Obra Regis',
         dataInicio: DateTime(2026, 5, 10),
         dataFim: DateTime(2026, 5, 20),
