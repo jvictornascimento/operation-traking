@@ -237,8 +237,30 @@ class _FakeVistoriasServicoRepository implements VistoriasServicoRepository {
 
   @override
   Stream<List<VistoriaServico>> watchVistoriasDoServico(String servicoId) {
+    return watchFiscalizacoes(servicoId: servicoId);
+  }
+
+  @override
+  Stream<List<VistoriaServico>> watchFiscalizacoes({
+    String? servicoId,
+    String? numero,
+    StatusFiscalizacao? status,
+    DateTime? data,
+  }) {
     return Stream.value(
-      vistorias.where((vistoria) => vistoria.servicoId == servicoId).toList(),
+      vistorias.where((vistoria) {
+        final combinaServico =
+            servicoId == null || vistoria.servicoId == servicoId;
+        final combinaNumero = numero == null ||
+            numero.trim().isEmpty ||
+            vistoria.numero.contains(numero.trim());
+        final combinaStatus = status == null || vistoria.status == status;
+        final combinaData = data == null ||
+            DateTime(vistoria.data.year, vistoria.data.month, vistoria.data.day)
+                .isAtSameMomentAs(DateTime(data.year, data.month, data.day));
+
+        return combinaServico && combinaNumero && combinaStatus && combinaData;
+      }).toList(),
     );
   }
 }

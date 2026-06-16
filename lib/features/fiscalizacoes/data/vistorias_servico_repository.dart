@@ -8,6 +8,13 @@ import '../domain/vistoria_servico.dart';
 abstract class VistoriasServicoRepository {
   Stream<List<VistoriaServico>> watchVistoriasDoServico(String servicoId);
 
+  Stream<List<VistoriaServico>> watchFiscalizacoes({
+    String? servicoId,
+    String? numero,
+    StatusFiscalizacao? status,
+    DateTime? data,
+  });
+
   Future<String?> buscarObraIdDoServico(String servicoId);
 
   Future<void> salvarVistoria(VistoriaServico vistoria);
@@ -54,9 +61,36 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
 
   @override
   Stream<List<VistoriaServico>> watchVistoriasDoServico(String servicoId) {
+    return watchFiscalizacoes(servicoId: servicoId);
+  }
+
+  @override
+  Stream<List<VistoriaServico>> watchFiscalizacoes({
+    String? servicoId,
+    String? numero,
+    StatusFiscalizacao? status,
+    DateTime? data,
+  }) {
     final query = _database.select(_database.vistoriasServico)
-      ..where((table) => table.servicoId.equals(servicoId))
       ..orderBy([(table) => OrderingTerm.desc(table.data)]);
+
+    final servicoIdNormalizado = servicoId?.trim();
+    if (servicoIdNormalizado != null && servicoIdNormalizado.isNotEmpty) {
+      query.where((table) => table.servicoId.equals(servicoIdNormalizado));
+    }
+
+    final numeroNormalizado = numero?.trim();
+    if (numeroNormalizado != null && numeroNormalizado.isNotEmpty) {
+      query.where((table) => table.numero.like('%$numeroNormalizado%'));
+    }
+
+    if (status != null) {
+      query.where((table) => table.status.equals(status.name));
+    }
+
+    if (data != null) {
+      query.where((table) => table.data.equals(_normalizarData(data)));
+    }
 
     return query.watch().map((rows) => rows.map(_mapVistoria).toList());
   }

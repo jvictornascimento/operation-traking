@@ -27,20 +27,29 @@ class FiscalizacoesPage extends ConsumerStatefulWidget {
 }
 
 class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
-  final _servicoIdController = TextEditingController();
+  final _numeroFiltroController = TextEditingController();
+  StatusFiscalizacao? _statusFiltro;
+  DateTime? _dataFiltro;
 
   @override
   void dispose() {
-    _servicoIdController.dispose();
+    _numeroFiltroController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final servicoId = widget.servicoId ?? _servicoIdController.text.trim();
-    final vistorias = servicoId.isEmpty
-        ? const AsyncData(<VistoriaServico>[])
-        : ref.watch(vistoriasServicoStreamProvider(servicoId));
+    final servicoId = widget.servicoId;
+    final vistorias = ref.watch(
+      fiscalizacoesFiltroStreamProvider(
+        FiscalizacoesFiltro(
+          servicoId: servicoId,
+          numero: _numeroFiltroController.text,
+          status: _statusFiltro,
+          data: _dataFiltro,
+        ),
+      ),
+    );
 
     ref.listen(fiscalizacoesControllerProvider, (previous, next) {
       if (next.hasError) {
@@ -53,20 +62,32 @@ class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
     return Scaffold(
       appBar: AppBar(
         leading: const AppBackButton(),
-        title: const Text('Fiscalizacoes do servico'),
+        title: Text(
+          servicoId == null ? 'Fiscalizacoes' : 'Fiscalizacoes do servico',
+        ),
       ),
       body: Column(
         children: [
+          _FiscalizacoesFilters(
+            numeroController: _numeroFiltroController,
+            status: _statusFiltro,
+            data: _dataFiltro,
+            onNumeroChanged: (_) => setState(() {}),
+            onStatusChanged: (value) {
+              setState(() => _statusFiltro = value);
+            },
+            onClearStatus: () => setState(() => _statusFiltro = null),
+            onSelectData: _selecionarDataFiltro,
+            onClearData: () => setState(() => _dataFiltro = null),
+          ),
           if (widget.servicoId == null)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: TextField(
-                controller: _servicoIdController,
-                decoration: const InputDecoration(
-                  labelText: 'ID do servico',
-                  border: OutlineInputBorder(),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Para criar fiscalizacao, abra um servico dentro da etapa.',
                 ),
-                onChanged: (_) => setState(() {}),
               ),
             ),
           Expanded(
@@ -80,14 +101,27 @@ class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: servicoId.isEmpty
-            ? null
-            : () => _abrirFormulario(context, servicoId: servicoId),
-        icon: const Icon(Icons.add),
-        label: const Text('Fiscalizacao'),
-      ),
+      floatingActionButton: servicoId == null
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => _abrirFormulario(context, servicoId: servicoId),
+              icon: const Icon(Icons.add),
+              label: const Text('Fiscalizacao'),
+            ),
     );
+  }
+
+  Future<void> _selecionarDataFiltro() async {
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: _dataFiltro ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (selected != null) {
+      setState(() => _dataFiltro = selected);
+    }
   }
 
   Future<void> _abrirFormulario(
@@ -101,6 +135,94 @@ class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
       builder: (context) => _FiscalizacaoForm(
         servicoId: servicoId,
         vistoria: vistoria,
+      ),
+    );
+  }
+}
+
+class _FiscalizacoesFilters extends StatelessWidget {
+  const _FiscalizacoesFilters({
+    required this.numeroController,
+    required this.status,
+    required this.data,
+    required this.onNumeroChanged,
+    required this.onStatusChanged,
+    required this.onClearStatus,
+    required this.onSelectData,
+    required this.onClearData,
+  });
+
+  final TextEditingController numeroController;
+  final StatusFiscalizacao? status;
+  final DateTime? data;
+  final ValueChanged<String> onNumeroChanged;
+  final ValueChanged<StatusFiscalizacao?> onStatusChanged;
+  final VoidCallback onClearStatus;
+  final VoidCallback onSelectData;
+  final VoidCallback onClearData;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          TextField(
+            controller: numeroController,
+            decoration: const InputDecoration(
+              labelText: 'Buscar por numero',
+              prefixIcon: Icon(Icons.search),
+              border: OutlineInputBorder(),
+            ),
+            onChanged: onNumeroChanged,
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<StatusFiscalizacao>(
+            initialValue: status,
+            decoration: InputDecoration(
+              labelText: 'Status',
+              border: const OutlineInputBorder(),
+              suffixIcon: status == null
+                  ? null
+                  : IconButton(
+                      tooltip: 'Limpar status',
+                      icon: const Icon(Icons.clear),
+                      onPressed: onClearStatus,
+                    ),
+            ),
+            items: StatusFiscalizacao.values
+                .map(
+                  (status) => DropdownMenuItem(
+                    value: status,
+                    child: Text(_statusFiscalizacaoLabel(status.name)),
+                  ),
+                )
+                .toList(),
+            onChanged: onStatusChanged,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onSelectData,
+                  icon: const Icon(Icons.calendar_month),
+                  label: Text(
+                    data == null ? 'Filtrar por data' : _formatarData(data!),
+                  ),
+                ),
+              ),
+              if (data != null) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: 'Limpar data',
+                  icon: const Icon(Icons.clear),
+                  onPressed: onClearData,
+                ),
+              ],
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -153,18 +275,30 @@ class _FiscalizacoesList extends StatelessWidget {
   }
 
   String _subtitle(VistoriaServico vistoria) {
-    return '${_formatarData(vistoria.data)} | ${vistoria.status.name} | '
+    return '${_formatarData(vistoria.data)} | '
+        '${_statusFiscalizacaoLabel(vistoria.status.name)} | '
         'obra ${vistoria.obraId}';
-  }
-
-  String _formatarData(DateTime data) {
-    return '${data.day}/${data.month}/${data.year}';
   }
 }
 
 String _historicoPath(String entidade, String entidadeId) {
   return '/historico/${Uri.encodeComponent(entidade)}/'
       '${Uri.encodeComponent(entidadeId)}';
+}
+
+String _formatarData(DateTime data) {
+  return '${data.day.toString().padLeft(2, '0')}/'
+      '${data.month.toString().padLeft(2, '0')}/'
+      '${data.year.toString().padLeft(4, '0')}';
+}
+
+String _statusFiscalizacaoLabel(String value) {
+  return switch (value) {
+    'emAndamento' => 'Em andamento',
+    'aprovada' => 'Aprovada',
+    'negada' => 'Negada',
+    _ => value,
+  };
 }
 
 class _FiscalizacaoForm extends ConsumerStatefulWidget {

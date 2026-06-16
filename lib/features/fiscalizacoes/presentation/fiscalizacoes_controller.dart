@@ -24,6 +24,18 @@ final vistoriasServicoStreamProvider =
   },
 );
 
+final fiscalizacoesFiltroStreamProvider = StreamProvider.family
+    .autoDispose<List<VistoriaServico>, FiscalizacoesFiltro>(
+  (ref, filtro) {
+    return ref.watch(vistoriasServicoRepositoryProvider).watchFiscalizacoes(
+          servicoId: filtro.servicoId,
+          numero: filtro.numero,
+          status: filtro.status,
+          data: filtro.data,
+        );
+  },
+);
+
 final fiscalizacoesControllerProvider =
     StateNotifierProvider<FiscalizacoesController, AsyncValue<void>>((ref) {
   return FiscalizacoesController(ref.watch(vistoriasServicoRepositoryProvider));
@@ -83,6 +95,33 @@ final maoDeObraFiscalizacaoControllerProvider =
     );
   },
 );
+
+class FiscalizacoesFiltro {
+  const FiscalizacoesFiltro({
+    this.servicoId,
+    this.numero,
+    this.status,
+    this.data,
+  });
+
+  final String? servicoId;
+  final String? numero;
+  final StatusFiscalizacao? status;
+  final DateTime? data;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is FiscalizacoesFiltro &&
+            other.servicoId == servicoId &&
+            other.numero == numero &&
+            other.status == status &&
+            other.data == data;
+  }
+
+  @override
+  int get hashCode => Object.hash(servicoId, numero, status, data);
+}
 
 class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
   FiscalizacoesController(this._repository) : super(const AsyncData(null));

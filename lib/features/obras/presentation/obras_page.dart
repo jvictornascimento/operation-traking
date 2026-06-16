@@ -11,11 +11,25 @@ import '../../cadastros/presentation/enderecos_controller.dart';
 import '../domain/obra.dart';
 import 'obras_controller.dart';
 
-class ObrasPage extends ConsumerWidget {
+class ObrasPage extends ConsumerStatefulWidget {
   const ObrasPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ObrasPage> createState() => _ObrasPageState();
+}
+
+class _ObrasPageState extends ConsumerState<ObrasPage> {
+  final _buscaController = TextEditingController();
+  StatusExecucao? _statusFiltro;
+
+  @override
+  void dispose() {
+    _buscaController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final obras = ref.watch(obrasStreamProvider);
     ref.listen(obrasControllerProvider, (previous, next) {
       if (next.hasError) {
@@ -31,9 +45,24 @@ class ObrasPage extends ConsumerWidget {
         title: const Text('Obras'),
       ),
       body: obras.when(
-        data: (items) => _ObrasList(
-          obras: items,
-          onEdit: (obra) => _abrirFormulario(context, obra: obra),
+        data: (items) => Column(
+          children: [
+            _ObrasFilters(
+              buscaController: _buscaController,
+              status: _statusFiltro,
+              onBuscaChanged: (_) => setState(() {}),
+              onStatusChanged: (value) {
+                setState(() => _statusFiltro = value);
+              },
+              onClearStatus: () => setState(() => _statusFiltro = null),
+            ),
+            Expanded(
+              child: _ObrasList(
+                obras: _filtrarObras(items),
+                onEdit: (obra) => _abrirFormulario(context, obra: obra),
+              ),
+            ),
+          ],
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => Center(
@@ -53,6 +82,79 @@ class ObrasPage extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       builder: (context) => _ObraForm(obra: obra),
+    );
+  }
+
+  List<Obra> _filtrarObras(List<Obra> obras) {
+    final busca = _buscaController.text.trim().toLowerCase();
+
+    return obras.where((obra) {
+      final combinaBusca =
+          busca.isEmpty || obra.nome.toLowerCase().contains(busca);
+      final combinaStatus =
+          _statusFiltro == null || obra.status == _statusFiltro;
+
+      return combinaBusca && combinaStatus;
+    }).toList();
+  }
+}
+
+class _ObrasFilters extends StatelessWidget {
+  const _ObrasFilters({
+    required this.buscaController,
+    required this.status,
+    required this.onBuscaChanged,
+    required this.onStatusChanged,
+    required this.onClearStatus,
+  });
+
+  final TextEditingController buscaController;
+  final StatusExecucao? status;
+  final ValueChanged<String> onBuscaChanged;
+  final ValueChanged<StatusExecucao?> onStatusChanged;
+  final VoidCallback onClearStatus;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Column(
+        children: [
+          TextField(
+            controller: buscaController,
+            decoration: const InputDecoration(
+              labelText: 'Buscar obra',
+              prefixIcon: Icon(Icons.search),
+              border: OutlineInputBorder(),
+            ),
+            onChanged: onBuscaChanged,
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<StatusExecucao>(
+            initialValue: status,
+            decoration: InputDecoration(
+              labelText: 'Status',
+              border: const OutlineInputBorder(),
+              suffixIcon: status == null
+                  ? null
+                  : IconButton(
+                      tooltip: 'Limpar status',
+                      icon: const Icon(Icons.clear),
+                      onPressed: onClearStatus,
+                    ),
+            ),
+            items: StatusExecucao.values
+                .map(
+                  (status) => DropdownMenuItem(
+                    value: status,
+                    child: Text(_statusExecucaoLabel(status.name)),
+                  ),
+                )
+                .toList(),
+            onChanged: onStatusChanged,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -100,8 +202,21 @@ class _ObrasList extends StatelessWidget {
             ? 'vence hoje'
             : '${prazo.abs()} dias atrasada';
 
-    return '${obra.status.name} | $prazoTexto | ${obra.progressoFisico}%';
+    return '${_statusExecucaoLabel(obra.status.name)} | $prazoTexto | '
+        '${obra.progressoFisico}%';
   }
+}
+
+String _statusExecucaoLabel(String value) {
+  return switch (value) {
+    'naoComecou' => 'Nao comecou',
+    'emAndamento' => 'Em andamento',
+    'parada' => 'Parada',
+    'embargada' => 'Embargada',
+    'atrasada' => 'Atrasada',
+    'concluida' => 'Concluida',
+    _ => value,
+  };
 }
 
 class _ObraForm extends ConsumerStatefulWidget {
