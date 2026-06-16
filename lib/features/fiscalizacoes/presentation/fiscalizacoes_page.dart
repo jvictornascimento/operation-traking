@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../cadastros/domain/funcionario.dart';
+import '../../cadastros/presentation/funcionarios_controller.dart';
 import '../../medicoes/domain/medicao.dart';
 import '../../medicoes/presentation/medicoes_controller.dart';
 import '../../relatorios/presentation/relatorio_actions.dart';
@@ -849,13 +850,12 @@ class _MaoDeObraSection extends ConsumerStatefulWidget {
 }
 
 class _MaoDeObraSectionState extends ConsumerState<_MaoDeObraSection> {
-  final _funcionarioIdController = TextEditingController();
   final _funcaoNoDiaController = TextEditingController();
   final _observacaoController = TextEditingController();
+  String? _funcionarioId;
 
   @override
   void dispose() {
-    _funcionarioIdController.dispose();
     _funcaoNoDiaController.dispose();
     _observacaoController.dispose();
     super.dispose();
@@ -867,6 +867,9 @@ class _MaoDeObraSectionState extends ConsumerState<_MaoDeObraSection> {
         ref.watch(maoDeObraVistoriaStreamProvider(widget.vistoriaServicoId));
     final funcionarios = ref.watch(
       funcionariosMaoDeObraDisponiveisStreamProvider(widget.vistoriaServicoId),
+    );
+    final empresaId = ref.watch(
+      empresaIdDaVistoriaProvider(widget.vistoriaServicoId),
     );
     final saving = ref.watch(maoDeObraFiscalizacaoControllerProvider).isLoading;
 
@@ -882,31 +885,48 @@ class _MaoDeObraSectionState extends ConsumerState<_MaoDeObraSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Mao de obra',
+          'Equipe de trabalho',
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
-        funcionarios.when(
-          data: (items) => _FuncionariosDisponiveisList(
-            funcionarios: items,
-            onSelect: (funcionario) {
-              _funcionarioIdController.text = funcionario.id;
-              _funcaoNoDiaController.text = funcionario.cargo;
-            },
-          ),
-          loading: () => const LinearProgressIndicator(),
-          error: (error, stackTrace) {
-            return Text('Erro ao carregar funcionarios: $error');
-          },
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _funcionarioIdController,
-          textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'ID do funcionario',
-            border: OutlineInputBorder(),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: funcionarios.when(
+                data: (items) => _FuncionarioDropdown(
+                  funcionarios: items,
+                  value: _funcionarioId,
+                  onChanged: (funcionario) {
+                    setState(() {
+                      _funcionarioId = funcionario?.id;
+                      _funcaoNoDiaController.text = funcionario?.cargo ?? '';
+                    });
+                  },
+                ),
+                loading: () => const LinearProgressIndicator(),
+                error: (error, stackTrace) {
+                  return Text('Erro ao carregar funcionarios: $error');
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              tooltip: 'Novo funcionario',
+              onPressed: empresaId.maybeWhen(
+                data: (id) => id == null
+                    ? null
+                    : () => showModalBottomSheet<void>(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (context) => _FuncionarioRapidoForm(
+                            empresaId: id,
+                          ),
+                        ),
+                orElse: () => null,
+              ),
+              icon: const Icon(Icons.person_add),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         TextField(
@@ -932,25 +952,30 @@ class _MaoDeObraSectionState extends ConsumerState<_MaoDeObraSection> {
         Align(
           alignment: Alignment.centerRight,
           child: FilledButton.icon(
-            onPressed: saving ? null : _salvar,
-            icon: const Icon(Icons.person_add),
+            onPressed: saving || _funcionarioId == null ? null : _salvar,
+            icon: const Icon(Icons.group_add),
             label: Text(saving ? 'Salvando...' : 'Adicionar'),
           ),
         ),
         const SizedBox(height: 12),
-        maoDeObra.when(
-          data: (items) => _MaoDeObraSelecionadaList(
-            maoDeObra: items,
-            onRemove: (item) {
-              ref
-                  .read(maoDeObraFiscalizacaoControllerProvider.notifier)
-                  .remover(item.id);
+        funcionarios.when(
+          data: (funcionariosItems) => maoDeObra.when(
+            data: (items) => _MaoDeObraSelecionadaList(
+              maoDeObra: items,
+              funcionarios: funcionariosItems,
+              onRemove: (item) {
+                ref
+                    .read(maoDeObraFiscalizacaoControllerProvider.notifier)
+                    .remover(item.id);
+              },
+            ),
+            loading: () => const LinearProgressIndicator(),
+            error: (error, stackTrace) {
+              return Text('Erro ao carregar mao de obra: $error');
             },
           ),
-          loading: () => const LinearProgressIndicator(),
-          error: (error, stackTrace) {
-            return Text('Erro ao carregar mao de obra: $error');
-          },
+          loading: () => const SizedBox.shrink(),
+          error: (error, stackTrace) => const SizedBox.shrink(),
         ),
       ],
     );
@@ -959,7 +984,7 @@ class _MaoDeObraSectionState extends ConsumerState<_MaoDeObraSection> {
   Future<void> _salvar() async {
     await ref.read(maoDeObraFiscalizacaoControllerProvider.notifier).salvar(
           vistoriaServicoId: widget.vistoriaServicoId,
-          funcionarioId: _funcionarioIdController.text,
+          funcionarioId: _funcionarioId ?? '',
           funcaoNoDia: _funcaoNoDiaController.text,
           observacao: _observacaoController.text,
         );
@@ -970,21 +995,23 @@ class _MaoDeObraSectionState extends ConsumerState<_MaoDeObraSection> {
 
     final state = ref.read(maoDeObraFiscalizacaoControllerProvider);
     if (!state.hasError) {
-      _funcionarioIdController.clear();
+      setState(() => _funcionarioId = null);
       _funcaoNoDiaController.clear();
       _observacaoController.clear();
     }
   }
 }
 
-class _FuncionariosDisponiveisList extends StatelessWidget {
-  const _FuncionariosDisponiveisList({
+class _FuncionarioDropdown extends StatelessWidget {
+  const _FuncionarioDropdown({
     required this.funcionarios,
-    required this.onSelect,
+    required this.value,
+    required this.onChanged,
   });
 
   final List<Funcionario> funcionarios;
-  final ValueChanged<Funcionario> onSelect;
+  final String? value;
+  final ValueChanged<Funcionario?> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -992,18 +1019,30 @@ class _FuncionariosDisponiveisList extends StatelessWidget {
       return const Text('Nenhum funcionario da empresa encontrado');
     }
 
-    return Column(
-      children: [
+    final selected = funcionarios.any((funcionario) => funcionario.id == value)
+        ? value
+        : null;
+
+    return DropdownButtonFormField<String>(
+      initialValue: selected,
+      decoration: const InputDecoration(
+        labelText: 'Funcionario',
+        border: OutlineInputBorder(),
+      ),
+      items: [
         for (final funcionario in funcionarios)
-          ListTile(
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            title: Text(funcionario.nome),
-            subtitle: Text('${funcionario.cargo} | ${funcionario.id}'),
-            trailing: const Icon(Icons.add),
-            onTap: () => onSelect(funcionario),
+          DropdownMenuItem(
+            value: funcionario.id,
+            child: Text('${funcionario.nome} - ${funcionario.cargo}'),
           ),
       ],
+      onChanged: (id) {
+        final funcionario = funcionarios
+            .where((item) => item.id == id)
+            .cast<Funcionario?>()
+            .firstOrNull;
+        onChanged(funcionario);
+      },
     );
   }
 }
@@ -1011,10 +1050,12 @@ class _FuncionariosDisponiveisList extends StatelessWidget {
 class _MaoDeObraSelecionadaList extends StatelessWidget {
   const _MaoDeObraSelecionadaList({
     required this.maoDeObra,
+    required this.funcionarios,
     required this.onRemove,
   });
 
   final List<VistoriaMaoDeObra> maoDeObra;
+  final List<Funcionario> funcionarios;
   final ValueChanged<VistoriaMaoDeObra> onRemove;
 
   @override
@@ -1029,7 +1070,7 @@ class _MaoDeObraSelecionadaList extends StatelessWidget {
           ListTile(
             dense: true,
             contentPadding: EdgeInsets.zero,
-            title: Text(item.funcionarioId),
+            title: Text(_nomeFuncionario(item.funcionarioId)),
             subtitle: Text(_subtitle(item)),
             trailing: IconButton(
               tooltip: 'Remover',
@@ -1052,6 +1093,115 @@ class _MaoDeObraSelecionadaList extends StatelessWidget {
     }
 
     return partes.join(' | ');
+  }
+
+  String _nomeFuncionario(String funcionarioId) {
+    for (final funcionario in funcionarios) {
+      if (funcionario.id == funcionarioId) {
+        return funcionario.nome;
+      }
+    }
+
+    return funcionarioId;
+  }
+}
+
+class _FuncionarioRapidoForm extends ConsumerStatefulWidget {
+  const _FuncionarioRapidoForm({required this.empresaId});
+
+  final String empresaId;
+
+  @override
+  ConsumerState<_FuncionarioRapidoForm> createState() =>
+      _FuncionarioRapidoFormState();
+}
+
+class _FuncionarioRapidoFormState
+    extends ConsumerState<_FuncionarioRapidoForm> {
+  final _nomeController = TextEditingController();
+  final _telefoneController = TextEditingController();
+  final _cargoController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nomeController.dispose();
+    _telefoneController.dispose();
+    _cargoController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final saving = ref.watch(funcionariosControllerProvider).isLoading;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(
+              'Novo funcionario',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _nomeController,
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(
+                labelText: 'Nome',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _telefoneController,
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(
+                labelText: 'Telefone',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _cargoController,
+              textInputAction: TextInputAction.done,
+              decoration: const InputDecoration(
+                labelText: 'Cargo',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: saving ? null : _salvar,
+              child: Text(saving ? 'Salvando...' : 'Salvar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _salvar() async {
+    await ref.read(funcionariosControllerProvider.notifier).salvar(
+          empresaId: widget.empresaId,
+          nome: _nomeController.text,
+          telefone: _telefoneController.text,
+          cargo: _cargoController.text,
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    final state = ref.read(funcionariosControllerProvider);
+    if (!state.hasError) {
+      Navigator.of(context).pop();
+    }
   }
 }
 

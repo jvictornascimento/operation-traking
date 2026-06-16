@@ -11,6 +11,8 @@ abstract class FuncionariosRepository {
   );
 
   Future<void> salvarFuncionario(Funcionario funcionario);
+
+  Future<void> removerFuncionario(String id);
 }
 
 class DriftFuncionariosRepository implements FuncionariosRepository {
@@ -47,9 +49,17 @@ class DriftFuncionariosRepository implements FuncionariosRepository {
             contratanteId: Value(funcionario.contratanteId),
             nome: funcionario.nome,
             cpf: Value(funcionario.cpf),
+            telefone: Value(funcionario.telefone),
             cargo: funcionario.cargo,
           ),
         );
+  }
+
+  @override
+  Future<void> removerFuncionario(String id) {
+    return (_database.delete(_database.funcionarios)
+          ..where((table) => table.id.equals(id)))
+        .go();
   }
 
   Funcionario _mapFuncionario(db.Funcionario row) {
@@ -59,6 +69,7 @@ class DriftFuncionariosRepository implements FuncionariosRepository {
       contratanteId: row.contratanteId,
       nome: row.nome,
       cpf: row.cpf,
+      telefone: row.telefone,
       cargo: row.cargo,
     );
   }

@@ -454,6 +454,11 @@ class _FakeVistoriasMaoDeObraRepository
   }
 
   @override
+  Future<String?> buscarEmpresaIdDaVistoria(String vistoriaServicoId) async {
+    return 'empresa-1';
+  }
+
+  @override
   Future<void> salvarMaoDeObra(VistoriaMaoDeObra maoDeObra) async {}
 
   @override

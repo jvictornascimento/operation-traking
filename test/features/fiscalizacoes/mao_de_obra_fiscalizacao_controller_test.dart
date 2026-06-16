@@ -130,4 +130,9 @@ class _FakeVistoriasMaoDeObraRepository
   ) {
     return const Stream.empty();
   }
+
+  @override
+  Future<String?> buscarEmpresaIdDaVistoria(String vistoriaServicoId) async {
+    return 'empresa-1';
+  }
 }

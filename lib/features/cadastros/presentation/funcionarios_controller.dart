@@ -10,7 +10,9 @@ final funcionariosRepositoryProvider = Provider<FuncionariosRepository>((ref) {
 
 final funcionariosEmpresaStreamProvider =
     StreamProvider.family.autoDispose<List<Funcionario>, String>((ref, id) {
-  return ref.watch(funcionariosRepositoryProvider).watchFuncionariosDaEmpresa(id);
+  return ref
+      .watch(funcionariosRepositoryProvider)
+      .watchFuncionariosDaEmpresa(id);
 });
 
 final funcionariosContratanteStreamProvider =
@@ -36,6 +38,7 @@ class FuncionariosController extends StateNotifier<AsyncValue<void>> {
     String? contratanteId,
     required String nome,
     String? cpf,
+    String? telefone,
     required String cargo,
   }) async {
     final empresaIdNormalizado = _normalizarTextoOpcional(empresaId);
@@ -79,9 +82,27 @@ class FuncionariosController extends StateNotifier<AsyncValue<void>> {
           contratanteId: contratanteIdNormalizado,
           nome: nomeNormalizado,
           cpf: _normalizarTextoOpcional(cpf),
+          telefone: _normalizarTextoOpcional(telefone),
           cargo: cargoNormalizado,
         ),
       );
+    });
+  }
+
+  Future<void> remover(String id) async {
+    final idNormalizado = id.trim();
+
+    if (idNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Funcionario e obrigatorio.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() {
+      return _repository.removerFuncionario(idNormalizado);
     });
   }
 

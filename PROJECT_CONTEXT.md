@@ -196,6 +196,7 @@ funcionario
 - contratante_id
 - nome
 - cpf
+- telefone
 - cargo
 ```
 

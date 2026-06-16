@@ -19,7 +19,8 @@ void main() {
       expect(repository.funcionarios, isEmpty);
     });
 
-    test('rejeita funcionario com empresa e contratante ao mesmo tempo', () async {
+    test('rejeita funcionario com empresa e contratante ao mesmo tempo',
+        () async {
       final repository = _FakeFuncionariosRepository();
       final controller = FuncionariosController(repository);
 
@@ -42,6 +43,7 @@ void main() {
         empresaId: ' empresa-1 ',
         nome: ' Joao ',
         cpf: ' 123 ',
+        telefone: ' 11999990000 ',
         cargo: ' Pedreiro ',
       );
 
@@ -50,6 +52,7 @@ void main() {
       expect(repository.funcionarios.single.empresaId, 'empresa-1');
       expect(repository.funcionarios.single.contratanteId, isNull);
       expect(repository.funcionarios.single.nome, 'Joao');
+      expect(repository.funcionarios.single.telefone, '11999990000');
       expect(repository.funcionarios.single.cargo, 'Pedreiro');
     });
 
@@ -68,6 +71,22 @@ void main() {
       expect(repository.funcionarios.single.empresaId, isNull);
       expect(repository.funcionarios.single.contratanteId, 'contratante-1');
     });
+
+    test('remove funcionario normalizando id', () async {
+      final repository = _FakeFuncionariosRepository();
+      final controller = FuncionariosController(repository);
+
+      await controller.salvar(
+        id: 'funcionario-1',
+        empresaId: 'empresa-1',
+        nome: 'Joao',
+        cargo: 'Pedreiro',
+      );
+      await controller.remover(' funcionario-1 ');
+
+      expect(controller.state, isA<AsyncData<void>>());
+      expect(repository.funcionarios, isEmpty);
+    });
   });
 }
 
@@ -77,6 +96,11 @@ class _FakeFuncionariosRepository implements FuncionariosRepository {
   @override
   Future<void> salvarFuncionario(Funcionario funcionario) async {
     funcionarios.add(funcionario);
+  }
+
+  @override
+  Future<void> removerFuncionario(String id) async {
+    funcionarios.removeWhere((funcionario) => funcionario.id == id);
   }
 
   @override

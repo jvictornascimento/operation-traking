@@ -87,6 +87,13 @@ final funcionariosMaoDeObraDisponiveisStreamProvider =
   },
 );
 
+final empresaIdDaVistoriaProvider = FutureProvider.family
+    .autoDispose<String?, String>((ref, vistoriaServicoId) {
+  return ref
+      .watch(vistoriasMaoDeObraRepositoryProvider)
+      .buscarEmpresaIdDaVistoria(vistoriaServicoId);
+});
+
 final maoDeObraFiscalizacaoControllerProvider =
     StateNotifierProvider<MaoDeObraFiscalizacaoController, AsyncValue<void>>(
   (ref) {

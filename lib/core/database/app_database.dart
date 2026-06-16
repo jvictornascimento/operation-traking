@@ -31,7 +31,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -43,6 +43,9 @@ class AppDatabase extends _$AppDatabase {
             await migrator.addColumn(obras, obras.contratanteId);
             await migrator.addColumn(obras, obras.responsavelNome);
             await migrator.addColumn(obras, obras.responsavelContato);
+          }
+          if (from < 4) {
+            await migrator.addColumn(funcionarios, funcionarios.telefone);
           }
         },
       );
@@ -83,6 +86,7 @@ class Funcionarios extends Table {
       text().nullable().references(Contratantes, #id)();
   TextColumn get nome => text()();
   TextColumn get cpf => text().nullable()();
+  TextColumn get telefone => text().nullable()();
   TextColumn get cargo => text()();
 
   @override

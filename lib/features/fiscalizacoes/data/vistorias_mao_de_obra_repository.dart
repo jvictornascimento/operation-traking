@@ -13,6 +13,8 @@ abstract class VistoriasMaoDeObraRepository {
     String vistoriaServicoId,
   );
 
+  Future<String?> buscarEmpresaIdDaVistoria(String vistoriaServicoId);
+
   Future<void> salvarMaoDeObra(VistoriaMaoDeObra maoDeObra);
 
   Future<void> removerMaoDeObra(String id);
@@ -72,6 +74,11 @@ class DriftVistoriasMaoDeObraRepository
       ..orderBy([(table) => OrderingTerm.asc(table.nome)]);
 
     yield* query.watch().map((rows) => rows.map(_mapFuncionario).toList());
+  }
+
+  @override
+  Future<String?> buscarEmpresaIdDaVistoria(String vistoriaServicoId) {
+    return _empresaIdDaVistoria(vistoriaServicoId);
   }
 
   @override
@@ -174,6 +181,7 @@ class DriftVistoriasMaoDeObraRepository
       contratanteId: row.contratanteId,
       nome: row.nome,
       cpf: row.cpf,
+      telefone: row.telefone,
       cargo: row.cargo,
     );
   }

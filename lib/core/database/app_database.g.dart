@@ -563,6 +563,12 @@ class $FuncionariosTable extends Funcionarios
   late final GeneratedColumn<String> cpf = GeneratedColumn<String>(
       'cpf', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _telefoneMeta =
+      const VerificationMeta('telefone');
+  @override
+  late final GeneratedColumn<String> telefone = GeneratedColumn<String>(
+      'telefone', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _cargoMeta = const VerificationMeta('cargo');
   @override
   late final GeneratedColumn<String> cargo = GeneratedColumn<String>(
@@ -570,7 +576,7 @@ class $FuncionariosTable extends Funcionarios
       type: DriftSqlType.string, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, empresaId, contratanteId, nome, cpf, cargo];
+      [id, empresaId, contratanteId, nome, cpf, telefone, cargo];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -606,6 +612,10 @@ class $FuncionariosTable extends Funcionarios
       context.handle(
           _cpfMeta, cpf.isAcceptableOrUnknown(data['cpf']!, _cpfMeta));
     }
+    if (data.containsKey('telefone')) {
+      context.handle(_telefoneMeta,
+          telefone.isAcceptableOrUnknown(data['telefone']!, _telefoneMeta));
+    }
     if (data.containsKey('cargo')) {
       context.handle(
           _cargoMeta, cargo.isAcceptableOrUnknown(data['cargo']!, _cargoMeta));
@@ -631,6 +641,8 @@ class $FuncionariosTable extends Funcionarios
           .read(DriftSqlType.string, data['${effectivePrefix}nome'])!,
       cpf: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}cpf']),
+      telefone: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}telefone']),
       cargo: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}cargo'])!,
     );
@@ -648,6 +660,7 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
   final String? contratanteId;
   final String nome;
   final String? cpf;
+  final String? telefone;
   final String cargo;
   const Funcionario(
       {required this.id,
@@ -655,6 +668,7 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
       this.contratanteId,
       required this.nome,
       this.cpf,
+      this.telefone,
       required this.cargo});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -669,6 +683,9 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
     map['nome'] = Variable<String>(nome);
     if (!nullToAbsent || cpf != null) {
       map['cpf'] = Variable<String>(cpf);
+    }
+    if (!nullToAbsent || telefone != null) {
+      map['telefone'] = Variable<String>(telefone);
     }
     map['cargo'] = Variable<String>(cargo);
     return map;
@@ -685,6 +702,9 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
           : Value(contratanteId),
       nome: Value(nome),
       cpf: cpf == null && nullToAbsent ? const Value.absent() : Value(cpf),
+      telefone: telefone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(telefone),
       cargo: Value(cargo),
     );
   }
@@ -698,6 +718,7 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
       contratanteId: serializer.fromJson<String?>(json['contratanteId']),
       nome: serializer.fromJson<String>(json['nome']),
       cpf: serializer.fromJson<String?>(json['cpf']),
+      telefone: serializer.fromJson<String?>(json['telefone']),
       cargo: serializer.fromJson<String>(json['cargo']),
     );
   }
@@ -710,6 +731,7 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
       'contratanteId': serializer.toJson<String?>(contratanteId),
       'nome': serializer.toJson<String>(nome),
       'cpf': serializer.toJson<String?>(cpf),
+      'telefone': serializer.toJson<String?>(telefone),
       'cargo': serializer.toJson<String>(cargo),
     };
   }
@@ -720,6 +742,7 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
           Value<String?> contratanteId = const Value.absent(),
           String? nome,
           Value<String?> cpf = const Value.absent(),
+          Value<String?> telefone = const Value.absent(),
           String? cargo}) =>
       Funcionario(
         id: id ?? this.id,
@@ -728,6 +751,7 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
             contratanteId.present ? contratanteId.value : this.contratanteId,
         nome: nome ?? this.nome,
         cpf: cpf.present ? cpf.value : this.cpf,
+        telefone: telefone.present ? telefone.value : this.telefone,
         cargo: cargo ?? this.cargo,
       );
   Funcionario copyWithCompanion(FuncionariosCompanion data) {
@@ -739,6 +763,7 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
           : this.contratanteId,
       nome: data.nome.present ? data.nome.value : this.nome,
       cpf: data.cpf.present ? data.cpf.value : this.cpf,
+      telefone: data.telefone.present ? data.telefone.value : this.telefone,
       cargo: data.cargo.present ? data.cargo.value : this.cargo,
     );
   }
@@ -751,6 +776,7 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
           ..write('contratanteId: $contratanteId, ')
           ..write('nome: $nome, ')
           ..write('cpf: $cpf, ')
+          ..write('telefone: $telefone, ')
           ..write('cargo: $cargo')
           ..write(')'))
         .toString();
@@ -758,7 +784,7 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
 
   @override
   int get hashCode =>
-      Object.hash(id, empresaId, contratanteId, nome, cpf, cargo);
+      Object.hash(id, empresaId, contratanteId, nome, cpf, telefone, cargo);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -768,6 +794,7 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
           other.contratanteId == this.contratanteId &&
           other.nome == this.nome &&
           other.cpf == this.cpf &&
+          other.telefone == this.telefone &&
           other.cargo == this.cargo);
 }
 
@@ -777,6 +804,7 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
   final Value<String?> contratanteId;
   final Value<String> nome;
   final Value<String?> cpf;
+  final Value<String?> telefone;
   final Value<String> cargo;
   final Value<int> rowid;
   const FuncionariosCompanion({
@@ -785,6 +813,7 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
     this.contratanteId = const Value.absent(),
     this.nome = const Value.absent(),
     this.cpf = const Value.absent(),
+    this.telefone = const Value.absent(),
     this.cargo = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -794,6 +823,7 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
     this.contratanteId = const Value.absent(),
     required String nome,
     this.cpf = const Value.absent(),
+    this.telefone = const Value.absent(),
     required String cargo,
     this.rowid = const Value.absent(),
   })  : id = Value(id),
@@ -805,6 +835,7 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
     Expression<String>? contratanteId,
     Expression<String>? nome,
     Expression<String>? cpf,
+    Expression<String>? telefone,
     Expression<String>? cargo,
     Expression<int>? rowid,
   }) {
@@ -814,6 +845,7 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
       if (contratanteId != null) 'contratante_id': contratanteId,
       if (nome != null) 'nome': nome,
       if (cpf != null) 'cpf': cpf,
+      if (telefone != null) 'telefone': telefone,
       if (cargo != null) 'cargo': cargo,
       if (rowid != null) 'rowid': rowid,
     });
@@ -825,6 +857,7 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
       Value<String?>? contratanteId,
       Value<String>? nome,
       Value<String?>? cpf,
+      Value<String?>? telefone,
       Value<String>? cargo,
       Value<int>? rowid}) {
     return FuncionariosCompanion(
@@ -833,6 +866,7 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
       contratanteId: contratanteId ?? this.contratanteId,
       nome: nome ?? this.nome,
       cpf: cpf ?? this.cpf,
+      telefone: telefone ?? this.telefone,
       cargo: cargo ?? this.cargo,
       rowid: rowid ?? this.rowid,
     );
@@ -856,6 +890,9 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
     if (cpf.present) {
       map['cpf'] = Variable<String>(cpf.value);
     }
+    if (telefone.present) {
+      map['telefone'] = Variable<String>(telefone.value);
+    }
     if (cargo.present) {
       map['cargo'] = Variable<String>(cargo.value);
     }
@@ -873,6 +910,7 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
           ..write('contratanteId: $contratanteId, ')
           ..write('nome: $nome, ')
           ..write('cpf: $cpf, ')
+          ..write('telefone: $telefone, ')
           ..write('cargo: $cargo, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -6071,6 +6109,7 @@ typedef $$FuncionariosTableCreateCompanionBuilder = FuncionariosCompanion
   Value<String?> contratanteId,
   required String nome,
   Value<String?> cpf,
+  Value<String?> telefone,
   required String cargo,
   Value<int> rowid,
 });
@@ -6081,6 +6120,7 @@ typedef $$FuncionariosTableUpdateCompanionBuilder = FuncionariosCompanion
   Value<String?> contratanteId,
   Value<String> nome,
   Value<String?> cpf,
+  Value<String?> telefone,
   Value<String> cargo,
   Value<int> rowid,
 });
@@ -6107,6 +6147,7 @@ class $$FuncionariosTableTableManager extends RootTableManager<
             Value<String?> contratanteId = const Value.absent(),
             Value<String> nome = const Value.absent(),
             Value<String?> cpf = const Value.absent(),
+            Value<String?> telefone = const Value.absent(),
             Value<String> cargo = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -6116,6 +6157,7 @@ class $$FuncionariosTableTableManager extends RootTableManager<
             contratanteId: contratanteId,
             nome: nome,
             cpf: cpf,
+            telefone: telefone,
             cargo: cargo,
             rowid: rowid,
           ),
@@ -6125,6 +6167,7 @@ class $$FuncionariosTableTableManager extends RootTableManager<
             Value<String?> contratanteId = const Value.absent(),
             required String nome,
             Value<String?> cpf = const Value.absent(),
+            Value<String?> telefone = const Value.absent(),
             required String cargo,
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -6134,6 +6177,7 @@ class $$FuncionariosTableTableManager extends RootTableManager<
             contratanteId: contratanteId,
             nome: nome,
             cpf: cpf,
+            telefone: telefone,
             cargo: cargo,
             rowid: rowid,
           ),
@@ -6155,6 +6199,11 @@ class $$FuncionariosTableFilterComposer
 
   ColumnFilters<String> get cpf => $state.composableBuilder(
       column: $state.table.cpf,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get telefone => $state.composableBuilder(
+      column: $state.table.telefone,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -6234,6 +6283,11 @@ class $$FuncionariosTableOrderingComposer
 
   ColumnOrderings<String> get cpf => $state.composableBuilder(
       column: $state.table.cpf,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get telefone => $state.composableBuilder(
+      column: $state.table.telefone,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

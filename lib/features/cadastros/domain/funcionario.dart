@@ -6,6 +6,7 @@ class Funcionario {
     this.empresaId,
     this.contratanteId,
     this.cpf,
+    this.telefone,
   }) : assert(
           (empresaId == null) != (contratanteId == null),
           'Funcionario deve pertencer a uma empresa ou a um contratante.',
@@ -16,6 +17,7 @@ class Funcionario {
   final String? contratanteId;
   final String nome;
   final String? cpf;
+  final String? telefone;
   final String cargo;
 
   bool get pertenceAEmpresa => empresaId != null;
