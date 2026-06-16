@@ -7,6 +7,7 @@ import '../../features/etapas/presentation/etapas_page.dart';
 import '../../features/fiscalizacoes/presentation/fiscalizacoes_page.dart';
 import '../../features/historico/presentation/historico_page.dart';
 import '../../features/medicoes/presentation/medicoes_page.dart';
+import '../../features/obras/presentation/obra_detalhe_page.dart';
 import '../../features/obras/presentation/obras_page.dart';
 import '../../features/servicos/presentation/servicos_page.dart';
 
@@ -22,6 +23,15 @@ final appRouter = GoRouter(
       name: 'obras',
       path: '/obras',
       builder: (context, state) => const ObrasPage(),
+    ),
+    GoRoute(
+      name: 'obra-detalhe',
+      path: '/obras/:obraId',
+      builder: (context, state) {
+        return ObraDetalhePage(
+          obraId: state.pathParameters['obraId'] ?? '',
+        );
+      },
     ),
     GoRoute(
       name: 'obra-etapas',

@@ -84,7 +84,7 @@ class _ObrasList extends StatelessWidget {
             icon: const Icon(Icons.edit),
             onPressed: () => onEdit(obra),
           ),
-          onTap: () => context.push('/obras/${obra.id}/etapas'),
+          onTap: () => context.push('/obras/${obra.id}'),
         );
       },
       separatorBuilder: (context, index) => const Divider(height: 1),
