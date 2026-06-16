@@ -96,7 +96,14 @@ Estrategia:
 
 - Salvar a imagem no storage local do app.
 - Guardar no banco apenas o caminho do arquivo.
-- Vincular a foto a uma medicao ou fiscalizacao, conforme decisao futura.
+- Vincular a foto a uma medicao.
+
+Decisao do MVP:
+
+- Fotos permanecem vinculadas a medicoes.
+- Uma foto nao fica vinculada diretamente a fiscalizacao no MVP.
+- A fiscalizacao consome fotos pelas medicoes registradas nela.
+- Essa decisao evita duplicidade de origem da evidencia e preserva o fluxo fiscalizacao > medicao > fotos.
 
 ## Modelo de dados
 
