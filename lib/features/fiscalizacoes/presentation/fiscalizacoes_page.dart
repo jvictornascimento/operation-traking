@@ -10,6 +10,7 @@ import '../../../core/widgets/app_back_button.dart';
 import '../../cadastros/domain/funcionario.dart';
 import '../../medicoes/domain/medicao.dart';
 import '../../medicoes/presentation/medicoes_controller.dart';
+import '../../relatorios/presentation/relatorio_actions.dart';
 import '../../relatorios/presentation/relatorios_controller.dart';
 import '../domain/vistoria_mao_de_obra.dart';
 import '../domain/vistoria_periodo.dart';
@@ -1143,6 +1144,9 @@ class _RelatorioFiscalizacaoSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(relatoriosControllerProvider);
+    final relatorio = state.valueOrNull?.fiscalizacaoId == vistoriaServicoId
+        ? state.valueOrNull
+        : null;
 
     ref.listen(relatoriosControllerProvider, (previous, next) {
       final relatorio = next.valueOrNull;
@@ -1160,21 +1164,30 @@ class _RelatorioFiscalizacaoSection extends ConsumerWidget {
       }
     });
 
-    return Align(
-      alignment: Alignment.centerRight,
-      child: FilledButton.icon(
-        onPressed: state.isLoading
-            ? null
-            : () {
-                ref
-                    .read(relatoriosControllerProvider.notifier)
-                    .gerarRelatorioFiscalizacao(vistoriaServicoId);
-              },
-        icon: const Icon(Icons.picture_as_pdf),
-        label: Text(
-          state.isLoading ? 'Gerando PDF...' : 'Gerar PDF da fiscalizacao',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: FilledButton.icon(
+            onPressed: state.isLoading
+                ? null
+                : () {
+                    ref
+                        .read(relatoriosControllerProvider.notifier)
+                        .gerarRelatorioFiscalizacao(vistoriaServicoId);
+                  },
+            icon: const Icon(Icons.picture_as_pdf),
+            label: Text(
+              state.isLoading ? 'Gerando PDF...' : 'Gerar PDF da fiscalizacao',
+            ),
+          ),
         ),
-      ),
+        if (relatorio != null) ...[
+          const SizedBox(height: 12),
+          RelatorioActionsCard(relatorio: relatorio),
+        ],
+      ],
     );
   }
 }
