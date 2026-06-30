@@ -1894,6 +1894,18 @@ class $ObrasTable extends Obras with TableInfo<$ObrasTable, Obra> {
   late final GeneratedColumn<String> nome = GeneratedColumn<String>(
       'nome', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _numeroContratoMeta =
+      const VerificationMeta('numeroContrato');
+  @override
+  late final GeneratedColumn<String> numeroContrato = GeneratedColumn<String>(
+      'numero_contrato', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _valorContratoMeta =
+      const VerificationMeta('valorContrato');
+  @override
+  late final GeneratedColumn<double> valorContrato = GeneratedColumn<double>(
+      'valor_contrato', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
   static const VerificationMeta _responsavelNomeMeta =
       const VerificationMeta('responsavelNome');
   @override
@@ -1946,6 +1958,8 @@ class $ObrasTable extends Obras with TableInfo<$ObrasTable, Obra> {
         contratanteId,
         enderecoId,
         nome,
+        numeroContrato,
+        valorContrato,
         responsavelNome,
         responsavelContato,
         dataInicio,
@@ -1994,6 +2008,18 @@ class $ObrasTable extends Obras with TableInfo<$ObrasTable, Obra> {
           _nomeMeta, nome.isAcceptableOrUnknown(data['nome']!, _nomeMeta));
     } else if (isInserting) {
       context.missing(_nomeMeta);
+    }
+    if (data.containsKey('numero_contrato')) {
+      context.handle(
+          _numeroContratoMeta,
+          numeroContrato.isAcceptableOrUnknown(
+              data['numero_contrato']!, _numeroContratoMeta));
+    }
+    if (data.containsKey('valor_contrato')) {
+      context.handle(
+          _valorContratoMeta,
+          valorContrato.isAcceptableOrUnknown(
+              data['valor_contrato']!, _valorContratoMeta));
     }
     if (data.containsKey('responsavel_nome')) {
       context.handle(
@@ -2058,6 +2084,10 @@ class $ObrasTable extends Obras with TableInfo<$ObrasTable, Obra> {
           .read(DriftSqlType.string, data['${effectivePrefix}endereco_id'])!,
       nome: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}nome'])!,
+      numeroContrato: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}numero_contrato']),
+      valorContrato: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}valor_contrato']),
       responsavelNome: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}responsavel_nome']),
       responsavelContato: attachedDatabase.typeMapping.read(
@@ -2087,6 +2117,8 @@ class Obra extends DataClass implements Insertable<Obra> {
   final String? contratanteId;
   final String enderecoId;
   final String nome;
+  final String? numeroContrato;
+  final double? valorContrato;
   final String? responsavelNome;
   final String? responsavelContato;
   final DateTime dataInicio;
@@ -2100,6 +2132,8 @@ class Obra extends DataClass implements Insertable<Obra> {
       this.contratanteId,
       required this.enderecoId,
       required this.nome,
+      this.numeroContrato,
+      this.valorContrato,
       this.responsavelNome,
       this.responsavelContato,
       required this.dataInicio,
@@ -2117,6 +2151,12 @@ class Obra extends DataClass implements Insertable<Obra> {
     }
     map['endereco_id'] = Variable<String>(enderecoId);
     map['nome'] = Variable<String>(nome);
+    if (!nullToAbsent || numeroContrato != null) {
+      map['numero_contrato'] = Variable<String>(numeroContrato);
+    }
+    if (!nullToAbsent || valorContrato != null) {
+      map['valor_contrato'] = Variable<double>(valorContrato);
+    }
     if (!nullToAbsent || responsavelNome != null) {
       map['responsavel_nome'] = Variable<String>(responsavelNome);
     }
@@ -2140,6 +2180,12 @@ class Obra extends DataClass implements Insertable<Obra> {
           : Value(contratanteId),
       enderecoId: Value(enderecoId),
       nome: Value(nome),
+      numeroContrato: numeroContrato == null && nullToAbsent
+          ? const Value.absent()
+          : Value(numeroContrato),
+      valorContrato: valorContrato == null && nullToAbsent
+          ? const Value.absent()
+          : Value(valorContrato),
       responsavelNome: responsavelNome == null && nullToAbsent
           ? const Value.absent()
           : Value(responsavelNome),
@@ -2163,6 +2209,8 @@ class Obra extends DataClass implements Insertable<Obra> {
       contratanteId: serializer.fromJson<String?>(json['contratanteId']),
       enderecoId: serializer.fromJson<String>(json['enderecoId']),
       nome: serializer.fromJson<String>(json['nome']),
+      numeroContrato: serializer.fromJson<String?>(json['numeroContrato']),
+      valorContrato: serializer.fromJson<double?>(json['valorContrato']),
       responsavelNome: serializer.fromJson<String?>(json['responsavelNome']),
       responsavelContato:
           serializer.fromJson<String?>(json['responsavelContato']),
@@ -2182,6 +2230,8 @@ class Obra extends DataClass implements Insertable<Obra> {
       'contratanteId': serializer.toJson<String?>(contratanteId),
       'enderecoId': serializer.toJson<String>(enderecoId),
       'nome': serializer.toJson<String>(nome),
+      'numeroContrato': serializer.toJson<String?>(numeroContrato),
+      'valorContrato': serializer.toJson<double?>(valorContrato),
       'responsavelNome': serializer.toJson<String?>(responsavelNome),
       'responsavelContato': serializer.toJson<String?>(responsavelContato),
       'dataInicio': serializer.toJson<DateTime>(dataInicio),
@@ -2198,6 +2248,8 @@ class Obra extends DataClass implements Insertable<Obra> {
           Value<String?> contratanteId = const Value.absent(),
           String? enderecoId,
           String? nome,
+          Value<String?> numeroContrato = const Value.absent(),
+          Value<double?> valorContrato = const Value.absent(),
           Value<String?> responsavelNome = const Value.absent(),
           Value<String?> responsavelContato = const Value.absent(),
           DateTime? dataInicio,
@@ -2212,6 +2264,10 @@ class Obra extends DataClass implements Insertable<Obra> {
             contratanteId.present ? contratanteId.value : this.contratanteId,
         enderecoId: enderecoId ?? this.enderecoId,
         nome: nome ?? this.nome,
+        numeroContrato:
+            numeroContrato.present ? numeroContrato.value : this.numeroContrato,
+        valorContrato:
+            valorContrato.present ? valorContrato.value : this.valorContrato,
         responsavelNome: responsavelNome.present
             ? responsavelNome.value
             : this.responsavelNome,
@@ -2234,6 +2290,12 @@ class Obra extends DataClass implements Insertable<Obra> {
       enderecoId:
           data.enderecoId.present ? data.enderecoId.value : this.enderecoId,
       nome: data.nome.present ? data.nome.value : this.nome,
+      numeroContrato: data.numeroContrato.present
+          ? data.numeroContrato.value
+          : this.numeroContrato,
+      valorContrato: data.valorContrato.present
+          ? data.valorContrato.value
+          : this.valorContrato,
       responsavelNome: data.responsavelNome.present
           ? data.responsavelNome.value
           : this.responsavelNome,
@@ -2261,6 +2323,8 @@ class Obra extends DataClass implements Insertable<Obra> {
           ..write('contratanteId: $contratanteId, ')
           ..write('enderecoId: $enderecoId, ')
           ..write('nome: $nome, ')
+          ..write('numeroContrato: $numeroContrato, ')
+          ..write('valorContrato: $valorContrato, ')
           ..write('responsavelNome: $responsavelNome, ')
           ..write('responsavelContato: $responsavelContato, ')
           ..write('dataInicio: $dataInicio, ')
@@ -2279,6 +2343,8 @@ class Obra extends DataClass implements Insertable<Obra> {
       contratanteId,
       enderecoId,
       nome,
+      numeroContrato,
+      valorContrato,
       responsavelNome,
       responsavelContato,
       dataInicio,
@@ -2295,6 +2361,8 @@ class Obra extends DataClass implements Insertable<Obra> {
           other.contratanteId == this.contratanteId &&
           other.enderecoId == this.enderecoId &&
           other.nome == this.nome &&
+          other.numeroContrato == this.numeroContrato &&
+          other.valorContrato == this.valorContrato &&
           other.responsavelNome == this.responsavelNome &&
           other.responsavelContato == this.responsavelContato &&
           other.dataInicio == this.dataInicio &&
@@ -2310,6 +2378,8 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
   final Value<String?> contratanteId;
   final Value<String> enderecoId;
   final Value<String> nome;
+  final Value<String?> numeroContrato;
+  final Value<double?> valorContrato;
   final Value<String?> responsavelNome;
   final Value<String?> responsavelContato;
   final Value<DateTime> dataInicio;
@@ -2324,6 +2394,8 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
     this.contratanteId = const Value.absent(),
     this.enderecoId = const Value.absent(),
     this.nome = const Value.absent(),
+    this.numeroContrato = const Value.absent(),
+    this.valorContrato = const Value.absent(),
     this.responsavelNome = const Value.absent(),
     this.responsavelContato = const Value.absent(),
     this.dataInicio = const Value.absent(),
@@ -2339,6 +2411,8 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
     this.contratanteId = const Value.absent(),
     required String enderecoId,
     required String nome,
+    this.numeroContrato = const Value.absent(),
+    this.valorContrato = const Value.absent(),
     this.responsavelNome = const Value.absent(),
     this.responsavelContato = const Value.absent(),
     required DateTime dataInicio,
@@ -2360,6 +2434,8 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
     Expression<String>? contratanteId,
     Expression<String>? enderecoId,
     Expression<String>? nome,
+    Expression<String>? numeroContrato,
+    Expression<double>? valorContrato,
     Expression<String>? responsavelNome,
     Expression<String>? responsavelContato,
     Expression<DateTime>? dataInicio,
@@ -2375,6 +2451,8 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
       if (contratanteId != null) 'contratante_id': contratanteId,
       if (enderecoId != null) 'endereco_id': enderecoId,
       if (nome != null) 'nome': nome,
+      if (numeroContrato != null) 'numero_contrato': numeroContrato,
+      if (valorContrato != null) 'valor_contrato': valorContrato,
       if (responsavelNome != null) 'responsavel_nome': responsavelNome,
       if (responsavelContato != null) 'responsavel_contato': responsavelContato,
       if (dataInicio != null) 'data_inicio': dataInicio,
@@ -2393,6 +2471,8 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
       Value<String?>? contratanteId,
       Value<String>? enderecoId,
       Value<String>? nome,
+      Value<String?>? numeroContrato,
+      Value<double?>? valorContrato,
       Value<String?>? responsavelNome,
       Value<String?>? responsavelContato,
       Value<DateTime>? dataInicio,
@@ -2407,6 +2487,8 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
       contratanteId: contratanteId ?? this.contratanteId,
       enderecoId: enderecoId ?? this.enderecoId,
       nome: nome ?? this.nome,
+      numeroContrato: numeroContrato ?? this.numeroContrato,
+      valorContrato: valorContrato ?? this.valorContrato,
       responsavelNome: responsavelNome ?? this.responsavelNome,
       responsavelContato: responsavelContato ?? this.responsavelContato,
       dataInicio: dataInicio ?? this.dataInicio,
@@ -2435,6 +2517,12 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
     }
     if (nome.present) {
       map['nome'] = Variable<String>(nome.value);
+    }
+    if (numeroContrato.present) {
+      map['numero_contrato'] = Variable<String>(numeroContrato.value);
+    }
+    if (valorContrato.present) {
+      map['valor_contrato'] = Variable<double>(valorContrato.value);
     }
     if (responsavelNome.present) {
       map['responsavel_nome'] = Variable<String>(responsavelNome.value);
@@ -2471,6 +2559,8 @@ class ObrasCompanion extends UpdateCompanion<Obra> {
           ..write('contratanteId: $contratanteId, ')
           ..write('enderecoId: $enderecoId, ')
           ..write('nome: $nome, ')
+          ..write('numeroContrato: $numeroContrato, ')
+          ..write('valorContrato: $valorContrato, ')
           ..write('responsavelNome: $responsavelNome, ')
           ..write('responsavelContato: $responsavelContato, ')
           ..write('dataInicio: $dataInicio, ')
@@ -6720,6 +6810,8 @@ typedef $$ObrasTableCreateCompanionBuilder = ObrasCompanion Function({
   Value<String?> contratanteId,
   required String enderecoId,
   required String nome,
+  Value<String?> numeroContrato,
+  Value<double?> valorContrato,
   Value<String?> responsavelNome,
   Value<String?> responsavelContato,
   required DateTime dataInicio,
@@ -6735,6 +6827,8 @@ typedef $$ObrasTableUpdateCompanionBuilder = ObrasCompanion Function({
   Value<String?> contratanteId,
   Value<String> enderecoId,
   Value<String> nome,
+  Value<String?> numeroContrato,
+  Value<double?> valorContrato,
   Value<String?> responsavelNome,
   Value<String?> responsavelContato,
   Value<DateTime> dataInicio,
@@ -6767,6 +6861,8 @@ class $$ObrasTableTableManager extends RootTableManager<
             Value<String?> contratanteId = const Value.absent(),
             Value<String> enderecoId = const Value.absent(),
             Value<String> nome = const Value.absent(),
+            Value<String?> numeroContrato = const Value.absent(),
+            Value<double?> valorContrato = const Value.absent(),
             Value<String?> responsavelNome = const Value.absent(),
             Value<String?> responsavelContato = const Value.absent(),
             Value<DateTime> dataInicio = const Value.absent(),
@@ -6782,6 +6878,8 @@ class $$ObrasTableTableManager extends RootTableManager<
             contratanteId: contratanteId,
             enderecoId: enderecoId,
             nome: nome,
+            numeroContrato: numeroContrato,
+            valorContrato: valorContrato,
             responsavelNome: responsavelNome,
             responsavelContato: responsavelContato,
             dataInicio: dataInicio,
@@ -6797,6 +6895,8 @@ class $$ObrasTableTableManager extends RootTableManager<
             Value<String?> contratanteId = const Value.absent(),
             required String enderecoId,
             required String nome,
+            Value<String?> numeroContrato = const Value.absent(),
+            Value<double?> valorContrato = const Value.absent(),
             Value<String?> responsavelNome = const Value.absent(),
             Value<String?> responsavelContato = const Value.absent(),
             required DateTime dataInicio,
@@ -6812,6 +6912,8 @@ class $$ObrasTableTableManager extends RootTableManager<
             contratanteId: contratanteId,
             enderecoId: enderecoId,
             nome: nome,
+            numeroContrato: numeroContrato,
+            valorContrato: valorContrato,
             responsavelNome: responsavelNome,
             responsavelContato: responsavelContato,
             dataInicio: dataInicio,
@@ -6834,6 +6936,16 @@ class $$ObrasTableFilterComposer
 
   ColumnFilters<String> get nome => $state.composableBuilder(
       column: $state.table.nome,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get numeroContrato => $state.composableBuilder(
+      column: $state.table.numeroContrato,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get valorContrato => $state.composableBuilder(
+      column: $state.table.valorContrato,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -6946,6 +7058,16 @@ class $$ObrasTableOrderingComposer
 
   ColumnOrderings<String> get nome => $state.composableBuilder(
       column: $state.table.nome,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get numeroContrato => $state.composableBuilder(
+      column: $state.table.numeroContrato,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get valorContrato => $state.composableBuilder(
+      column: $state.table.valorContrato,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

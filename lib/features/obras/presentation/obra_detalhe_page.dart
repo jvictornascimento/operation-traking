@@ -88,6 +88,9 @@ class _ResumoObraCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final prazoTexto = _prazoTexto(obra.progressoPrazoDias);
+    final diasTotais = _diasTotaisContrato();
+    final diasDecorridos = _diasDecorridos();
+    final diasRestantes = _diasRestantes(diasTotais, diasDecorridos);
 
     return Card(
       child: Padding(
@@ -124,6 +127,50 @@ class _ResumoObraCard extends StatelessWidget {
               minHeight: 8,
             ),
             const SizedBox(height: 16),
+            if (obra.numeroContrato != null || obra.valorContrato != null) ...[
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (obra.numeroContrato != null)
+                    _InfoChip(
+                      icon: Icons.description_outlined,
+                      label: 'Contrato ${obra.numeroContrato}',
+                    ),
+                  if (obra.valorContrato != null)
+                    _InfoChip(
+                      icon: Icons.payments_outlined,
+                      label: _formatarMoeda(obra.valorContrato!),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  child: _DateInfo(
+                    label: 'Dias totais',
+                    value: '$diasTotais',
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _DateInfo(
+                    label: 'Decorridos',
+                    value: '$diasDecorridos',
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _DateInfo(
+                    label: diasRestantes >= 0 ? 'Restantes' : 'Atraso',
+                    value: '${diasRestantes.abs()}',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -157,6 +204,47 @@ class _ResumoObraCard extends StatelessWidget {
     }
 
     return '${prazo.abs()} dias atrasada';
+  }
+
+  int _diasTotaisContrato() {
+    return obra.dataFim.difference(obra.dataInicio).inDays + 1;
+  }
+
+  int _diasDecorridos() {
+    final hoje = DateTime.now();
+    final hojeNormalizado = DateTime(hoje.year, hoje.month, hoje.day);
+    final inicio = DateTime(
+      obra.dataInicio.year,
+      obra.dataInicio.month,
+      obra.dataInicio.day,
+    );
+    final fim =
+        DateTime(obra.dataFim.year, obra.dataFim.month, obra.dataFim.day);
+
+    if (hojeNormalizado.isBefore(inicio)) {
+      return 0;
+    }
+
+    final limite = hojeNormalizado.isAfter(fim) ? fim : hojeNormalizado;
+    return limite.difference(inicio).inDays + 1;
+  }
+
+  int _diasRestantes(int diasTotais, int diasDecorridos) {
+    final hoje = DateTime.now();
+    final hojeNormalizado = DateTime(hoje.year, hoje.month, hoje.day);
+    final fim =
+        DateTime(obra.dataFim.year, obra.dataFim.month, obra.dataFim.day);
+
+    if (hojeNormalizado.isAfter(fim)) {
+      return -hojeNormalizado.difference(fim).inDays;
+    }
+
+    return diasTotais - diasDecorridos;
+  }
+
+  String _formatarMoeda(double value) {
+    final texto = value.toStringAsFixed(2).replaceAll('.', ',');
+    return 'R\$ $texto';
   }
 }
 

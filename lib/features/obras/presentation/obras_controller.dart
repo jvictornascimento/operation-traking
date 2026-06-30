@@ -30,6 +30,8 @@ class ObrasController extends StateNotifier<AsyncValue<void>> {
     required String empresaId,
     String? contratanteId,
     required String nome,
+    String? numeroContrato,
+    String? valorContrato,
     String? responsavelNome,
     String? responsavelContato,
     required DateTime dataInicio,
@@ -50,6 +52,7 @@ class ObrasController extends StateNotifier<AsyncValue<void>> {
     final empresaIdNormalizado = empresaId.trim();
     final contratanteIdNormalizado = _normalizarTextoOpcional(contratanteId);
     final nomeNormalizado = nome.trim();
+    final valorContratoNormalizado = _normalizarValorContrato(valorContrato);
     final enderecoTipoNormalizado = enderecoTipo.trim();
     final enderecoCidadeNormalizada = enderecoCidade.trim();
     final enderecoEstadoNormalizado = enderecoEstado.trim();
@@ -120,6 +123,8 @@ class ObrasController extends StateNotifier<AsyncValue<void>> {
           contratanteId: contratanteIdNormalizado,
           enderecoId: enderecoIdFinal,
           nome: nomeNormalizado,
+          numeroContrato: _normalizarTextoOpcional(numeroContrato),
+          valorContrato: valorContratoNormalizado,
           responsavelNome: _normalizarTextoOpcional(responsavelNome),
           responsavelContato: _normalizarTextoOpcional(responsavelContato),
           dataInicio: dataInicio,
@@ -156,5 +161,15 @@ class ObrasController extends StateNotifier<AsyncValue<void>> {
       return null;
     }
     return texto;
+  }
+
+  double? _normalizarValorContrato(String? value) {
+    final texto = _normalizarTextoOpcional(value);
+    if (texto == null) {
+      return null;
+    }
+
+    final normalizado = texto.replaceAll('.', '').replaceAll(',', '.');
+    return double.tryParse(normalizado);
   }
 }

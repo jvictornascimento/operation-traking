@@ -74,8 +74,10 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cliente Regis'));
       await tester.pumpAndSettle();
+      await _scrollUntilText(tester, 'Responsavel da obra');
       await tester.enterText(_field('Responsavel da obra'), 'Regis');
       await tester.enterText(_field('Contato do responsavel'), '11999999999');
+      await _scrollUntilText(tester, 'Cidade');
       await tester.enterText(_field('Cidade'), 'Sao Paulo');
       await tester.enterText(_field('Estado'), 'SP');
       await _scrollUntilText(tester, 'Salvar');

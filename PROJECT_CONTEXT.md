@@ -116,6 +116,8 @@ obra
 - contratante_id
 - endereco_id
 - nome
+- numero_contrato
+- valor_contrato
 - responsavel_nome
 - responsavel_contato
 - data_inicio
@@ -124,6 +126,12 @@ obra
 - progresso_fisico
 - progresso_prazo_dias
 ```
+
+Campos derivados para visualizacao, sem persistencia:
+
+- dias_totais_contrato
+- dias_decorridos
+- dias_restantes
 
 Relacionamentos:
 

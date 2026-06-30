@@ -52,6 +52,8 @@ void main() {
         empresaId: ' empresa-1 ',
         contratanteId: ' contratante-1 ',
         nome: ' Obra Regis ',
+        numeroContrato: ' CTR-001 ',
+        valorContrato: ' 1.250,50 ',
         responsavelNome: ' Regis ',
         responsavelContato: ' 11999999999 ',
         dataInicio: DateTime(2026, 5, 10),
@@ -67,6 +69,8 @@ void main() {
       expect(repository.obras, hasLength(1));
       expect(repository.obras.single.empresaId, 'empresa-1');
       expect(repository.obras.single.contratanteId, 'contratante-1');
+      expect(repository.obras.single.numeroContrato, 'CTR-001');
+      expect(repository.obras.single.valorContrato, 1250.50);
       expect(repository.obras.single.responsavelNome, 'Regis');
       expect(repository.obras.single.responsavelContato, '11999999999');
       expect(repository.enderecos, hasLength(1));

@@ -7,6 +7,8 @@ class Obra {
     this.contratanteId,
     required this.enderecoId,
     required this.nome,
+    this.numeroContrato,
+    this.valorContrato,
     this.responsavelNome,
     this.responsavelContato,
     required this.dataInicio,
@@ -21,6 +23,8 @@ class Obra {
   final String? contratanteId;
   final String enderecoId;
   final String nome;
+  final String? numeroContrato;
+  final double? valorContrato;
   final String? responsavelNome;
   final String? responsavelContato;
   final DateTime dataInicio;

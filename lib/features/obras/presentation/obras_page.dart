@@ -232,6 +232,8 @@ class _ObraForm extends ConsumerStatefulWidget {
 
 class _ObraFormState extends ConsumerState<_ObraForm> {
   late final TextEditingController _nomeController;
+  late final TextEditingController _numeroContratoController;
+  late final TextEditingController _valorContratoController;
   late final TextEditingController _responsavelNomeController;
   late final TextEditingController _responsavelContatoController;
   late final TextEditingController _enderecoTipoController;
@@ -256,6 +258,12 @@ class _ObraFormState extends ConsumerState<_ObraForm> {
     super.initState();
     final obra = widget.obra;
     _nomeController = TextEditingController(text: obra?.nome);
+    _numeroContratoController = TextEditingController(
+      text: obra?.numeroContrato,
+    );
+    _valorContratoController = TextEditingController(
+      text: obra?.valorContrato?.toStringAsFixed(2).replaceAll('.', ','),
+    );
     _responsavelNomeController = TextEditingController(
       text: obra?.responsavelNome,
     );
@@ -282,6 +290,8 @@ class _ObraFormState extends ConsumerState<_ObraForm> {
   @override
   void dispose() {
     _nomeController.dispose();
+    _numeroContratoController.dispose();
+    _valorContratoController.dispose();
     _responsavelNomeController.dispose();
     _responsavelContatoController.dispose();
     _enderecoTipoController.dispose();
@@ -337,6 +347,27 @@ class _ObraFormState extends ConsumerState<_ObraForm> {
               textInputAction: TextInputAction.next,
               decoration: const InputDecoration(
                 labelText: 'Nome',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _numeroContratoController,
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(
+                labelText: 'Numero do contrato',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _valorContratoController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(
+                labelText: 'Valor do contrato',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -555,6 +586,8 @@ class _ObraFormState extends ConsumerState<_ObraForm> {
           contratanteId: _contratanteId,
           enderecoId: _enderecoId,
           nome: _nomeController.text,
+          numeroContrato: _numeroContratoController.text,
+          valorContrato: _valorContratoController.text,
           responsavelNome: _responsavelNomeController.text,
           responsavelContato: _responsavelContatoController.text,
           dataInicio: _dataInicio,
