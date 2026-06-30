@@ -177,7 +177,11 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
 
     if (obraIdNormalizado == null || obraIdNormalizado.isEmpty) {
       state = AsyncError(
-        ArgumentError('Obra da fiscalizacao e obrigatoria.'),
+        ArgumentError(
+          'Nao foi possivel iniciar a fiscalizacao: nao encontrei a obra do '
+          'servico. Abra a fiscalizacao a partir de um servico dentro de uma '
+          'etapa da obra.',
+        ),
         StackTrace.current,
       );
       return;
@@ -185,7 +189,10 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
 
     if (contratanteIdNormalizado == null || contratanteIdNormalizado.isEmpty) {
       state = AsyncError(
-        ArgumentError('Contratante da fiscalizacao e obrigatorio.'),
+        ArgumentError(
+          'Nao foi possivel iniciar a fiscalizacao: a obra nao possui '
+          'contratante selecionado. Edite a obra e escolha o contratante.',
+        ),
         StackTrace.current,
       );
       return;
@@ -194,7 +201,8 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
     if (responsavelIdNormalizado == null || responsavelIdNormalizado.isEmpty) {
       state = AsyncError(
         ArgumentError(
-          'Cadastre um funcionario do contratante para ser responsavel.',
+          'Nao foi possivel iniciar a fiscalizacao: cadastre um funcionario '
+          'no contratante da obra para ser responsavel.',
         ),
         StackTrace.current,
       );

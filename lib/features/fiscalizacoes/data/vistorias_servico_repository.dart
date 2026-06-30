@@ -66,16 +66,14 @@ class ContextoFiscalizacaoServico {
   final String responsavelId;
 }
 
-class ContextoFiscalizacaoIncompletoException implements Exception {
-  const ContextoFiscalizacaoIncompletoException(this.servicoId);
+class ContextoFiscalizacaoException implements Exception {
+  const ContextoFiscalizacaoException(this.message);
 
-  final String servicoId;
+  final String message;
 
   @override
   String toString() {
-    return 'Nao foi possivel iniciar a fiscalizacao. Verifique se o servico '
-        'esta dentro de uma etapa com obra, se a obra possui contratante e se '
-        'existe um funcionario cadastrado para esse contratante.';
+    return message;
   }
 }
 
@@ -139,7 +137,11 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
         .getSingleOrNull();
 
     if (servico == null) {
-      return null;
+      throw const ContextoFiscalizacaoException(
+        'Nao foi possivel iniciar a fiscalizacao: o servico selecionado nao '
+        'foi encontrado. Volte para a etapa, abra um servico existente e tente '
+        'novamente.',
+      );
     }
 
     final etapa = await (_database.select(_database.etapas)
@@ -147,7 +149,11 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
         .getSingleOrNull();
 
     if (etapa == null) {
-      return null;
+      throw const ContextoFiscalizacaoException(
+        'Nao foi possivel iniciar a fiscalizacao: o servico nao esta vinculado '
+        'a uma etapa valida. Abra a obra, entre em uma etapa e selecione um '
+        'servico cadastrado dentro dela.',
+      );
     }
 
     final obra = await (_database.select(_database.obras)
@@ -155,8 +161,20 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
         .getSingleOrNull();
 
     final contratanteId = obra?.contratanteId;
-    if (obra == null || contratanteId == null || contratanteId.isEmpty) {
-      return null;
+    if (obra == null) {
+      throw const ContextoFiscalizacaoException(
+        'Nao foi possivel iniciar a fiscalizacao: a etapa do servico nao esta '
+        'vinculada a uma obra valida. Abra uma obra, depois uma etapa e entao '
+        'o servico.',
+      );
+    }
+
+    if (contratanteId == null || contratanteId.isEmpty) {
+      throw const ContextoFiscalizacaoException(
+        'Nao foi possivel iniciar a fiscalizacao: a obra deste servico nao tem '
+        'contratante selecionado. Edite a obra e escolha o contratante antes '
+        'de criar fiscalizacoes.',
+      );
     }
 
     final responsavel = await (_database.select(_database.funcionarios)
@@ -165,7 +183,11 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
         .getSingleOrNull();
 
     if (responsavel == null) {
-      throw ContextoFiscalizacaoIncompletoException(servicoId);
+      throw const ContextoFiscalizacaoException(
+        'Nao foi possivel iniciar a fiscalizacao: o contratante da obra nao '
+        'possui funcionario cadastrado para ser responsavel. Abra o cadastro '
+        'do contratante e adicione pelo menos um funcionario.',
+      );
     }
 
     return ContextoFiscalizacaoServico(

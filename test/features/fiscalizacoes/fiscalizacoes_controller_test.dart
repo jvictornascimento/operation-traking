@@ -34,6 +34,10 @@ void main() {
       );
 
       expect(controller.state, isA<AsyncError<void>>());
+      expect(
+        controller.state.error.toString(),
+        contains('nao encontrei a obra do servico'),
+      );
       expect(repository.vistorias, isEmpty);
     });
 
