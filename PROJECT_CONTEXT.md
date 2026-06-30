@@ -54,6 +54,17 @@ O sistema deve funcionar:
 - Sem cloud.
 - Sem servidor.
 
+### Splash e loading
+
+O app possui uma tela de carregamento centralizada para abertura e estados de
+loading entre telas/consultas locais.
+
+Decisao para o asset visual:
+
+- O GIF/animacao principal deve usar area de 160x160 px.
+- A splash de abertura deve ter tempo maximo de 2,5 segundos.
+- Enquanto o GIF final nao for fornecido, usar fallback visual nativo do app.
+
 ### Auto-save
 
 Nenhuma informacao importante deve depender de botao "Salvar".

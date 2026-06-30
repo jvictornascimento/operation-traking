@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/app_loading.dart';
 import 'relatorio_actions.dart';
 import 'relatorios_controller.dart';
 
@@ -65,7 +66,7 @@ class _RelatoriosPageState extends ConsumerState<RelatoriosPage> {
 
               return RelatorioActionsCard(relatorio: relatorio);
             },
-            loading: () => const LinearProgressIndicator(),
+            loading: () => const AppInlineLoading(),
             error: (error, stackTrace) => const SizedBox.shrink(),
           ),
         ],

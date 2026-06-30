@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/app_loading.dart';
 import '../../etapas/domain/etapa.dart';
 import '../../fiscalizacoes/domain/vistoria_servico.dart';
 import '../../servicos/domain/servico.dart';
@@ -35,7 +36,7 @@ class ObraDetalhePage extends ConsumerWidget {
 
           return _ObraDetalheContent(detalhe: value);
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppLoadingPage(),
         error: (error, stackTrace) => Center(
           child: Text('Erro ao carregar detalhe da obra: $error'),
         ),

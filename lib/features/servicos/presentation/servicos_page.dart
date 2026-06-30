@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/app_loading.dart';
 import '../domain/servico.dart';
 import 'servicos_controller.dart';
 
@@ -70,7 +71,7 @@ class _ServicosPageState extends ConsumerState<ServicosPage> {
                   servico: servico,
                 ),
               ),
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const AppLoadingPage(),
               error: (error, stackTrace) => Center(
                 child: Text('Erro ao carregar servicos: $error'),
               ),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/app_loading.dart';
 import '../domain/etapa.dart';
 import 'etapas_controller.dart';
 
@@ -69,7 +70,7 @@ class _EtapasPageState extends ConsumerState<EtapasPage> {
                   etapa: etapa,
                 ),
               ),
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const AppLoadingPage(),
               error: (error, stackTrace) => Center(
                 child: Text('Erro ao carregar etapas: $error'),
               ),

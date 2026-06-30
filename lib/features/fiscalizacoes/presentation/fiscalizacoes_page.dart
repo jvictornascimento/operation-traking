@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/app_loading.dart';
 import '../../cadastros/domain/funcionario.dart';
 import '../../cadastros/presentation/funcionarios_controller.dart';
 import '../../medicoes/domain/medicao.dart';
@@ -94,7 +95,7 @@ class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
           Expanded(
             child: vistorias.when(
               data: (items) => _FiscalizacoesList(vistorias: items),
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const AppLoadingPage(),
               error: (error, stackTrace) => Center(
                 child: Text('Erro ao carregar fiscalizacoes: $error'),
               ),
@@ -721,7 +722,7 @@ class _PeriodosSection extends ConsumerWidget {
             ),
         ],
       ),
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const AppLoadingPage(),
       error: (error, stackTrace) => Text('Erro ao carregar periodos: $error'),
     );
   }
@@ -931,7 +932,7 @@ class _MaoDeObraSectionState extends ConsumerState<_MaoDeObraSection> {
                     });
                   },
                 ),
-                loading: () => const LinearProgressIndicator(),
+                loading: () => const AppInlineLoading(),
                 error: (error, stackTrace) {
                   return Text('Erro ao carregar funcionarios: $error');
                 },
@@ -997,7 +998,7 @@ class _MaoDeObraSectionState extends ConsumerState<_MaoDeObraSection> {
                     .remover(item.id);
               },
             ),
-            loading: () => const LinearProgressIndicator(),
+            loading: () => const AppInlineLoading(),
             error: (error, stackTrace) {
               return Text('Erro ao carregar mao de obra: $error');
             },
@@ -1329,7 +1330,7 @@ class _MedicoesFiscalizacaoSectionState
             medicoes: items,
             onSelect: _preencherFormulario,
           ),
-          loading: () => const LinearProgressIndicator(),
+          loading: () => const AppInlineLoading(),
           error: (error, stackTrace) {
             return Text('Erro ao carregar medicoes: $error');
           },

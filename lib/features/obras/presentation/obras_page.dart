@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/app_loading.dart';
 import '../../cadastros/domain/contratante.dart';
 import '../../cadastros/domain/empresa.dart';
 import '../../cadastros/domain/endereco.dart';
@@ -66,7 +67,7 @@ class _ObrasPageState extends ConsumerState<ObrasPage> {
             ),
           ],
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppLoadingPage(),
         error: (error, stackTrace) => Center(
           child: Text('Erro ao carregar obras: $error'),
         ),
@@ -378,7 +379,7 @@ class _ObraFormState extends ConsumerState<_ObraForm> {
                 value: _empresaId,
                 onChanged: (value) => setState(() => _empresaId = value),
               ),
-              loading: () => const LinearProgressIndicator(),
+              loading: () => const AppInlineLoading(),
               error: (error, stackTrace) {
                 return Text('Erro ao carregar empresas: $error');
               },
@@ -390,7 +391,7 @@ class _ObraFormState extends ConsumerState<_ObraForm> {
                 value: _contratanteId,
                 onChanged: (value) => setState(() => _contratanteId = value),
               ),
-              loading: () => const LinearProgressIndicator(),
+              loading: () => const AppInlineLoading(),
               error: (error, stackTrace) {
                 return Text('Erro ao carregar contratantes: $error');
               },

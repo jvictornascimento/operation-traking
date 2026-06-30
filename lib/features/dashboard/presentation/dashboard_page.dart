@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/widgets/app_loading.dart';
 import '../domain/dashboard_resumo.dart';
 import 'dashboard_controller.dart';
 
@@ -19,7 +20,7 @@ class DashboardPage extends ConsumerWidget {
         children: [
           resumo.when(
             data: (value) => _DashboardResumoSection(resumo: value),
-            loading: () => const LinearProgressIndicator(),
+            loading: () => const AppInlineLoading(),
             error: (error, stackTrace) => Text(
               'Erro ao carregar dashboard: $error',
             ),

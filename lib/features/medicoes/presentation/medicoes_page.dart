@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/app_loading.dart';
 import '../domain/foto_medicao.dart';
 import '../domain/medicao.dart';
 import 'medicoes_controller.dart';
@@ -63,7 +64,7 @@ class _MedicoesPageState extends ConsumerState<MedicoesPage> {
           Expanded(
             child: medicoes.when(
               data: (items) => _MedicoesList(medicoes: items),
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const AppLoadingPage(),
               error: (error, stackTrace) => Center(
                 child: Text('Erro ao carregar medicoes: $error'),
               ),
@@ -351,7 +352,7 @@ class _FotosMedicaoSection extends ConsumerWidget {
         const SizedBox(height: 12),
         fotos.when(
           data: (items) => _FotosMedicaoList(fotos: items),
-          loading: () => const LinearProgressIndicator(),
+          loading: () => const AppInlineLoading(),
           error: (error, stackTrace) {
             return Text('Erro ao carregar fotos: $error');
           },

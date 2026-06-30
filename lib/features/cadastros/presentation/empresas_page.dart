@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/app_loading.dart';
 import '../domain/empresa.dart';
 import '../domain/funcionario.dart';
 import 'empresas_controller.dart';
@@ -28,7 +29,7 @@ class EmpresasPage extends ConsumerWidget {
       ),
       body: empresas.when(
         data: (items) => _EmpresasList(empresas: items),
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppLoadingPage(),
         error: (error, stackTrace) => Center(
           child: Text('Erro ao carregar empresas: $error'),
         ),
@@ -251,7 +252,7 @@ class _FuncionariosEmpresaSection extends ConsumerWidget {
               ],
             );
           },
-          loading: () => const LinearProgressIndicator(),
+          loading: () => const AppInlineLoading(),
           error: (error, stackTrace) {
             return Text('Erro ao carregar funcionarios: $error');
           },

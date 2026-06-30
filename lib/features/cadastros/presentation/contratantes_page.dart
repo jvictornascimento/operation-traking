@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/app_loading.dart';
 import '../domain/contratante.dart';
 import 'contratantes_controller.dart';
 
@@ -26,7 +27,7 @@ class ContratantesPage extends ConsumerWidget {
       ),
       body: contratantes.when(
         data: (items) => _ContratantesList(contratantes: items),
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppLoadingPage(),
         error: (error, stackTrace) => Center(
           child: Text('Erro ao carregar contratantes: $error'),
         ),
