@@ -31,7 +31,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -50,6 +50,17 @@ class AppDatabase extends _$AppDatabase {
           if (from < 5) {
             await migrator.addColumn(obras, obras.numeroContrato);
             await migrator.addColumn(obras, obras.valorContrato);
+          }
+          if (from < 6) {
+            await migrator.addColumn(funcionarios, funcionarios.tipo);
+            await migrator.addColumn(
+              funcionarios,
+              funcionarios.assinaturaPath,
+            );
+            await customStatement(
+              "UPDATE funcionarios SET tipo = 'func_contratante' "
+              'WHERE contratante_id IS NOT NULL',
+            );
           }
         },
       );
@@ -92,6 +103,8 @@ class Funcionarios extends Table {
   TextColumn get cpf => text().nullable()();
   TextColumn get telefone => text().nullable()();
   TextColumn get cargo => text()();
+  TextColumn get tipo => text().withDefault(const Constant('func_empresa'))();
+  TextColumn get assinaturaPath => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

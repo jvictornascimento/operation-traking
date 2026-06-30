@@ -9,6 +9,7 @@ void main() {
         empresaId: 'empresa-1',
         nome: 'Joao',
         cargo: 'Pedreiro',
+        tipo: 'func_empresa',
       );
 
       expect(funcionario.pertenceAEmpresa, isTrue);
@@ -21,6 +22,7 @@ void main() {
         contratanteId: 'contratante-1',
         nome: 'Regis',
         cargo: 'Responsavel',
+        tipo: 'func_contratante',
       );
 
       expect(funcionario.pertenceAEmpresa, isFalse);

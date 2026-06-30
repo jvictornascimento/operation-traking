@@ -217,6 +217,8 @@ funcionario
 - cpf
 - telefone
 - cargo
+- tipo
+- assinatura_path
 ```
 
 Relacionamentos:
@@ -232,6 +234,10 @@ Regra:
 - Para funcionario de empresa contratada, usar `empresa_id`.
 - Para funcionario de contratante, usar `contratante_id`.
 - Apenas um dos dois campos deve ser preenchido por registro.
+- `tipo` deve ser `func_empresa` para funcionario de empresa contratada.
+- `tipo` deve ser `func_contratante` para funcionario de contratante.
+- Funcionarios de contratante podem ter assinatura em PNG salva no storage local
+  do app, mantendo no banco apenas `assinatura_path`.
 
 ### Endereco
 

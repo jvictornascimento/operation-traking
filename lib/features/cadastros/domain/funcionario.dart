@@ -3,10 +3,12 @@ class Funcionario {
     required this.id,
     required this.nome,
     required this.cargo,
+    required this.tipo,
     this.empresaId,
     this.contratanteId,
     this.cpf,
     this.telefone,
+    this.assinaturaPath,
   }) : assert(
           (empresaId == null) != (contratanteId == null),
           'Funcionario deve pertencer a uma empresa ou a um contratante.',
@@ -19,6 +21,8 @@ class Funcionario {
   final String? cpf;
   final String? telefone;
   final String cargo;
+  final String tipo;
+  final String? assinaturaPath;
 
   bool get pertenceAEmpresa => empresaId != null;
 

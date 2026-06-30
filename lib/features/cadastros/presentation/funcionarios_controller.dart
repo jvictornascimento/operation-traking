@@ -40,6 +40,7 @@ class FuncionariosController extends StateNotifier<AsyncValue<void>> {
     String? cpf,
     String? telefone,
     required String cargo,
+    String? assinaturaPath,
   }) async {
     final empresaIdNormalizado = _normalizarTextoOpcional(empresaId);
     final contratanteIdNormalizado = _normalizarTextoOpcional(contratanteId);
@@ -75,6 +76,9 @@ class FuncionariosController extends StateNotifier<AsyncValue<void>> {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() {
+      final tipo =
+          empresaIdNormalizado != null ? 'func_empresa' : 'func_contratante';
+
       return _repository.salvarFuncionario(
         Funcionario(
           id: id ?? _novoId(),
@@ -84,6 +88,8 @@ class FuncionariosController extends StateNotifier<AsyncValue<void>> {
           cpf: _normalizarTextoOpcional(cpf),
           telefone: _normalizarTextoOpcional(telefone),
           cargo: cargoNormalizado,
+          tipo: tipo,
+          assinaturaPath: _normalizarTextoOpcional(assinaturaPath),
         ),
       );
     });

@@ -51,6 +51,8 @@ class DriftFuncionariosRepository implements FuncionariosRepository {
             cpf: Value(funcionario.cpf),
             telefone: Value(funcionario.telefone),
             cargo: funcionario.cargo,
+            tipo: Value(funcionario.tipo),
+            assinaturaPath: Value(funcionario.assinaturaPath),
           ),
         );
   }
@@ -71,6 +73,8 @@ class DriftFuncionariosRepository implements FuncionariosRepository {
       cpf: row.cpf,
       telefone: row.telefone,
       cargo: row.cargo,
+      tipo: row.tipo,
+      assinaturaPath: row.assinaturaPath,
     );
   }
 }

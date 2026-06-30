@@ -54,22 +54,32 @@ void main() {
       expect(repository.funcionarios.single.nome, 'Joao');
       expect(repository.funcionarios.single.telefone, '11999990000');
       expect(repository.funcionarios.single.cargo, 'Pedreiro');
+      expect(repository.funcionarios.single.tipo, 'func_empresa');
     });
 
-    test('salva funcionario de contratante normalizado', () async {
+    test('salva funcionario de contratante normalizado com assinatura',
+        () async {
       final repository = _FakeFuncionariosRepository();
       final controller = FuncionariosController(repository);
 
       await controller.salvar(
         contratanteId: ' contratante-1 ',
         nome: ' Regis ',
+        telefone: ' 11988887777 ',
         cargo: ' Fiscal ',
+        assinaturaPath: ' /app/assinatura.png ',
       );
 
       expect(controller.state, isA<AsyncData<void>>());
       expect(repository.funcionarios, hasLength(1));
       expect(repository.funcionarios.single.empresaId, isNull);
       expect(repository.funcionarios.single.contratanteId, 'contratante-1');
+      expect(repository.funcionarios.single.nome, 'Regis');
+      expect(repository.funcionarios.single.telefone, '11988887777');
+      expect(repository.funcionarios.single.cargo, 'Fiscal');
+      expect(repository.funcionarios.single.tipo, 'func_contratante');
+      expect(
+          repository.funcionarios.single.assinaturaPath, '/app/assinatura.png');
     });
 
     test('remove funcionario normalizando id', () async {

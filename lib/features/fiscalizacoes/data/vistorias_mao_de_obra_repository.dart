@@ -183,6 +183,8 @@ class DriftVistoriasMaoDeObraRepository
       cpf: row.cpf,
       telefone: row.telefone,
       cargo: row.cargo,
+      tipo: row.tipo,
+      assinaturaPath: row.assinaturaPath,
     );
   }
 }
