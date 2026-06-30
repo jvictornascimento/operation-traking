@@ -73,8 +73,9 @@ class ContextoFiscalizacaoIncompletoException implements Exception {
 
   @override
   String toString() {
-    return 'Nao foi possivel identificar obra, contratante e responsavel '
-        'para o servico $servicoId.';
+    return 'Nao foi possivel iniciar a fiscalizacao. Verifique se o servico '
+        'esta dentro de uma etapa com obra, se a obra possui contratante e se '
+        'existe um funcionario cadastrado para esse contratante.';
   }
 }
 

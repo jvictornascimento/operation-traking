@@ -358,10 +358,19 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
 
   @override
   Widget build(BuildContext context) {
-    final saving = ref.watch(fiscalizacoesControllerProvider).isLoading;
+    final controllerState = ref.watch(fiscalizacoesControllerProvider);
+    final saving = controllerState.isLoading;
     final vistoria = widget.vistoria;
     final vistoriaServicoId = _vistoriaServicoIdAtual;
     final fiscalizacaoSalva = vistoriaServicoId != null;
+
+    ref.listen(fiscalizacoesControllerProvider, (previous, next) {
+      if (next.hasError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_mensagemErro(next.error))),
+        );
+      }
+    });
 
     return Padding(
       padding: EdgeInsets.only(
@@ -377,6 +386,27 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
+            if (controllerState.hasError) ...[
+              _FormStatusMessage(
+                icon: Icons.error_outline,
+                text: _mensagemErro(controllerState.error),
+                isError: true,
+              ),
+              const SizedBox(height: 12),
+            ] else if (saving && !fiscalizacaoSalva) ...[
+              const _FormStatusMessage(
+                icon: Icons.sync,
+                text: 'Preparando a fiscalizacao do servico...',
+              ),
+              const SizedBox(height: 12),
+            ] else if (!fiscalizacaoSalva) ...[
+              const _FormStatusMessage(
+                icon: Icons.info_outline,
+                text:
+                    'A fiscalizacao sera vinculada automaticamente ao servico.',
+              ),
+              const SizedBox(height: 12),
+            ],
             _DateTile(
               label: 'Data',
               value: _data,
@@ -594,6 +624,63 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
     _autoSaveHabilitado = true;
     _ocorrenciaController.addListener(_agendarAutoSaveTextos);
     _comentarioController.addListener(_agendarAutoSaveTextos);
+  }
+
+  String _mensagemErro(Object? error) {
+    if (error == null) {
+      return 'Nao foi possivel concluir a operacao.';
+    }
+
+    final texto = error.toString();
+    return texto.replaceFirst('Invalid argument(s): ', '');
+  }
+}
+
+class _FormStatusMessage extends StatelessWidget {
+  const _FormStatusMessage({
+    required this.icon,
+    required this.text,
+    this.isError = false,
+  });
+
+  final IconData icon;
+  final String text;
+  final bool isError;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final background =
+        isError ? colorScheme.errorContainer : colorScheme.secondaryContainer;
+    final foreground = isError
+        ? colorScheme.onErrorContainer
+        : colorScheme.onSecondaryContainer;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: foreground),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                text,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: foreground),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

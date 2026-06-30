@@ -148,9 +148,6 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
     String? comentario,
   }) async {
     final servicoIdNormalizado = servicoId.trim();
-    final contexto = await _repository.buscarContextoDoServico(
-      servicoIdNormalizado,
-    );
     final numeroNormalizado = _normalizarTextoOpcional(numero);
 
     if (servicoIdNormalizado.isEmpty) {
@@ -158,6 +155,16 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
         ArgumentError('Servico da fiscalizacao e obrigatorio.'),
         StackTrace.current,
       );
+      return;
+    }
+
+    ContextoFiscalizacaoServico? contexto;
+    try {
+      contexto = await _repository.buscarContextoDoServico(
+        servicoIdNormalizado,
+      );
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
       return;
     }
 
