@@ -17,6 +17,10 @@ abstract class VistoriasServicoRepository {
 
   Future<String?> buscarObraIdDoServico(String servicoId);
 
+  Future<ContextoFiscalizacaoServico?> buscarContextoDoServico(
+    String servicoId,
+  );
+
   Future<void> salvarVistoria(VistoriaServico vistoria);
 
   Future<void> atualizarTextosDaVistoria({
@@ -47,6 +51,30 @@ class NumeroVistoriaDuplicadoException implements Exception {
   @override
   String toString() {
     return 'Ja existe fiscalizacao com o numero $numero.';
+  }
+}
+
+class ContextoFiscalizacaoServico {
+  const ContextoFiscalizacaoServico({
+    required this.obraId,
+    required this.contratanteId,
+    required this.responsavelId,
+  });
+
+  final String obraId;
+  final String contratanteId;
+  final String responsavelId;
+}
+
+class ContextoFiscalizacaoIncompletoException implements Exception {
+  const ContextoFiscalizacaoIncompletoException(this.servicoId);
+
+  final String servicoId;
+
+  @override
+  String toString() {
+    return 'Nao foi possivel identificar obra, contratante e responsavel '
+        'para o servico $servicoId.';
   }
 }
 
@@ -97,6 +125,14 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
 
   @override
   Future<String?> buscarObraIdDoServico(String servicoId) async {
+    final contexto = await buscarContextoDoServico(servicoId);
+    return contexto?.obraId;
+  }
+
+  @override
+  Future<ContextoFiscalizacaoServico?> buscarContextoDoServico(
+    String servicoId,
+  ) async {
     final servico = await (_database.select(_database.servicos)
           ..where((table) => table.id.equals(servicoId)))
         .getSingleOrNull();
@@ -109,7 +145,33 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
           ..where((table) => table.id.equals(servico.etapaId)))
         .getSingleOrNull();
 
-    return etapa?.obraId;
+    if (etapa == null) {
+      return null;
+    }
+
+    final obra = await (_database.select(_database.obras)
+          ..where((table) => table.id.equals(etapa.obraId)))
+        .getSingleOrNull();
+
+    final contratanteId = obra?.contratanteId;
+    if (obra == null || contratanteId == null || contratanteId.isEmpty) {
+      return null;
+    }
+
+    final responsavel = await (_database.select(_database.funcionarios)
+          ..where((table) => table.contratanteId.equals(contratanteId))
+          ..orderBy([(table) => OrderingTerm.asc(table.nome)]))
+        .getSingleOrNull();
+
+    if (responsavel == null) {
+      throw ContextoFiscalizacaoIncompletoException(servicoId);
+    }
+
+    return ContextoFiscalizacaoServico(
+      obraId: obra.id,
+      contratanteId: contratanteId,
+      responsavelId: responsavel.id,
+    );
   }
 
   @override

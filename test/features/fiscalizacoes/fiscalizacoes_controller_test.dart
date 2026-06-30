@@ -23,35 +23,13 @@ void main() {
       expect(repository.vistorias, isEmpty);
     });
 
-    test('rejeita fiscalizacao sem vinculos obrigatorios', () async {
-      final repository = _FakeVistoriasServicoRepository();
+    test('rejeita fiscalizacao sem contexto do servico', () async {
+      final repository = _FakeVistoriasServicoRepository()
+        ..contextoPorServico.clear();
       final controller = FiscalizacoesController(repository);
 
       await controller.salvar(
         servicoId: 'servico-1',
-        obraId: ' ',
-        contratanteId: 'contratante-1',
-        responsavelId: 'responsavel-1',
-        data: DateTime(2026, 5, 20),
-      );
-
-      expect(controller.state, isA<AsyncError<void>>());
-
-      await controller.salvar(
-        servicoId: 'servico-1',
-        obraId: 'obra-1',
-        contratanteId: ' ',
-        responsavelId: 'responsavel-1',
-        data: DateTime(2026, 5, 20),
-      );
-
-      expect(controller.state, isA<AsyncError<void>>());
-
-      await controller.salvar(
-        servicoId: 'servico-1',
-        obraId: 'obra-1',
-        contratanteId: 'contratante-1',
-        responsavelId: ' ',
         data: DateTime(2026, 5, 20),
       );
 
@@ -90,21 +68,19 @@ void main() {
       expect(vistoria.comentario, 'Dia produtivo');
     });
 
-    test('deriva obra pelo servico quando obra nao foi informada', () async {
-      final repository = _FakeVistoriasServicoRepository()
-        ..obraPorServico['servico-1'] = 'obra-1';
+    test('deriva vinculos pelo servico quando nao foram informados', () async {
+      final repository = _FakeVistoriasServicoRepository();
       final controller = FiscalizacoesController(repository);
 
       await controller.salvar(
         servicoId: 'servico-1',
-        obraId: ' ',
-        contratanteId: 'contratante-1',
-        responsavelId: 'responsavel-1',
         data: DateTime(2026, 5, 20),
       );
 
       expect(controller.state, isA<AsyncData<void>>());
       expect(repository.vistorias.single.obraId, 'obra-1');
+      expect(repository.vistorias.single.contratanteId, 'contratante-1');
+      expect(repository.vistorias.single.responsavelId, 'responsavel-1');
     });
 
     test('gera numero quando campo fica vazio', () async {
@@ -190,11 +166,24 @@ void main() {
 
 class _FakeVistoriasServicoRepository implements VistoriasServicoRepository {
   final vistorias = <VistoriaServico>[];
-  final obraPorServico = <String, String>{};
+  final contextoPorServico = <String, ContextoFiscalizacaoServico>{
+    'servico-1': const ContextoFiscalizacaoServico(
+      obraId: 'obra-1',
+      contratanteId: 'contratante-1',
+      responsavelId: 'responsavel-1',
+    ),
+  };
 
   @override
   Future<String?> buscarObraIdDoServico(String servicoId) async {
-    return obraPorServico[servicoId];
+    return contextoPorServico[servicoId]?.obraId;
+  }
+
+  @override
+  Future<ContextoFiscalizacaoServico?> buscarContextoDoServico(
+    String servicoId,
+  ) async {
+    return contextoPorServico[servicoId];
   }
 
   @override

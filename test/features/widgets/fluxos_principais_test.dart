@@ -139,25 +139,19 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Fiscalizacao'));
-      await tester.pumpAndSettle();
-
-      await tester.enterText(_field('ID do contratante'), 'contratante-1');
-      await tester.enterText(_field('ID do responsavel'), 'funcionario-1');
-      await tester.enterText(_field('Numero'), 'FISC-001');
-      await tester.enterText(_field('Ocorrencia'), 'Sem ocorrencias');
-      await tester.enterText(_field('Comentario'), 'Servico liberado');
-      await _scrollUntilText(tester, 'Salvar');
-      await tester.tap(find.text('Salvar'));
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
 
       expect(fiscalizacoesRepository.vistorias, hasLength(1));
       expect(fiscalizacoesRepository.vistorias.single.servicoId, 'servico-1');
       expect(fiscalizacoesRepository.vistorias.single.obraId, 'obra-1');
-      expect(fiscalizacoesRepository.vistorias.single.numero, 'FISC-001');
       expect(
-        fiscalizacoesRepository.vistorias.single.comentario,
-        'Servico liberado',
+        fiscalizacoesRepository.vistorias.single.numero,
+        startsWith('VS-'),
       );
+      expect(fiscalizacoesRepository.vistorias.single.contratanteId,
+          'contratante-1');
+      expect(fiscalizacoesRepository.vistorias.single.responsavelId,
+          'funcionario-1');
     });
 
     testWidgets('periodos exibem checkbox e radio groups', (tester) async {
@@ -383,6 +377,17 @@ class _FakeVistoriasServicoRepository implements VistoriasServicoRepository {
 
   @override
   Future<String?> buscarObraIdDoServico(String servicoId) async => 'obra-1';
+
+  @override
+  Future<ContextoFiscalizacaoServico?> buscarContextoDoServico(
+    String servicoId,
+  ) async {
+    return const ContextoFiscalizacaoServico(
+      obraId: 'obra-1',
+      contratanteId: 'contratante-1',
+      responsavelId: 'funcionario-1',
+    );
+  }
 
   @override
   Future<void> salvarVistoria(VistoriaServico vistoria) async {

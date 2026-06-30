@@ -317,10 +317,6 @@ class _FiscalizacaoForm extends ConsumerStatefulWidget {
 }
 
 class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
-  late final TextEditingController _obraIdController;
-  late final TextEditingController _contratanteIdController;
-  late final TextEditingController _responsavelIdController;
-  late final TextEditingController _numeroController;
   late final TextEditingController _ocorrenciaController;
   late final TextEditingController _comentarioController;
   late DateTime _data;
@@ -329,20 +325,13 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
   String? _vistoriaCriadaId;
   String? _ultimaOcorrenciaSalva;
   String? _ultimoComentarioSalvo;
+  bool _autoSaveHabilitado = false;
   _AutoSaveStatus _autoSaveStatus = _AutoSaveStatus.salvo;
 
   @override
   void initState() {
     super.initState();
     final vistoria = widget.vistoria;
-    _obraIdController = TextEditingController(text: vistoria?.obraId);
-    _contratanteIdController = TextEditingController(
-      text: vistoria?.contratanteId,
-    );
-    _responsavelIdController = TextEditingController(
-      text: vistoria?.responsavelId,
-    );
-    _numeroController = TextEditingController(text: vistoria?.numero);
     _ocorrenciaController = TextEditingController(text: vistoria?.ocorrencia);
     _comentarioController = TextEditingController(text: vistoria?.comentario);
     _data = vistoria?.data ?? DateTime.now();
@@ -351,18 +340,17 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
     _ultimoComentarioSalvo = _normalizarTextoOpcional(vistoria?.comentario);
 
     if (vistoria != null) {
-      _ocorrenciaController.addListener(_agendarAutoSaveTextos);
-      _comentarioController.addListener(_agendarAutoSaveTextos);
+      _habilitarAutoSaveTextos();
+    } else if (widget.servicoId.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _criarFiscalizacaoInicial();
+      });
     }
   }
 
   @override
   void dispose() {
     _autoSaveTimer?.cancel();
-    _obraIdController.dispose();
-    _contratanteIdController.dispose();
-    _responsavelIdController.dispose();
-    _numeroController.dispose();
     _ocorrenciaController.dispose();
     _comentarioController.dispose();
     super.dispose();
@@ -414,45 +402,6 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
                   setState(() => _status = value);
                 }
               },
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _numeroController,
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'Numero',
-                hintText: 'Gerado automaticamente se ficar vazio',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (widget.vistoria != null || widget.servicoId.isEmpty) ...[
-              TextField(
-                controller: _obraIdController,
-                textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: 'ID da obra',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
-            TextField(
-              controller: _contratanteIdController,
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'ID do contratante',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _responsavelIdController,
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'ID do responsavel',
-                border: OutlineInputBorder(),
-              ),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -526,10 +475,6 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
     await ref.read(fiscalizacoesControllerProvider.notifier).salvar(
           id: id,
           servicoId: widget.servicoId,
-          obraId: _obraIdController.text,
-          contratanteId: _contratanteIdController.text,
-          responsavelId: _responsavelIdController.text,
-          numero: _numeroController.text,
           data: _data,
           status: _status,
           ocorrencia: _ocorrenciaController.text,
@@ -551,13 +496,20 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
           _ultimoComentarioSalvo =
               _normalizarTextoOpcional(_comentarioController.text);
         });
-        _ocorrenciaController.addListener(_agendarAutoSaveTextos);
-        _comentarioController.addListener(_agendarAutoSaveTextos);
+        _habilitarAutoSaveTextos();
         return;
       }
 
       Navigator.of(context).pop();
     }
+  }
+
+  Future<void> _criarFiscalizacaoInicial() async {
+    if (!mounted || _vistoriaServicoIdAtual != null) {
+      return;
+    }
+
+    await _salvar();
   }
 
   void _agendarAutoSaveTextos() {
@@ -632,6 +584,16 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
 
   String _novoId() {
     return 'vistoria-${DateTime.now().microsecondsSinceEpoch}';
+  }
+
+  void _habilitarAutoSaveTextos() {
+    if (_autoSaveHabilitado) {
+      return;
+    }
+
+    _autoSaveHabilitado = true;
+    _ocorrenciaController.addListener(_agendarAutoSaveTextos);
+    _comentarioController.addListener(_agendarAutoSaveTextos);
   }
 }
 

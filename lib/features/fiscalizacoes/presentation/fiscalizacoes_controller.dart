@@ -138,9 +138,9 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
   Future<void> salvar({
     String? id,
     required String servicoId,
-    required String obraId,
-    required String contratanteId,
-    required String responsavelId,
+    String? obraId,
+    String? contratanteId,
+    String? responsavelId,
     String? numero,
     required DateTime data,
     StatusFiscalizacao? status,
@@ -148,8 +148,9 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
     String? comentario,
   }) async {
     final servicoIdNormalizado = servicoId.trim();
-    final contratanteIdNormalizado = contratanteId.trim();
-    final responsavelIdNormalizado = responsavelId.trim();
+    final contexto = await _repository.buscarContextoDoServico(
+      servicoIdNormalizado,
+    );
     final numeroNormalizado = _normalizarTextoOpcional(numero);
 
     if (servicoIdNormalizado.isEmpty) {
@@ -160,9 +161,12 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
       return;
     }
 
-    final obraIdNormalizado = obraId.trim().isEmpty
-        ? await _repository.buscarObraIdDoServico(servicoIdNormalizado)
-        : obraId.trim();
+    final obraIdNormalizado =
+        _normalizarTextoOpcional(obraId) ?? contexto?.obraId;
+    final contratanteIdNormalizado =
+        _normalizarTextoOpcional(contratanteId) ?? contexto?.contratanteId;
+    final responsavelIdNormalizado =
+        _normalizarTextoOpcional(responsavelId) ?? contexto?.responsavelId;
 
     if (obraIdNormalizado == null || obraIdNormalizado.isEmpty) {
       state = AsyncError(
@@ -172,7 +176,7 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
       return;
     }
 
-    if (contratanteIdNormalizado.isEmpty) {
+    if (contratanteIdNormalizado == null || contratanteIdNormalizado.isEmpty) {
       state = AsyncError(
         ArgumentError('Contratante da fiscalizacao e obrigatorio.'),
         StackTrace.current,
@@ -180,9 +184,11 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
       return;
     }
 
-    if (responsavelIdNormalizado.isEmpty) {
+    if (responsavelIdNormalizado == null || responsavelIdNormalizado.isEmpty) {
       state = AsyncError(
-        ArgumentError('Responsavel da fiscalizacao e obrigatorio.'),
+        ArgumentError(
+          'Cadastre um funcionario do contratante para ser responsavel.',
+        ),
         StackTrace.current,
       );
       return;
