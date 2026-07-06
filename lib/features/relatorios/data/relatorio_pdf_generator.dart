@@ -280,31 +280,13 @@ class RelatorioPdfGenerator {
       return [pw.Text('Nenhuma foto cadastrada.')];
     }
 
-    final widgets = <pw.Widget>[];
-    for (final foto in dados.fotos) {
-      final file = File(foto.caminhoArquivo);
-      widgets.add(
-        pw.Padding(
-          padding: const pw.EdgeInsets.only(bottom: 8),
-          child: pw.Text('Medicao ${foto.medicaoId}: ${foto.caminhoArquivo}'),
+    return [
+      for (final foto in dados.fotos)
+        _fotoEvidenciaCard(
+          titulo: 'Medicao ${foto.medicaoId}',
+          caminhoArquivo: foto.caminhoArquivo,
         ),
-      );
-
-      if (file.existsSync()) {
-        widgets.add(
-          pw.Padding(
-            padding: const pw.EdgeInsets.only(bottom: 12),
-            child: pw.Image(
-              pw.MemoryImage(file.readAsBytesSync()),
-              height: 180,
-              fit: pw.BoxFit.contain,
-            ),
-          ),
-        );
-      }
-    }
-
-    return widgets;
+    ];
   }
 
   List<pw.Widget> _fotosFiscalizacao(RelatorioFiscalizacaoDados dados) {
@@ -312,31 +294,58 @@ class RelatorioPdfGenerator {
       return [pw.Text('Nenhuma foto cadastrada.')];
     }
 
-    final widgets = <pw.Widget>[];
-    for (final foto in dados.fotos) {
-      final file = File(foto.caminhoArquivo);
-      widgets.add(
-        pw.Padding(
-          padding: const pw.EdgeInsets.only(bottom: 8),
-          child: pw.Text('Medicao ${foto.medicaoId}: ${foto.caminhoArquivo}'),
+    return [
+      for (var index = 0; index < dados.fotos.length; index++)
+        _fotoEvidenciaCard(
+          titulo: 'Foto ${index + 1} - Medicao ${dados.fotos[index].medicaoId}',
+          caminhoArquivo: dados.fotos[index].caminhoArquivo,
         ),
-      );
+    ];
+  }
 
-      if (file.existsSync()) {
-        widgets.add(
-          pw.Padding(
-            padding: const pw.EdgeInsets.only(bottom: 12),
-            child: pw.Image(
-              pw.MemoryImage(file.readAsBytesSync()),
-              height: 180,
-              fit: pw.BoxFit.contain,
-            ),
+  pw.Widget _fotoEvidenciaCard({
+    required String titulo,
+    required String caminhoArquivo,
+  }) {
+    final file = File(caminhoArquivo);
+    final existe = file.existsSync();
+
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 14),
+      padding: const pw.EdgeInsets.all(8),
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey500),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            titulo,
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
           ),
-        );
-      }
-    }
-
-    return widgets;
+          pw.SizedBox(height: 4),
+          pw.Text(
+            caminhoArquivo,
+            style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+          ),
+          pw.SizedBox(height: 8),
+          if (existe)
+            pw.Center(
+              child: pw.Image(
+                pw.MemoryImage(file.readAsBytesSync()),
+                height: 220,
+                fit: pw.BoxFit.contain,
+              ),
+            )
+          else
+            pw.Text(
+              'Arquivo da foto nao encontrado no dispositivo.',
+              style: const pw.TextStyle(color: PdfColors.red700),
+            ),
+        ],
+      ),
+    );
   }
 
   pw.Widget _sectionTitle(String text) {

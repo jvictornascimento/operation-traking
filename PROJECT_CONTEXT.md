@@ -112,9 +112,13 @@ Estrategia:
 Decisao do MVP:
 
 - Fotos permanecem vinculadas a medicoes.
-- Uma foto nao fica vinculada diretamente a fiscalizacao no MVP.
+- A tela de fiscalizacao deve permitir tirar ou anexar fotos nas medicoes
+  daquela fiscalizacao.
 - A fiscalizacao consome fotos pelas medicoes registradas nela.
-- Essa decisao evita duplicidade de origem da evidencia e preserva o fluxo fiscalizacao > medicao > fotos.
+- O relatorio da fiscalizacao deve renderizar as fotos vinculadas as medicoes
+  como evidencias fotograficas.
+- Essa decisao evita duplicidade de origem da evidencia e preserva o fluxo
+  fiscalizacao > medicao > fotos.
 
 ## Modelo de dados
 

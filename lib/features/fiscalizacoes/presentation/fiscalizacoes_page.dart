@@ -1,15 +1,18 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_loading.dart';
 import '../../cadastros/domain/funcionario.dart';
 import '../../cadastros/presentation/funcionarios_controller.dart';
+import '../../medicoes/domain/foto_medicao.dart';
 import '../../medicoes/domain/medicao.dart';
 import '../../medicoes/presentation/medicoes_controller.dart';
 import '../../relatorios/presentation/relatorio_actions.dart';
@@ -1462,25 +1465,31 @@ class _MedicoesFiscalizacaoList extends StatelessWidget {
     return Column(
       children: [
         for (final medicao in medicoes)
-          ListTile(
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            title: Text('${medicao.percentualExecutado}% executado'),
-            subtitle: Text(_subtitle(medicao)),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  tooltip: 'Historico da medicao',
-                  icon: const Icon(Icons.history),
-                  onPressed: () {
-                    context.push(_historicoPath('medicao', medicao.id));
-                  },
+          Column(
+            children: [
+              ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text('${medicao.percentualExecutado}% executado'),
+                subtitle: Text(_subtitle(medicao)),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      tooltip: 'Historico da medicao',
+                      icon: const Icon(Icons.history),
+                      onPressed: () {
+                        context.push(_historicoPath('medicao', medicao.id));
+                      },
+                    ),
+                    const Icon(Icons.edit),
+                  ],
                 ),
-                const Icon(Icons.edit),
-              ],
-            ),
-            onTap: () => onSelect(medicao),
+                onTap: () => onSelect(medicao),
+              ),
+              _FotosFiscalizacaoMedicaoSection(medicaoId: medicao.id),
+              const Divider(height: 20),
+            ],
           ),
       ],
     );
@@ -1495,6 +1504,163 @@ class _MedicoesFiscalizacaoList extends StatelessWidget {
     }
 
     return '$data | $observacao';
+  }
+}
+
+class _FotosFiscalizacaoMedicaoSection extends ConsumerWidget {
+  const _FotosFiscalizacaoMedicaoSection({required this.medicaoId});
+
+  final String medicaoId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fotos = ref.watch(fotosMedicaoStreamProvider(medicaoId));
+    final saving = ref.watch(fotosMedicaoControllerProvider).isLoading;
+
+    ref.listen(fotosMedicaoControllerProvider, (previous, next) {
+      if (next.hasError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_mensagemErroFoto(next.error))),
+        );
+      }
+    });
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: saving
+                      ? null
+                      : () => _selecionarFoto(
+                            ref,
+                            source: ImageSource.camera,
+                          ),
+                  icon: const Icon(Icons.photo_camera),
+                  label: const Text('Tirar foto'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: saving
+                      ? null
+                      : () => _selecionarFoto(
+                            ref,
+                            source: ImageSource.gallery,
+                          ),
+                  icon: const Icon(Icons.photo_library),
+                  label: const Text('Galeria'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          fotos.when(
+            data: (items) => _FotosFiscalizacaoMedicaoList(fotos: items),
+            loading: () => const AppInlineLoading(),
+            error: (error, stackTrace) {
+              return Text('Erro ao carregar fotos da fiscalizacao: $error');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _selecionarFoto(
+    WidgetRef ref, {
+    required ImageSource source,
+  }) async {
+    final picked = await ImagePicker().pickImage(
+      source: source,
+      imageQuality: 85,
+    );
+
+    if (picked == null) {
+      return;
+    }
+
+    await ref.read(fotosMedicaoControllerProvider.notifier).salvarArquivo(
+          medicaoId: medicaoId,
+          caminhoOrigem: picked.path,
+        );
+  }
+
+  String _mensagemErroFoto(Object? error) {
+    if (error == null) {
+      return 'Nao foi possivel salvar a foto da fiscalizacao.';
+    }
+
+    return error.toString().replaceFirst('Invalid argument(s): ', '');
+  }
+}
+
+class _FotosFiscalizacaoMedicaoList extends ConsumerWidget {
+  const _FotosFiscalizacaoMedicaoList({required this.fotos});
+
+  final List<FotoMedicao> fotos;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (fotos.isEmpty) {
+      return const Text('Nenhuma foto vinculada a esta medicao');
+    }
+
+    return Column(
+      children: [
+        for (final foto in fotos)
+          ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            leading: _FotoFiscalizacaoPreview(
+              caminhoArquivo: foto.caminhoArquivo,
+            ),
+            title: const Text('Foto do relatorio'),
+            subtitle: Text(foto.caminhoArquivo),
+            trailing: IconButton(
+              tooltip: 'Remover foto',
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () {
+                ref
+                    .read(fotosMedicaoControllerProvider.notifier)
+                    .remover(foto.id);
+              },
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _FotoFiscalizacaoPreview extends StatelessWidget {
+  const _FotoFiscalizacaoPreview({required this.caminhoArquivo});
+
+  final String caminhoArquivo;
+
+  @override
+  Widget build(BuildContext context) {
+    final file = File(caminhoArquivo);
+    if (!file.existsSync()) {
+      return const SizedBox.square(
+        dimension: 48,
+        child: Icon(Icons.image_not_supported),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: Image.file(
+        file,
+        width: 48,
+        height: 48,
+        fit: BoxFit.cover,
+      ),
+    );
   }
 }
 
