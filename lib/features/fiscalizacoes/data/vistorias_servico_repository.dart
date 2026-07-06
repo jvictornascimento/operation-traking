@@ -31,14 +31,13 @@ abstract class VistoriasServicoRepository {
 }
 
 class VistoriaServicoDuplicadaException implements Exception {
-  const VistoriaServicoDuplicadaException(this.servicoId, this.data);
+  const VistoriaServicoDuplicadaException(this.data);
 
-  final String servicoId;
   final DateTime data;
 
   @override
   String toString() {
-    return 'Ja existe fiscalizacao para o servico $servicoId '
+    return 'Ja existe fiscalizacao para esta etapa '
         'na data ${data.day}/${data.month}/${data.year}.';
   }
 }
@@ -89,6 +88,14 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
   @override
   Stream<List<VistoriaServico>> watchVistoriasDoServico(String servicoId) {
     return watchFiscalizacoes(servicoId: servicoId);
+  }
+
+  Stream<List<VistoriaServico>> watchVistoriasDaEtapa(String etapaId) {
+    final query = _database.select(_database.vistoriasServico)
+      ..where((table) => table.etapaId.equals(etapaId))
+      ..orderBy([(table) => OrderingTerm.desc(table.data)]);
+
+    return query.watch().map((rows) => rows.map(_mapVistoria).toList());
   }
 
   @override
@@ -197,12 +204,67 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
     );
   }
 
+  Future<ContextoFiscalizacaoServico?> buscarContextoDaEtapa(
+    String etapaId,
+  ) async {
+    final etapa = await (_database.select(_database.etapas)
+          ..where((table) => table.id.equals(etapaId)))
+        .getSingleOrNull();
+
+    if (etapa == null) {
+      throw const ContextoFiscalizacaoException(
+        'Nao foi possivel iniciar a fiscalizacao: a etapa selecionada nao '
+        'foi encontrada. Abra uma etapa existente e tente novamente.',
+      );
+    }
+
+    final obra = await (_database.select(_database.obras)
+          ..where((table) => table.id.equals(etapa.obraId)))
+        .getSingleOrNull();
+
+    final contratanteId = obra?.contratanteId;
+    if (obra == null) {
+      throw const ContextoFiscalizacaoException(
+        'Nao foi possivel iniciar a fiscalizacao: a etapa nao esta vinculada '
+        'a uma obra valida. Abra uma obra, depois uma etapa cadastrada.',
+      );
+    }
+
+    if (contratanteId == null || contratanteId.isEmpty) {
+      throw const ContextoFiscalizacaoException(
+        'Nao foi possivel iniciar a fiscalizacao: a obra desta etapa nao tem '
+        'contratante selecionado. Edite a obra e escolha o contratante antes '
+        'de criar fiscalizacoes.',
+      );
+    }
+
+    final responsavel = await (_database.select(_database.funcionarios)
+          ..where((table) => table.contratanteId.equals(contratanteId))
+          ..orderBy([(table) => OrderingTerm.asc(table.nome)]))
+        .getSingleOrNull();
+
+    if (responsavel == null) {
+      throw const ContextoFiscalizacaoException(
+        'Nao foi possivel iniciar a fiscalizacao: o contratante da obra nao '
+        'possui funcionario cadastrado para ser responsavel. Abra o cadastro '
+        'do contratante e adicione pelo menos um funcionario.',
+      );
+    }
+
+    return ContextoFiscalizacaoServico(
+      obraId: obra.id,
+      contratanteId: contratanteId,
+      responsavelId: responsavel.id,
+    );
+  }
+
   @override
   Future<void> salvarVistoria(VistoriaServico vistoria) {
     return _database.transaction(() async {
       final dataNormalizada = _normalizarData(vistoria.data);
       await _garantirVistoriaUnica(
         id: vistoria.id,
+        etapaId: vistoria.etapaId,
         servicoId: vistoria.servicoId,
         data: dataNormalizada,
       );
@@ -217,7 +279,8 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
 
       final companion = db.VistoriasServicoCompanion(
         id: Value(vistoria.id),
-        servicoId: Value(vistoria.servicoId),
+        servicoId: Value(vistoria.servicoId ?? ''),
+        etapaId: Value(vistoria.etapaId),
         obraId: Value(vistoria.obraId),
         contratanteId: Value(vistoria.contratanteId),
         responsavelId: Value(vistoria.responsavelId),
@@ -225,6 +288,7 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
         data: Value(dataNormalizada),
         diaSemana: Value(dataNormalizada.weekday),
         status: Value(vistoria.status.name),
+        atividade: Value(vistoria.atividade),
         ocorrencia: Value(vistoria.ocorrencia),
         comentario: Value(vistoria.comentario),
       );
@@ -247,6 +311,14 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
           valorNovo: vistoria.status.name,
         );
       }
+
+      await _historicosRepository.registrarAlteracaoSeMudou(
+        entidade: 'fiscalizacao',
+        entidadeId: vistoria.id,
+        campo: 'atividade',
+        valorAnterior: existente.atividade,
+        valorNovo: vistoria.atividade,
+      );
 
       await _historicosRepository.registrarAlteracaoSeMudou(
         entidade: 'fiscalizacao',
@@ -308,19 +380,24 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
 
   Future<void> _garantirVistoriaUnica({
     required String id,
-    required String servicoId,
+    required String? etapaId,
+    required String? servicoId,
     required DateTime data,
   }) async {
     final duplicada = await (_database.select(_database.vistoriasServico)
           ..where((table) {
-            return table.servicoId.equals(servicoId) &
+            final mesmaOrigem = etapaId != null && etapaId.isNotEmpty
+                ? table.etapaId.equals(etapaId)
+                : table.servicoId.equals(servicoId ?? '');
+
+            return mesmaOrigem &
                 table.data.equals(data) &
                 table.id.equals(id).not();
           }))
         .getSingleOrNull();
 
     if (duplicada != null) {
-      throw VistoriaServicoDuplicadaException(servicoId, data);
+      throw VistoriaServicoDuplicadaException(data);
     }
   }
 
@@ -343,6 +420,7 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
     return VistoriaServico(
       id: row.id,
       servicoId: row.servicoId,
+      etapaId: row.etapaId,
       obraId: row.obraId,
       contratanteId: row.contratanteId,
       responsavelId: row.responsavelId,
@@ -350,6 +428,7 @@ class DriftVistoriasServicoRepository implements VistoriasServicoRepository {
       data: row.data,
       diaSemana: row.diaSemana,
       status: StatusFiscalizacao.values.byName(row.status),
+      atividade: row.atividade,
       ocorrencia: row.ocorrencia,
       comentario: row.comentario,
     );

@@ -78,18 +78,22 @@ class RelatorioFiscalizacaoInfo {
   const RelatorioFiscalizacaoInfo({
     required this.id,
     required this.numero,
-    required this.servicoId,
     required this.data,
     required this.status,
+    this.etapaId,
+    this.servicoId,
+    this.atividade,
     this.ocorrencia,
     this.comentario,
   });
 
   final String id;
   final String numero;
-  final String servicoId;
+  final String? etapaId;
+  final String? servicoId;
   final DateTime data;
   final StatusFiscalizacao status;
+  final String? atividade;
   final String? ocorrencia;
   final String? comentario;
 }
@@ -110,10 +114,12 @@ class RelatorioMaoDeObraInfo {
 
 class RelatorioFotoInfo {
   const RelatorioFotoInfo({
-    required this.medicaoId,
     required this.caminhoArquivo,
+    this.medicaoId,
+    this.vistoriaServicoId,
   });
 
-  final String medicaoId;
+  final String? medicaoId;
+  final String? vistoriaServicoId;
   final String caminhoArquivo;
 }

@@ -36,8 +36,7 @@ lib/
   features/
     obras/
     etapas/
-    servicos/
-    medicoes/
+    fiscalizacoes/
     relatorios/
 ```
 

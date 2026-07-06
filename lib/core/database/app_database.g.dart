@@ -3684,10 +3684,16 @@ class $VistoriasServicoTable extends VistoriasServico
   @override
   late final GeneratedColumn<String> servicoId = GeneratedColumn<String>(
       'servico_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _etapaIdMeta =
+      const VerificationMeta('etapaId');
+  @override
+  late final GeneratedColumn<String> etapaId = GeneratedColumn<String>(
+      'etapa_id', aliasedName, true,
       type: DriftSqlType.string,
-      requiredDuringInsert: true,
+      requiredDuringInsert: false,
       defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES servicos (id)'));
+          GeneratedColumn.constraintIsAlways('REFERENCES etapas (id)'));
   static const VerificationMeta _obraIdMeta = const VerificationMeta('obraId');
   @override
   late final GeneratedColumn<String> obraId = GeneratedColumn<String>(
@@ -3737,6 +3743,12 @@ class $VistoriasServicoTable extends VistoriasServico
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
       'status', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _atividadeMeta =
+      const VerificationMeta('atividade');
+  @override
+  late final GeneratedColumn<String> atividade = GeneratedColumn<String>(
+      'atividade', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _ocorrenciaMeta =
       const VerificationMeta('ocorrencia');
   @override
@@ -3753,6 +3765,7 @@ class $VistoriasServicoTable extends VistoriasServico
   List<GeneratedColumn> get $columns => [
         id,
         servicoId,
+        etapaId,
         obraId,
         contratanteId,
         responsavelId,
@@ -3760,6 +3773,7 @@ class $VistoriasServicoTable extends VistoriasServico
         data,
         diaSemana,
         status,
+        atividade,
         ocorrencia,
         comentario
       ];
@@ -3784,6 +3798,10 @@ class $VistoriasServicoTable extends VistoriasServico
           servicoId.isAcceptableOrUnknown(data['servico_id']!, _servicoIdMeta));
     } else if (isInserting) {
       context.missing(_servicoIdMeta);
+    }
+    if (data.containsKey('etapa_id')) {
+      context.handle(_etapaIdMeta,
+          etapaId.isAcceptableOrUnknown(data['etapa_id']!, _etapaIdMeta));
     }
     if (data.containsKey('obra_id')) {
       context.handle(_obraIdMeta,
@@ -3831,6 +3849,10 @@ class $VistoriasServicoTable extends VistoriasServico
     } else if (isInserting) {
       context.missing(_statusMeta);
     }
+    if (data.containsKey('atividade')) {
+      context.handle(_atividadeMeta,
+          atividade.isAcceptableOrUnknown(data['atividade']!, _atividadeMeta));
+    }
     if (data.containsKey('ocorrencia')) {
       context.handle(
           _ocorrenciaMeta,
@@ -3850,7 +3872,7 @@ class $VistoriasServicoTable extends VistoriasServico
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   List<Set<GeneratedColumn>> get uniqueKeys => [
-        {servicoId, data},
+        {etapaId, data},
       ];
   @override
   VistoriasServicoData map(Map<String, dynamic> data, {String? tablePrefix}) {
@@ -3860,6 +3882,8 @@ class $VistoriasServicoTable extends VistoriasServico
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       servicoId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}servico_id'])!,
+      etapaId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}etapa_id']),
       obraId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}obra_id'])!,
       contratanteId: attachedDatabase.typeMapping
@@ -3874,6 +3898,8 @@ class $VistoriasServicoTable extends VistoriasServico
           .read(DriftSqlType.int, data['${effectivePrefix}dia_semana'])!,
       status: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      atividade: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}atividade']),
       ocorrencia: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}ocorrencia']),
       comentario: attachedDatabase.typeMapping
@@ -3891,6 +3917,7 @@ class VistoriasServicoData extends DataClass
     implements Insertable<VistoriasServicoData> {
   final String id;
   final String servicoId;
+  final String? etapaId;
   final String obraId;
   final String contratanteId;
   final String responsavelId;
@@ -3898,11 +3925,13 @@ class VistoriasServicoData extends DataClass
   final DateTime data;
   final int diaSemana;
   final String status;
+  final String? atividade;
   final String? ocorrencia;
   final String? comentario;
   const VistoriasServicoData(
       {required this.id,
       required this.servicoId,
+      this.etapaId,
       required this.obraId,
       required this.contratanteId,
       required this.responsavelId,
@@ -3910,6 +3939,7 @@ class VistoriasServicoData extends DataClass
       required this.data,
       required this.diaSemana,
       required this.status,
+      this.atividade,
       this.ocorrencia,
       this.comentario});
   @override
@@ -3917,6 +3947,9 @@ class VistoriasServicoData extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['servico_id'] = Variable<String>(servicoId);
+    if (!nullToAbsent || etapaId != null) {
+      map['etapa_id'] = Variable<String>(etapaId);
+    }
     map['obra_id'] = Variable<String>(obraId);
     map['contratante_id'] = Variable<String>(contratanteId);
     map['responsavel_id'] = Variable<String>(responsavelId);
@@ -3924,6 +3957,9 @@ class VistoriasServicoData extends DataClass
     map['data'] = Variable<DateTime>(data);
     map['dia_semana'] = Variable<int>(diaSemana);
     map['status'] = Variable<String>(status);
+    if (!nullToAbsent || atividade != null) {
+      map['atividade'] = Variable<String>(atividade);
+    }
     if (!nullToAbsent || ocorrencia != null) {
       map['ocorrencia'] = Variable<String>(ocorrencia);
     }
@@ -3937,6 +3973,9 @@ class VistoriasServicoData extends DataClass
     return VistoriasServicoCompanion(
       id: Value(id),
       servicoId: Value(servicoId),
+      etapaId: etapaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(etapaId),
       obraId: Value(obraId),
       contratanteId: Value(contratanteId),
       responsavelId: Value(responsavelId),
@@ -3944,6 +3983,9 @@ class VistoriasServicoData extends DataClass
       data: Value(data),
       diaSemana: Value(diaSemana),
       status: Value(status),
+      atividade: atividade == null && nullToAbsent
+          ? const Value.absent()
+          : Value(atividade),
       ocorrencia: ocorrencia == null && nullToAbsent
           ? const Value.absent()
           : Value(ocorrencia),
@@ -3959,6 +4001,7 @@ class VistoriasServicoData extends DataClass
     return VistoriasServicoData(
       id: serializer.fromJson<String>(json['id']),
       servicoId: serializer.fromJson<String>(json['servicoId']),
+      etapaId: serializer.fromJson<String?>(json['etapaId']),
       obraId: serializer.fromJson<String>(json['obraId']),
       contratanteId: serializer.fromJson<String>(json['contratanteId']),
       responsavelId: serializer.fromJson<String>(json['responsavelId']),
@@ -3966,6 +4009,7 @@ class VistoriasServicoData extends DataClass
       data: serializer.fromJson<DateTime>(json['data']),
       diaSemana: serializer.fromJson<int>(json['diaSemana']),
       status: serializer.fromJson<String>(json['status']),
+      atividade: serializer.fromJson<String?>(json['atividade']),
       ocorrencia: serializer.fromJson<String?>(json['ocorrencia']),
       comentario: serializer.fromJson<String?>(json['comentario']),
     );
@@ -3976,6 +4020,7 @@ class VistoriasServicoData extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'servicoId': serializer.toJson<String>(servicoId),
+      'etapaId': serializer.toJson<String?>(etapaId),
       'obraId': serializer.toJson<String>(obraId),
       'contratanteId': serializer.toJson<String>(contratanteId),
       'responsavelId': serializer.toJson<String>(responsavelId),
@@ -3983,6 +4028,7 @@ class VistoriasServicoData extends DataClass
       'data': serializer.toJson<DateTime>(data),
       'diaSemana': serializer.toJson<int>(diaSemana),
       'status': serializer.toJson<String>(status),
+      'atividade': serializer.toJson<String?>(atividade),
       'ocorrencia': serializer.toJson<String?>(ocorrencia),
       'comentario': serializer.toJson<String?>(comentario),
     };
@@ -3991,6 +4037,7 @@ class VistoriasServicoData extends DataClass
   VistoriasServicoData copyWith(
           {String? id,
           String? servicoId,
+          Value<String?> etapaId = const Value.absent(),
           String? obraId,
           String? contratanteId,
           String? responsavelId,
@@ -3998,11 +4045,13 @@ class VistoriasServicoData extends DataClass
           DateTime? data,
           int? diaSemana,
           String? status,
+          Value<String?> atividade = const Value.absent(),
           Value<String?> ocorrencia = const Value.absent(),
           Value<String?> comentario = const Value.absent()}) =>
       VistoriasServicoData(
         id: id ?? this.id,
         servicoId: servicoId ?? this.servicoId,
+        etapaId: etapaId.present ? etapaId.value : this.etapaId,
         obraId: obraId ?? this.obraId,
         contratanteId: contratanteId ?? this.contratanteId,
         responsavelId: responsavelId ?? this.responsavelId,
@@ -4010,6 +4059,7 @@ class VistoriasServicoData extends DataClass
         data: data ?? this.data,
         diaSemana: diaSemana ?? this.diaSemana,
         status: status ?? this.status,
+        atividade: atividade.present ? atividade.value : this.atividade,
         ocorrencia: ocorrencia.present ? ocorrencia.value : this.ocorrencia,
         comentario: comentario.present ? comentario.value : this.comentario,
       );
@@ -4017,6 +4067,7 @@ class VistoriasServicoData extends DataClass
     return VistoriasServicoData(
       id: data.id.present ? data.id.value : this.id,
       servicoId: data.servicoId.present ? data.servicoId.value : this.servicoId,
+      etapaId: data.etapaId.present ? data.etapaId.value : this.etapaId,
       obraId: data.obraId.present ? data.obraId.value : this.obraId,
       contratanteId: data.contratanteId.present
           ? data.contratanteId.value
@@ -4028,6 +4079,7 @@ class VistoriasServicoData extends DataClass
       data: data.data.present ? data.data.value : this.data,
       diaSemana: data.diaSemana.present ? data.diaSemana.value : this.diaSemana,
       status: data.status.present ? data.status.value : this.status,
+      atividade: data.atividade.present ? data.atividade.value : this.atividade,
       ocorrencia:
           data.ocorrencia.present ? data.ocorrencia.value : this.ocorrencia,
       comentario:
@@ -4040,6 +4092,7 @@ class VistoriasServicoData extends DataClass
     return (StringBuffer('VistoriasServicoData(')
           ..write('id: $id, ')
           ..write('servicoId: $servicoId, ')
+          ..write('etapaId: $etapaId, ')
           ..write('obraId: $obraId, ')
           ..write('contratanteId: $contratanteId, ')
           ..write('responsavelId: $responsavelId, ')
@@ -4047,6 +4100,7 @@ class VistoriasServicoData extends DataClass
           ..write('data: $data, ')
           ..write('diaSemana: $diaSemana, ')
           ..write('status: $status, ')
+          ..write('atividade: $atividade, ')
           ..write('ocorrencia: $ocorrencia, ')
           ..write('comentario: $comentario')
           ..write(')'))
@@ -4054,14 +4108,27 @@ class VistoriasServicoData extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, servicoId, obraId, contratanteId,
-      responsavelId, numero, data, diaSemana, status, ocorrencia, comentario);
+  int get hashCode => Object.hash(
+      id,
+      servicoId,
+      etapaId,
+      obraId,
+      contratanteId,
+      responsavelId,
+      numero,
+      data,
+      diaSemana,
+      status,
+      atividade,
+      ocorrencia,
+      comentario);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is VistoriasServicoData &&
           other.id == this.id &&
           other.servicoId == this.servicoId &&
+          other.etapaId == this.etapaId &&
           other.obraId == this.obraId &&
           other.contratanteId == this.contratanteId &&
           other.responsavelId == this.responsavelId &&
@@ -4069,6 +4136,7 @@ class VistoriasServicoData extends DataClass
           other.data == this.data &&
           other.diaSemana == this.diaSemana &&
           other.status == this.status &&
+          other.atividade == this.atividade &&
           other.ocorrencia == this.ocorrencia &&
           other.comentario == this.comentario);
 }
@@ -4076,6 +4144,7 @@ class VistoriasServicoData extends DataClass
 class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
   final Value<String> id;
   final Value<String> servicoId;
+  final Value<String?> etapaId;
   final Value<String> obraId;
   final Value<String> contratanteId;
   final Value<String> responsavelId;
@@ -4083,12 +4152,14 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
   final Value<DateTime> data;
   final Value<int> diaSemana;
   final Value<String> status;
+  final Value<String?> atividade;
   final Value<String?> ocorrencia;
   final Value<String?> comentario;
   final Value<int> rowid;
   const VistoriasServicoCompanion({
     this.id = const Value.absent(),
     this.servicoId = const Value.absent(),
+    this.etapaId = const Value.absent(),
     this.obraId = const Value.absent(),
     this.contratanteId = const Value.absent(),
     this.responsavelId = const Value.absent(),
@@ -4096,6 +4167,7 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
     this.data = const Value.absent(),
     this.diaSemana = const Value.absent(),
     this.status = const Value.absent(),
+    this.atividade = const Value.absent(),
     this.ocorrencia = const Value.absent(),
     this.comentario = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -4103,6 +4175,7 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
   VistoriasServicoCompanion.insert({
     required String id,
     required String servicoId,
+    this.etapaId = const Value.absent(),
     required String obraId,
     required String contratanteId,
     required String responsavelId,
@@ -4110,6 +4183,7 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
     required DateTime data,
     required int diaSemana,
     required String status,
+    this.atividade = const Value.absent(),
     this.ocorrencia = const Value.absent(),
     this.comentario = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -4125,6 +4199,7 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
   static Insertable<VistoriasServicoData> custom({
     Expression<String>? id,
     Expression<String>? servicoId,
+    Expression<String>? etapaId,
     Expression<String>? obraId,
     Expression<String>? contratanteId,
     Expression<String>? responsavelId,
@@ -4132,6 +4207,7 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
     Expression<DateTime>? data,
     Expression<int>? diaSemana,
     Expression<String>? status,
+    Expression<String>? atividade,
     Expression<String>? ocorrencia,
     Expression<String>? comentario,
     Expression<int>? rowid,
@@ -4139,6 +4215,7 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (servicoId != null) 'servico_id': servicoId,
+      if (etapaId != null) 'etapa_id': etapaId,
       if (obraId != null) 'obra_id': obraId,
       if (contratanteId != null) 'contratante_id': contratanteId,
       if (responsavelId != null) 'responsavel_id': responsavelId,
@@ -4146,6 +4223,7 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
       if (data != null) 'data': data,
       if (diaSemana != null) 'dia_semana': diaSemana,
       if (status != null) 'status': status,
+      if (atividade != null) 'atividade': atividade,
       if (ocorrencia != null) 'ocorrencia': ocorrencia,
       if (comentario != null) 'comentario': comentario,
       if (rowid != null) 'rowid': rowid,
@@ -4155,6 +4233,7 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
   VistoriasServicoCompanion copyWith(
       {Value<String>? id,
       Value<String>? servicoId,
+      Value<String?>? etapaId,
       Value<String>? obraId,
       Value<String>? contratanteId,
       Value<String>? responsavelId,
@@ -4162,12 +4241,14 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
       Value<DateTime>? data,
       Value<int>? diaSemana,
       Value<String>? status,
+      Value<String?>? atividade,
       Value<String?>? ocorrencia,
       Value<String?>? comentario,
       Value<int>? rowid}) {
     return VistoriasServicoCompanion(
       id: id ?? this.id,
       servicoId: servicoId ?? this.servicoId,
+      etapaId: etapaId ?? this.etapaId,
       obraId: obraId ?? this.obraId,
       contratanteId: contratanteId ?? this.contratanteId,
       responsavelId: responsavelId ?? this.responsavelId,
@@ -4175,6 +4256,7 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
       data: data ?? this.data,
       diaSemana: diaSemana ?? this.diaSemana,
       status: status ?? this.status,
+      atividade: atividade ?? this.atividade,
       ocorrencia: ocorrencia ?? this.ocorrencia,
       comentario: comentario ?? this.comentario,
       rowid: rowid ?? this.rowid,
@@ -4189,6 +4271,9 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
     }
     if (servicoId.present) {
       map['servico_id'] = Variable<String>(servicoId.value);
+    }
+    if (etapaId.present) {
+      map['etapa_id'] = Variable<String>(etapaId.value);
     }
     if (obraId.present) {
       map['obra_id'] = Variable<String>(obraId.value);
@@ -4211,6 +4296,9 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
     if (status.present) {
       map['status'] = Variable<String>(status.value);
     }
+    if (atividade.present) {
+      map['atividade'] = Variable<String>(atividade.value);
+    }
     if (ocorrencia.present) {
       map['ocorrencia'] = Variable<String>(ocorrencia.value);
     }
@@ -4228,6 +4316,7 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
     return (StringBuffer('VistoriasServicoCompanion(')
           ..write('id: $id, ')
           ..write('servicoId: $servicoId, ')
+          ..write('etapaId: $etapaId, ')
           ..write('obraId: $obraId, ')
           ..write('contratanteId: $contratanteId, ')
           ..write('responsavelId: $responsavelId, ')
@@ -4235,6 +4324,7 @@ class VistoriasServicoCompanion extends UpdateCompanion<VistoriasServicoData> {
           ..write('data: $data, ')
           ..write('diaSemana: $diaSemana, ')
           ..write('status: $status, ')
+          ..write('atividade: $atividade, ')
           ..write('ocorrencia: $ocorrencia, ')
           ..write('comentario: $comentario, ')
           ..write('rowid: $rowid')
@@ -4894,6 +4984,249 @@ class VistoriasMaoDeObraCompanion
           ..write('funcionarioId: $funcionarioId, ')
           ..write('funcaoNoDia: $funcaoNoDia, ')
           ..write('observacao: $observacao, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $VistoriasFotosTable extends VistoriasFotos
+    with TableInfo<$VistoriasFotosTable, VistoriasFoto> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VistoriasFotosTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _vistoriaServicoIdMeta =
+      const VerificationMeta('vistoriaServicoId');
+  @override
+  late final GeneratedColumn<String> vistoriaServicoId =
+      GeneratedColumn<String>('vistoria_servico_id', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: true,
+          defaultConstraints: GeneratedColumn.constraintIsAlways(
+              'REFERENCES vistorias_servico (id)'));
+  static const VerificationMeta _caminhoArquivoMeta =
+      const VerificationMeta('caminhoArquivo');
+  @override
+  late final GeneratedColumn<String> caminhoArquivo = GeneratedColumn<String>(
+      'caminho_arquivo', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, vistoriaServicoId, caminhoArquivo];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vistorias_fotos';
+  @override
+  VerificationContext validateIntegrity(Insertable<VistoriasFoto> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('vistoria_servico_id')) {
+      context.handle(
+          _vistoriaServicoIdMeta,
+          vistoriaServicoId.isAcceptableOrUnknown(
+              data['vistoria_servico_id']!, _vistoriaServicoIdMeta));
+    } else if (isInserting) {
+      context.missing(_vistoriaServicoIdMeta);
+    }
+    if (data.containsKey('caminho_arquivo')) {
+      context.handle(
+          _caminhoArquivoMeta,
+          caminhoArquivo.isAcceptableOrUnknown(
+              data['caminho_arquivo']!, _caminhoArquivoMeta));
+    } else if (isInserting) {
+      context.missing(_caminhoArquivoMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  VistoriasFoto map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VistoriasFoto(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      vistoriaServicoId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}vistoria_servico_id'])!,
+      caminhoArquivo: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}caminho_arquivo'])!,
+    );
+  }
+
+  @override
+  $VistoriasFotosTable createAlias(String alias) {
+    return $VistoriasFotosTable(attachedDatabase, alias);
+  }
+}
+
+class VistoriasFoto extends DataClass implements Insertable<VistoriasFoto> {
+  final String id;
+  final String vistoriaServicoId;
+  final String caminhoArquivo;
+  const VistoriasFoto(
+      {required this.id,
+      required this.vistoriaServicoId,
+      required this.caminhoArquivo});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['vistoria_servico_id'] = Variable<String>(vistoriaServicoId);
+    map['caminho_arquivo'] = Variable<String>(caminhoArquivo);
+    return map;
+  }
+
+  VistoriasFotosCompanion toCompanion(bool nullToAbsent) {
+    return VistoriasFotosCompanion(
+      id: Value(id),
+      vistoriaServicoId: Value(vistoriaServicoId),
+      caminhoArquivo: Value(caminhoArquivo),
+    );
+  }
+
+  factory VistoriasFoto.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VistoriasFoto(
+      id: serializer.fromJson<String>(json['id']),
+      vistoriaServicoId: serializer.fromJson<String>(json['vistoriaServicoId']),
+      caminhoArquivo: serializer.fromJson<String>(json['caminhoArquivo']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'vistoriaServicoId': serializer.toJson<String>(vistoriaServicoId),
+      'caminhoArquivo': serializer.toJson<String>(caminhoArquivo),
+    };
+  }
+
+  VistoriasFoto copyWith(
+          {String? id, String? vistoriaServicoId, String? caminhoArquivo}) =>
+      VistoriasFoto(
+        id: id ?? this.id,
+        vistoriaServicoId: vistoriaServicoId ?? this.vistoriaServicoId,
+        caminhoArquivo: caminhoArquivo ?? this.caminhoArquivo,
+      );
+  VistoriasFoto copyWithCompanion(VistoriasFotosCompanion data) {
+    return VistoriasFoto(
+      id: data.id.present ? data.id.value : this.id,
+      vistoriaServicoId: data.vistoriaServicoId.present
+          ? data.vistoriaServicoId.value
+          : this.vistoriaServicoId,
+      caminhoArquivo: data.caminhoArquivo.present
+          ? data.caminhoArquivo.value
+          : this.caminhoArquivo,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VistoriasFoto(')
+          ..write('id: $id, ')
+          ..write('vistoriaServicoId: $vistoriaServicoId, ')
+          ..write('caminhoArquivo: $caminhoArquivo')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, vistoriaServicoId, caminhoArquivo);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VistoriasFoto &&
+          other.id == this.id &&
+          other.vistoriaServicoId == this.vistoriaServicoId &&
+          other.caminhoArquivo == this.caminhoArquivo);
+}
+
+class VistoriasFotosCompanion extends UpdateCompanion<VistoriasFoto> {
+  final Value<String> id;
+  final Value<String> vistoriaServicoId;
+  final Value<String> caminhoArquivo;
+  final Value<int> rowid;
+  const VistoriasFotosCompanion({
+    this.id = const Value.absent(),
+    this.vistoriaServicoId = const Value.absent(),
+    this.caminhoArquivo = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VistoriasFotosCompanion.insert({
+    required String id,
+    required String vistoriaServicoId,
+    required String caminhoArquivo,
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        vistoriaServicoId = Value(vistoriaServicoId),
+        caminhoArquivo = Value(caminhoArquivo);
+  static Insertable<VistoriasFoto> custom({
+    Expression<String>? id,
+    Expression<String>? vistoriaServicoId,
+    Expression<String>? caminhoArquivo,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (vistoriaServicoId != null) 'vistoria_servico_id': vistoriaServicoId,
+      if (caminhoArquivo != null) 'caminho_arquivo': caminhoArquivo,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VistoriasFotosCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? vistoriaServicoId,
+      Value<String>? caminhoArquivo,
+      Value<int>? rowid}) {
+    return VistoriasFotosCompanion(
+      id: id ?? this.id,
+      vistoriaServicoId: vistoriaServicoId ?? this.vistoriaServicoId,
+      caminhoArquivo: caminhoArquivo ?? this.caminhoArquivo,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (vistoriaServicoId.present) {
+      map['vistoria_servico_id'] = Variable<String>(vistoriaServicoId.value);
+    }
+    if (caminhoArquivo.present) {
+      map['caminho_arquivo'] = Variable<String>(caminhoArquivo.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VistoriasFotosCompanion(')
+          ..write('id: $id, ')
+          ..write('vistoriaServicoId: $vistoriaServicoId, ')
+          ..write('caminhoArquivo: $caminhoArquivo, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5965,6 +6298,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $VistoriasPeriodoTable(this);
   late final $VistoriasMaoDeObraTable vistoriasMaoDeObra =
       $VistoriasMaoDeObraTable(this);
+  late final $VistoriasFotosTable vistoriasFotos = $VistoriasFotosTable(this);
   late final $MedicoesTable medicoes = $MedicoesTable(this);
   late final $FotosTable fotos = $FotosTable(this);
   late final $HistoricosAlteracaoTable historicosAlteracao =
@@ -5985,6 +6319,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         vistoriasServico,
         vistoriasPeriodo,
         vistoriasMaoDeObra,
+        vistoriasFotos,
         medicoes,
         fotos,
         historicosAlteracao
@@ -7410,6 +7745,20 @@ class $$EtapasTableFilterComposer
                 $state.db, $state.db.servicos, joinBuilder, parentComposers)));
     return f(composer);
   }
+
+  ComposableFilter vistoriasServicoRefs(
+      ComposableFilter Function($$VistoriasServicoTableFilterComposer f) f) {
+    final $$VistoriasServicoTableFilterComposer composer =
+        $state.composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $state.db.vistoriasServico,
+            getReferencedColumn: (t) => t.etapaId,
+            builder: (joinBuilder, parentComposers) =>
+                $$VistoriasServicoTableFilterComposer(ComposerState($state.db,
+                    $state.db.vistoriasServico, joinBuilder, parentComposers)));
+    return f(composer);
+  }
 }
 
 class $$EtapasTableOrderingComposer
@@ -7632,20 +7981,6 @@ class $$ServicosTableFilterComposer
     return composer;
   }
 
-  ComposableFilter vistoriasServicoRefs(
-      ComposableFilter Function($$VistoriasServicoTableFilterComposer f) f) {
-    final $$VistoriasServicoTableFilterComposer composer =
-        $state.composerBuilder(
-            composer: this,
-            getCurrentColumn: (t) => t.id,
-            referencedTable: $state.db.vistoriasServico,
-            getReferencedColumn: (t) => t.servicoId,
-            builder: (joinBuilder, parentComposers) =>
-                $$VistoriasServicoTableFilterComposer(ComposerState($state.db,
-                    $state.db.vistoriasServico, joinBuilder, parentComposers)));
-    return f(composer);
-  }
-
   ComposableFilter medicoesRefs(
       ComposableFilter Function($$MedicoesTableFilterComposer f) f) {
     final $$MedicoesTableFilterComposer composer = $state.composerBuilder(
@@ -7730,6 +8065,7 @@ typedef $$VistoriasServicoTableCreateCompanionBuilder
     = VistoriasServicoCompanion Function({
   required String id,
   required String servicoId,
+  Value<String?> etapaId,
   required String obraId,
   required String contratanteId,
   required String responsavelId,
@@ -7737,6 +8073,7 @@ typedef $$VistoriasServicoTableCreateCompanionBuilder
   required DateTime data,
   required int diaSemana,
   required String status,
+  Value<String?> atividade,
   Value<String?> ocorrencia,
   Value<String?> comentario,
   Value<int> rowid,
@@ -7745,6 +8082,7 @@ typedef $$VistoriasServicoTableUpdateCompanionBuilder
     = VistoriasServicoCompanion Function({
   Value<String> id,
   Value<String> servicoId,
+  Value<String?> etapaId,
   Value<String> obraId,
   Value<String> contratanteId,
   Value<String> responsavelId,
@@ -7752,6 +8090,7 @@ typedef $$VistoriasServicoTableUpdateCompanionBuilder
   Value<DateTime> data,
   Value<int> diaSemana,
   Value<String> status,
+  Value<String?> atividade,
   Value<String?> ocorrencia,
   Value<String?> comentario,
   Value<int> rowid,
@@ -7777,6 +8116,7 @@ class $$VistoriasServicoTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> servicoId = const Value.absent(),
+            Value<String?> etapaId = const Value.absent(),
             Value<String> obraId = const Value.absent(),
             Value<String> contratanteId = const Value.absent(),
             Value<String> responsavelId = const Value.absent(),
@@ -7784,6 +8124,7 @@ class $$VistoriasServicoTableTableManager extends RootTableManager<
             Value<DateTime> data = const Value.absent(),
             Value<int> diaSemana = const Value.absent(),
             Value<String> status = const Value.absent(),
+            Value<String?> atividade = const Value.absent(),
             Value<String?> ocorrencia = const Value.absent(),
             Value<String?> comentario = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -7791,6 +8132,7 @@ class $$VistoriasServicoTableTableManager extends RootTableManager<
               VistoriasServicoCompanion(
             id: id,
             servicoId: servicoId,
+            etapaId: etapaId,
             obraId: obraId,
             contratanteId: contratanteId,
             responsavelId: responsavelId,
@@ -7798,6 +8140,7 @@ class $$VistoriasServicoTableTableManager extends RootTableManager<
             data: data,
             diaSemana: diaSemana,
             status: status,
+            atividade: atividade,
             ocorrencia: ocorrencia,
             comentario: comentario,
             rowid: rowid,
@@ -7805,6 +8148,7 @@ class $$VistoriasServicoTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             required String servicoId,
+            Value<String?> etapaId = const Value.absent(),
             required String obraId,
             required String contratanteId,
             required String responsavelId,
@@ -7812,6 +8156,7 @@ class $$VistoriasServicoTableTableManager extends RootTableManager<
             required DateTime data,
             required int diaSemana,
             required String status,
+            Value<String?> atividade = const Value.absent(),
             Value<String?> ocorrencia = const Value.absent(),
             Value<String?> comentario = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -7819,6 +8164,7 @@ class $$VistoriasServicoTableTableManager extends RootTableManager<
               VistoriasServicoCompanion.insert(
             id: id,
             servicoId: servicoId,
+            etapaId: etapaId,
             obraId: obraId,
             contratanteId: contratanteId,
             responsavelId: responsavelId,
@@ -7826,6 +8172,7 @@ class $$VistoriasServicoTableTableManager extends RootTableManager<
             data: data,
             diaSemana: diaSemana,
             status: status,
+            atividade: atividade,
             ocorrencia: ocorrencia,
             comentario: comentario,
             rowid: rowid,
@@ -7838,6 +8185,11 @@ class $$VistoriasServicoTableFilterComposer
   $$VistoriasServicoTableFilterComposer(super.$state);
   ColumnFilters<String> get id => $state.composableBuilder(
       column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get servicoId => $state.composableBuilder(
+      column: $state.table.servicoId,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -7861,6 +8213,11 @@ class $$VistoriasServicoTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
+  ColumnFilters<String> get atividade => $state.composableBuilder(
+      column: $state.table.atividade,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
   ColumnFilters<String> get ocorrencia => $state.composableBuilder(
       column: $state.table.ocorrencia,
       builder: (column, joinBuilders) =>
@@ -7871,15 +8228,15 @@ class $$VistoriasServicoTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
-  $$ServicosTableFilterComposer get servicoId {
-    final $$ServicosTableFilterComposer composer = $state.composerBuilder(
+  $$EtapasTableFilterComposer get etapaId {
+    final $$EtapasTableFilterComposer composer = $state.composerBuilder(
         composer: this,
-        getCurrentColumn: (t) => t.servicoId,
-        referencedTable: $state.db.servicos,
+        getCurrentColumn: (t) => t.etapaId,
+        referencedTable: $state.db.etapas,
         getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder, parentComposers) =>
-            $$ServicosTableFilterComposer(ComposerState(
-                $state.db, $state.db.servicos, joinBuilder, parentComposers)));
+        builder: (joinBuilder, parentComposers) => $$EtapasTableFilterComposer(
+            ComposerState(
+                $state.db, $state.db.etapas, joinBuilder, parentComposers)));
     return composer;
   }
 
@@ -7950,6 +8307,19 @@ class $$VistoriasServicoTableFilterComposer
     return f(composer);
   }
 
+  ComposableFilter vistoriasFotosRefs(
+      ComposableFilter Function($$VistoriasFotosTableFilterComposer f) f) {
+    final $$VistoriasFotosTableFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $state.db.vistoriasFotos,
+        getReferencedColumn: (t) => t.vistoriaServicoId,
+        builder: (joinBuilder, parentComposers) =>
+            $$VistoriasFotosTableFilterComposer(ComposerState($state.db,
+                $state.db.vistoriasFotos, joinBuilder, parentComposers)));
+    return f(composer);
+  }
+
   ComposableFilter medicoesRefs(
       ComposableFilter Function($$MedicoesTableFilterComposer f) f) {
     final $$MedicoesTableFilterComposer composer = $state.composerBuilder(
@@ -7969,6 +8339,11 @@ class $$VistoriasServicoTableOrderingComposer
   $$VistoriasServicoTableOrderingComposer(super.$state);
   ColumnOrderings<String> get id => $state.composableBuilder(
       column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get servicoId => $state.composableBuilder(
+      column: $state.table.servicoId,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
@@ -7992,6 +8367,11 @@ class $$VistoriasServicoTableOrderingComposer
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
+  ColumnOrderings<String> get atividade => $state.composableBuilder(
+      column: $state.table.atividade,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
   ColumnOrderings<String> get ocorrencia => $state.composableBuilder(
       column: $state.table.ocorrencia,
       builder: (column, joinBuilders) =>
@@ -8002,15 +8382,15 @@ class $$VistoriasServicoTableOrderingComposer
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
-  $$ServicosTableOrderingComposer get servicoId {
-    final $$ServicosTableOrderingComposer composer = $state.composerBuilder(
+  $$EtapasTableOrderingComposer get etapaId {
+    final $$EtapasTableOrderingComposer composer = $state.composerBuilder(
         composer: this,
-        getCurrentColumn: (t) => t.servicoId,
-        referencedTable: $state.db.servicos,
+        getCurrentColumn: (t) => t.etapaId,
+        referencedTable: $state.db.etapas,
         getReferencedColumn: (t) => t.id,
         builder: (joinBuilder, parentComposers) =>
-            $$ServicosTableOrderingComposer(ComposerState(
-                $state.db, $state.db.servicos, joinBuilder, parentComposers)));
+            $$EtapasTableOrderingComposer(ComposerState(
+                $state.db, $state.db.etapas, joinBuilder, parentComposers)));
     return composer;
   }
 
@@ -8351,6 +8731,119 @@ class $$VistoriasMaoDeObraTableOrderingComposer
         builder: (joinBuilder, parentComposers) =>
             $$FuncionariosTableOrderingComposer(ComposerState($state.db,
                 $state.db.funcionarios, joinBuilder, parentComposers)));
+    return composer;
+  }
+}
+
+typedef $$VistoriasFotosTableCreateCompanionBuilder = VistoriasFotosCompanion
+    Function({
+  required String id,
+  required String vistoriaServicoId,
+  required String caminhoArquivo,
+  Value<int> rowid,
+});
+typedef $$VistoriasFotosTableUpdateCompanionBuilder = VistoriasFotosCompanion
+    Function({
+  Value<String> id,
+  Value<String> vistoriaServicoId,
+  Value<String> caminhoArquivo,
+  Value<int> rowid,
+});
+
+class $$VistoriasFotosTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $VistoriasFotosTable,
+    VistoriasFoto,
+    $$VistoriasFotosTableFilterComposer,
+    $$VistoriasFotosTableOrderingComposer,
+    $$VistoriasFotosTableCreateCompanionBuilder,
+    $$VistoriasFotosTableUpdateCompanionBuilder> {
+  $$VistoriasFotosTableTableManager(
+      _$AppDatabase db, $VistoriasFotosTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $$VistoriasFotosTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$VistoriasFotosTableOrderingComposer(ComposerState(db, table)),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> vistoriaServicoId = const Value.absent(),
+            Value<String> caminhoArquivo = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              VistoriasFotosCompanion(
+            id: id,
+            vistoriaServicoId: vistoriaServicoId,
+            caminhoArquivo: caminhoArquivo,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String vistoriaServicoId,
+            required String caminhoArquivo,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              VistoriasFotosCompanion.insert(
+            id: id,
+            vistoriaServicoId: vistoriaServicoId,
+            caminhoArquivo: caminhoArquivo,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $$VistoriasFotosTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $VistoriasFotosTable> {
+  $$VistoriasFotosTableFilterComposer(super.$state);
+  ColumnFilters<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get caminhoArquivo => $state.composableBuilder(
+      column: $state.table.caminhoArquivo,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  $$VistoriasServicoTableFilterComposer get vistoriaServicoId {
+    final $$VistoriasServicoTableFilterComposer composer =
+        $state.composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.vistoriaServicoId,
+            referencedTable: $state.db.vistoriasServico,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder, parentComposers) =>
+                $$VistoriasServicoTableFilterComposer(ComposerState($state.db,
+                    $state.db.vistoriasServico, joinBuilder, parentComposers)));
+    return composer;
+  }
+}
+
+class $$VistoriasFotosTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $VistoriasFotosTable> {
+  $$VistoriasFotosTableOrderingComposer(super.$state);
+  ColumnOrderings<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get caminhoArquivo => $state.composableBuilder(
+      column: $state.table.caminhoArquivo,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  $$VistoriasServicoTableOrderingComposer get vistoriaServicoId {
+    final $$VistoriasServicoTableOrderingComposer composer = $state
+        .composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.vistoriaServicoId,
+            referencedTable: $state.db.vistoriasServico,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder, parentComposers) =>
+                $$VistoriasServicoTableOrderingComposer(ComposerState($state.db,
+                    $state.db.vistoriasServico, joinBuilder, parentComposers)));
     return composer;
   }
 }
@@ -8850,6 +9343,8 @@ class $AppDatabaseManager {
       $$VistoriasPeriodoTableTableManager(_db, _db.vistoriasPeriodo);
   $$VistoriasMaoDeObraTableTableManager get vistoriasMaoDeObra =>
       $$VistoriasMaoDeObraTableTableManager(_db, _db.vistoriasMaoDeObra);
+  $$VistoriasFotosTableTableManager get vistoriasFotos =>
+      $$VistoriasFotosTableTableManager(_db, _db.vistoriasFotos);
   $$MedicoesTableTableManager get medicoes =>
       $$MedicoesTableTableManager(_db, _db.medicoes);
   $$FotosTableTableManager get fotos =>

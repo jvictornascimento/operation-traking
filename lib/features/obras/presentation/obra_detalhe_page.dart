@@ -6,7 +6,6 @@ import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_loading.dart';
 import '../../etapas/domain/etapa.dart';
 import '../../fiscalizacoes/domain/vistoria_servico.dart';
-import '../../servicos/domain/servico.dart';
 import '../domain/obra.dart';
 import '../domain/obra_detalhe.dart';
 import 'obra_detalhe_controller.dart';
@@ -58,7 +57,7 @@ class _ObraDetalheContent extends StatelessWidget {
         _ResumoObraCard(obra: detalhe.obra),
         const SizedBox(height: 16),
         _SectionTitle(
-          title: 'Etapas e servicos',
+          title: 'Etapas',
           action: TextButton.icon(
             onPressed: () => context.push('/obras/${detalhe.obra.id}/etapas'),
             icon: const Icon(Icons.account_tree_outlined),
@@ -66,10 +65,7 @@ class _ObraDetalheContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        _EtapasServicosList(
-          etapas: detalhe.etapas,
-          servicosPorEtapa: detalhe.servicosPorEtapa,
-        ),
+        _EtapasList(etapas: detalhe.etapas),
         const SizedBox(height: 16),
         const _SectionTitle(title: 'Fiscalizacoes recentes'),
         const SizedBox(height: 8),
@@ -249,14 +245,10 @@ class _ResumoObraCard extends StatelessWidget {
   }
 }
 
-class _EtapasServicosList extends StatelessWidget {
-  const _EtapasServicosList({
-    required this.etapas,
-    required this.servicosPorEtapa,
-  });
+class _EtapasList extends StatelessWidget {
+  const _EtapasList({required this.etapas});
 
   final List<Etapa> etapas;
-  final Map<String, List<Servico>> servicosPorEtapa;
 
   @override
   Widget build(BuildContext context) {
@@ -267,61 +259,16 @@ class _EtapasServicosList extends StatelessWidget {
     return Column(
       children: [
         for (final etapa in etapas)
-          Card(
-            child: ExpansionTile(
-              title: Text(etapa.nome),
-              subtitle: Text(
-                '${_statusExecucaoLabel(etapa.status.name)} | '
-                '${etapa.progressoFisico.toStringAsFixed(1)}%',
-              ),
-              children: [
-                _ServicosEtapaList(
-                  etapa: etapa,
-                  servicos: servicosPorEtapa[etapa.id] ?? const [],
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _ServicosEtapaList extends StatelessWidget {
-  const _ServicosEtapaList({
-    required this.etapa,
-    required this.servicos,
-  });
-
-  final Etapa etapa;
-  final List<Servico> servicos;
-
-  @override
-  Widget build(BuildContext context) {
-    if (servicos.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text('Nenhum servico cadastrado nesta etapa'),
-        ),
-      );
-    }
-
-    return Column(
-      children: [
-        for (final servico in servicos)
           ListTile(
-            title: Text(servico.nome),
+            title: Text(etapa.nome),
             subtitle: Text(
-              '${_statusExecucaoLabel(servico.status.name)} | '
-              '${servico.progressoFisico.toStringAsFixed(1)}% | '
-              '${servico.quantidade.toStringAsFixed(2)} ${servico.unidade}',
+              '${_statusExecucaoLabel(etapa.status.name)} | '
+              '${etapa.progressoFisico.toStringAsFixed(1)}%',
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               context.push(
-                '/etapas/${etapa.id}/servicos/${servico.id}/fiscalizacoes',
+                '/obras/${etapa.obraId}/etapas/${etapa.id}/fiscalizacoes',
               );
             },
           ),

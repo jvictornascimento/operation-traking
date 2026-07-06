@@ -34,34 +34,6 @@ class DriftRelatorioObraRepository implements RelatorioObraRepository {
       throw ObraRelatorioNaoEncontradaException(obraId);
     }
 
-    final etapas = await (_database.select(_database.etapas)
-          ..where((table) => table.obraId.equals(obraId)))
-        .get();
-    final etapaIds = etapas.map((etapa) => etapa.id).toList();
-
-    final servicos = etapaIds.isEmpty
-        ? <db.Servico>[]
-        : await (_database.select(_database.servicos)
-              ..where((table) => table.etapaId.isIn(etapaIds))
-              ..orderBy([(table) => OrderingTerm.asc(table.nome)]))
-            .get();
-    final servicoIds = servicos.map((servico) => servico.id).toList();
-
-    final medicoes = servicoIds.isEmpty
-        ? <db.Medicoe>[]
-        : await (_database.select(_database.medicoes)
-              ..where((table) => table.servicoId.isIn(servicoIds))
-              ..orderBy([(table) => OrderingTerm.desc(table.data)]))
-            .get();
-    final medicaoIds = medicoes.map((medicao) => medicao.id).toList();
-
-    final fotos = medicaoIds.isEmpty
-        ? <db.Foto>[]
-        : await (_database.select(_database.fotos)
-              ..where((table) => table.medicaoId.isIn(medicaoIds))
-              ..orderBy([(table) => OrderingTerm.asc(table.id)]))
-            .get();
-
     final fiscalizacoes = await (_database.select(_database.vistoriasServico)
           ..where((table) => table.obraId.equals(obraId))
           ..orderBy([(table) => OrderingTerm.desc(table.data)]))
@@ -76,10 +48,17 @@ class DriftRelatorioObraRepository implements RelatorioObraRepository {
               ..orderBy([(table) => OrderingTerm.asc(table.funcionarioId)]))
             .get();
 
+    final fotos = fiscalizacaoIds.isEmpty
+        ? <db.VistoriasFoto>[]
+        : await (_database.select(_database.vistoriasFotos)
+              ..where((table) => table.vistoriaServicoId.isIn(fiscalizacaoIds))
+              ..orderBy([(table) => OrderingTerm.asc(table.id)]))
+            .get();
+
     return RelatorioObraDados(
       obra: _mapObra(obra),
-      servicos: servicos.map(_mapServico).toList(),
-      medicoes: medicoes.map(_mapMedicao).toList(),
+      servicos: const [],
+      medicoes: const [],
       fiscalizacoes: fiscalizacoes.map(_mapFiscalizacao).toList(),
       maoDeObra: maoDeObra.map(_mapMaoDeObra).toList(),
       fotos: fotos.map(_mapFoto).toList(),
@@ -98,35 +77,15 @@ class DriftRelatorioObraRepository implements RelatorioObraRepository {
     );
   }
 
-  RelatorioServicoInfo _mapServico(db.Servico row) {
-    return RelatorioServicoInfo(
-      id: row.id,
-      nome: row.nome,
-      status: StatusExecucao.values.byName(row.status),
-      progressoFisico: row.progressoFisico,
-      quantidade: row.quantidade,
-      unidade: row.unidade,
-      precoTotal: row.precoTotal,
-    );
-  }
-
-  RelatorioMedicaoInfo _mapMedicao(db.Medicoe row) {
-    return RelatorioMedicaoInfo(
-      id: row.id,
-      servicoId: row.servicoId,
-      percentualExecutado: row.percentualExecutado,
-      data: row.data,
-      observacao: row.observacao,
-    );
-  }
-
   RelatorioFiscalizacaoInfo _mapFiscalizacao(db.VistoriasServicoData row) {
     return RelatorioFiscalizacaoInfo(
       id: row.id,
       numero: row.numero,
+      etapaId: row.etapaId,
       servicoId: row.servicoId,
       data: row.data,
       status: StatusFiscalizacao.values.byName(row.status),
+      atividade: row.atividade,
       ocorrencia: row.ocorrencia,
       comentario: row.comentario,
     );
@@ -141,9 +100,9 @@ class DriftRelatorioObraRepository implements RelatorioObraRepository {
     );
   }
 
-  RelatorioFotoInfo _mapFoto(db.Foto row) {
+  RelatorioFotoInfo _mapFoto(db.VistoriasFoto row) {
     return RelatorioFotoInfo(
-      medicaoId: row.medicaoId,
+      vistoriaServicoId: row.vistoriaServicoId,
       caminhoArquivo: row.caminhoArquivo,
     );
   }

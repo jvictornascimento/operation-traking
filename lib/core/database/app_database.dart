@@ -20,6 +20,7 @@ part 'app_database.g.dart';
     VistoriasServico,
     VistoriasPeriodo,
     VistoriasMaoDeObra,
+    VistoriasFotos,
     Medicoes,
     Fotos,
     HistoricosAlteracao,
@@ -31,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -60,6 +61,26 @@ class AppDatabase extends _$AppDatabase {
             await customStatement(
               "UPDATE funcionarios SET tipo = 'func_contratante' "
               'WHERE contratante_id IS NOT NULL',
+            );
+          }
+          if (from < 7) {
+            await migrator.addColumn(
+                vistoriasServico, vistoriasServico.etapaId);
+            await migrator.addColumn(
+              vistoriasServico,
+              vistoriasServico.atividade,
+            );
+            await migrator.createTable(vistoriasFotos);
+            await customStatement(
+              '''
+              UPDATE vistorias_servico
+              SET etapa_id = (
+                SELECT etapa_id
+                FROM servicos
+                WHERE servicos.id = vistorias_servico.servico_id
+              )
+              WHERE etapa_id IS NULL
+              ''',
             );
           }
         },
@@ -197,7 +218,8 @@ class Servicos extends Table {
 
 class VistoriasServico extends Table {
   TextColumn get id => text()();
-  TextColumn get servicoId => text().references(Servicos, #id)();
+  TextColumn get servicoId => text()();
+  TextColumn get etapaId => text().nullable().references(Etapas, #id)();
   TextColumn get obraId => text().references(Obras, #id)();
   TextColumn get contratanteId => text().references(Contratantes, #id)();
   TextColumn get responsavelId => text().references(Funcionarios, #id)();
@@ -205,6 +227,7 @@ class VistoriasServico extends Table {
   DateTimeColumn get data => dateTime()();
   IntColumn get diaSemana => integer()();
   TextColumn get status => text()();
+  TextColumn get atividade => text().nullable()();
   TextColumn get ocorrencia => text().nullable()();
   TextColumn get comentario => text().nullable()();
 
@@ -213,7 +236,7 @@ class VistoriasServico extends Table {
 
   @override
   List<Set<Column<Object>>> get uniqueKeys => [
-        {servicoId, data},
+        {etapaId, data},
       ];
 }
 
@@ -241,6 +264,16 @@ class VistoriasMaoDeObra extends Table {
   TextColumn get funcionarioId => text().references(Funcionarios, #id)();
   TextColumn get funcaoNoDia => text().nullable()();
   TextColumn get observacao => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class VistoriasFotos extends Table {
+  TextColumn get id => text()();
+  TextColumn get vistoriaServicoId =>
+      text().references(VistoriasServico, #id)();
+  TextColumn get caminhoArquivo => text()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

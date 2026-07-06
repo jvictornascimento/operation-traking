@@ -7,12 +7,12 @@ import 'package:operational_tracking/features/fiscalizacoes/presentation/fiscali
 
 void main() {
   group('Story 4.1 - FiscalizacoesController', () {
-    test('rejeita fiscalizacao sem servico', () async {
+    test('rejeita fiscalizacao sem etapa', () async {
       final repository = _FakeVistoriasServicoRepository();
       final controller = FiscalizacoesController(repository);
 
       await controller.salvar(
-        servicoId: ' ',
+        etapaId: ' ',
         obraId: 'obra-1',
         contratanteId: 'contratante-1',
         responsavelId: 'responsavel-1',
@@ -23,20 +23,20 @@ void main() {
       expect(repository.vistorias, isEmpty);
     });
 
-    test('rejeita fiscalizacao sem contexto do servico', () async {
+    test('rejeita fiscalizacao sem contexto da etapa', () async {
       final repository = _FakeVistoriasServicoRepository()
         ..contextoPorServico.clear();
       final controller = FiscalizacoesController(repository);
 
       await controller.salvar(
-        servicoId: 'servico-1',
+        etapaId: 'etapa-1',
         data: DateTime(2026, 5, 20),
       );
 
       expect(controller.state, isA<AsyncError<void>>());
       expect(
         controller.state.error.toString(),
-        contains('nao encontrei a obra do servico'),
+        contains('nao encontrei a obra da etapa'),
       );
       expect(repository.vistorias, isEmpty);
     });
@@ -46,12 +46,13 @@ void main() {
       final controller = FiscalizacoesController(repository);
 
       await controller.salvar(
-        servicoId: ' servico-1 ',
+        etapaId: ' etapa-1 ',
         obraId: ' obra-1 ',
         contratanteId: ' contratante-1 ',
         responsavelId: ' responsavel-1 ',
         numero: ' 001 ',
         data: DateTime(2026, 5, 20, 14),
+        atividade: ' Fundacao bloco A ',
         ocorrencia: ' Sem ocorrencias ',
         comentario: ' Dia produtivo ',
       );
@@ -60,7 +61,8 @@ void main() {
       expect(repository.vistorias, hasLength(1));
 
       final vistoria = repository.vistorias.single;
-      expect(vistoria.servicoId, 'servico-1');
+      expect(vistoria.etapaId, 'etapa-1');
+      expect(vistoria.servicoId, '');
       expect(vistoria.obraId, 'obra-1');
       expect(vistoria.contratanteId, 'contratante-1');
       expect(vistoria.responsavelId, 'responsavel-1');
@@ -68,16 +70,17 @@ void main() {
       expect(vistoria.data, DateTime(2026, 5, 20));
       expect(vistoria.diaSemana, DateTime.wednesday);
       expect(vistoria.status, StatusFiscalizacao.emAndamento);
+      expect(vistoria.atividade, 'Fundacao bloco A');
       expect(vistoria.ocorrencia, 'Sem ocorrencias');
       expect(vistoria.comentario, 'Dia produtivo');
     });
 
-    test('deriva vinculos pelo servico quando nao foram informados', () async {
+    test('deriva vinculos pela etapa quando nao foram informados', () async {
       final repository = _FakeVistoriasServicoRepository();
       final controller = FiscalizacoesController(repository);
 
       await controller.salvar(
-        servicoId: 'servico-1',
+        etapaId: 'etapa-1',
         data: DateTime(2026, 5, 20),
       );
 
@@ -92,7 +95,7 @@ void main() {
       final controller = FiscalizacoesController(repository);
 
       await controller.salvar(
-        servicoId: 'servico-1',
+        etapaId: 'etapa-1',
         obraId: 'obra-1',
         contratanteId: 'contratante-1',
         responsavelId: 'responsavel-1',
@@ -111,7 +114,7 @@ void main() {
 
       await controller.salvar(
         id: 'vistoria-1',
-        servicoId: 'servico-1',
+        etapaId: 'etapa-1',
         obraId: 'obra-1',
         contratanteId: 'contratante-1',
         responsavelId: 'responsavel-1',
@@ -120,7 +123,7 @@ void main() {
       );
       await controller.salvar(
         id: 'vistoria-1',
-        servicoId: 'servico-1',
+        etapaId: 'etapa-1',
         obraId: 'obra-1',
         contratanteId: 'contratante-1',
         responsavelId: 'responsavel-1',
@@ -144,7 +147,7 @@ void main() {
 
       await controller.salvar(
         id: 'vistoria-1',
-        servicoId: 'servico-1',
+        etapaId: 'etapa-1',
         obraId: 'obra-1',
         contratanteId: 'contratante-1',
         responsavelId: 'responsavel-1',
@@ -171,7 +174,7 @@ void main() {
 class _FakeVistoriasServicoRepository implements VistoriasServicoRepository {
   final vistorias = <VistoriaServico>[];
   final contextoPorServico = <String, ContextoFiscalizacaoServico>{
-    'servico-1': const ContextoFiscalizacaoServico(
+    'etapa-1': const ContextoFiscalizacaoServico(
       obraId: 'obra-1',
       contratanteId: 'contratante-1',
       responsavelId: 'responsavel-1',
@@ -216,6 +219,7 @@ class _FakeVistoriasServicoRepository implements VistoriasServicoRepository {
     vistorias[index] = VistoriaServico(
       id: vistoria.id,
       servicoId: vistoria.servicoId,
+      etapaId: vistoria.etapaId,
       obraId: vistoria.obraId,
       contratanteId: vistoria.contratanteId,
       responsavelId: vistoria.responsavelId,
@@ -223,6 +227,7 @@ class _FakeVistoriasServicoRepository implements VistoriasServicoRepository {
       data: vistoria.data,
       diaSemana: vistoria.diaSemana,
       status: vistoria.status,
+      atividade: vistoria.atividade,
       ocorrencia: ocorrencia?.trim(),
       comentario: comentario?.trim(),
     );

@@ -6,10 +6,8 @@ import '../../features/dashboard/presentation/dashboard_page.dart';
 import '../../features/etapas/presentation/etapas_page.dart';
 import '../../features/fiscalizacoes/presentation/fiscalizacoes_page.dart';
 import '../../features/historico/presentation/historico_page.dart';
-import '../../features/medicoes/presentation/medicoes_page.dart';
 import '../../features/obras/presentation/obra_detalhe_page.dart';
 import '../../features/obras/presentation/obras_page.dart';
-import '../../features/servicos/presentation/servicos_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -41,18 +39,11 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(
-      name: 'etapa-servicos',
-      path: '/obras/:obraId/etapas/:etapaId/servicos',
-      builder: (context, state) {
-        return ServicosPage(etapaId: state.pathParameters['etapaId']);
-      },
-    ),
-    GoRoute(
-      name: 'servico-fiscalizacoes',
-      path: '/etapas/:etapaId/servicos/:servicoId/fiscalizacoes',
+      name: 'etapa-fiscalizacoes',
+      path: '/obras/:obraId/etapas/:etapaId/fiscalizacoes',
       builder: (context, state) {
         return FiscalizacoesPage(
-          servicoId: state.pathParameters['servicoId'],
+          etapaId: state.pathParameters['etapaId'],
         );
       },
     ),
@@ -72,11 +63,6 @@ final appRouter = GoRouter(
       builder: (context, state) => const EtapasPage(),
     ),
     GoRoute(
-      name: 'servicos',
-      path: '/servicos',
-      builder: (context, state) => const ServicosPage(),
-    ),
-    GoRoute(
       name: 'fiscalizacoes',
       path: '/fiscalizacoes',
       builder: (context, state) => const FiscalizacoesPage(),
@@ -85,11 +71,6 @@ final appRouter = GoRouter(
       name: 'fiscalizacoes-abertas',
       path: '/fiscalizacoes/abertas',
       builder: (context, state) => const FiscalizacoesAbertasPage(),
-    ),
-    GoRoute(
-      name: 'medicoes',
-      path: '/medicoes',
-      builder: (context, state) => const MedicoesPage(),
     ),
     GoRoute(
       name: 'historico-entidade',

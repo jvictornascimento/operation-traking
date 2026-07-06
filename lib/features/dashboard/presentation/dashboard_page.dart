@@ -28,7 +28,7 @@ class DashboardPage extends ConsumerWidget {
           const SizedBox(height: 16),
           _DashboardAction(
             title: 'Obras',
-            subtitle: 'Acompanhar obras, etapas e servicos',
+            subtitle: 'Acompanhar obras, etapas e fiscalizacoes',
             onTap: () => context.push('/obras'),
           ),
           _DashboardAction(
@@ -73,20 +73,10 @@ class _DashboardResumoSection extends StatelessWidget {
               icon: Icons.apartment,
             ),
             _ResumoTile(
-              label: 'Servicos',
-              value: resumo.totalServicos.toString(),
-              icon: Icons.engineering,
-            ),
-            _ResumoTile(
               label: 'Fiscalizacoes',
               value: resumo.totalFiscalizacoes.toString(),
               icon: Icons.assignment_turned_in,
               onTap: () => context.push('/fiscalizacoes/abertas'),
-            ),
-            _ResumoTile(
-              label: 'Medicoes',
-              value: resumo.totalMedicoes.toString(),
-              icon: Icons.add_chart,
             ),
             _ResumoTile(
               label: 'Fotos',

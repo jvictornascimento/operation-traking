@@ -43,25 +43,14 @@ class DriftRelatorioFiscalizacaoRepository
     final obra = await (_database.select(_database.obras)
           ..where((table) => table.id.equals(fiscalizacao.obraId)))
         .getSingle();
-    final servico = await (_database.select(_database.servicos)
-          ..where((table) => table.id.equals(fiscalizacao.servicoId)))
+    final etapa = await (_database.select(_database.etapas)
+          ..where((table) => table.id.equals(fiscalizacao.etapaId ?? '')))
         .getSingle();
 
-    final medicoes = await (_database.select(_database.medicoes)
+    final fotos = await (_database.select(_database.vistoriasFotos)
           ..where((table) => table.vistoriaServicoId.equals(vistoriaServicoId))
-          ..orderBy([
-            (table) => OrderingTerm.desc(table.data),
-            (table) => OrderingTerm.desc(table.id),
-          ]))
+          ..orderBy([(table) => OrderingTerm.asc(table.id)]))
         .get();
-    final medicaoIds = medicoes.map((medicao) => medicao.id).toList();
-
-    final fotos = medicaoIds.isEmpty
-        ? <db.Foto>[]
-        : await (_database.select(_database.fotos)
-              ..where((table) => table.medicaoId.isIn(medicaoIds))
-              ..orderBy([(table) => OrderingTerm.asc(table.id)]))
-            .get();
 
     final periodos = await (_database.select(_database.vistoriasPeriodo)
           ..where((table) => table.vistoriaServicoId.equals(vistoriaServicoId))
@@ -75,10 +64,9 @@ class DriftRelatorioFiscalizacaoRepository
 
     return RelatorioFiscalizacaoDados(
       obra: _mapObra(obra),
-      servico: _mapServico(servico),
+      etapa: _mapEtapa(etapa),
       fiscalizacao: _mapFiscalizacao(fiscalizacao),
       periodos: periodos.map(_mapPeriodo).toList(),
-      medicoes: medicoes.map(_mapMedicao).toList(),
       maoDeObra: maoDeObra.map(_mapMaoDeObra).toList(),
       fotos: fotos.map(_mapFoto).toList(),
     );
@@ -96,15 +84,12 @@ class DriftRelatorioFiscalizacaoRepository
     );
   }
 
-  RelatorioServicoInfo _mapServico(db.Servico row) {
-    return RelatorioServicoInfo(
+  RelatorioEtapaInfo _mapEtapa(db.Etapa row) {
+    return RelatorioEtapaInfo(
       id: row.id,
       nome: row.nome,
       status: StatusExecucao.values.byName(row.status),
       progressoFisico: row.progressoFisico,
-      quantidade: row.quantidade,
-      unidade: row.unidade,
-      precoTotal: row.precoTotal,
     );
   }
 
@@ -112,9 +97,11 @@ class DriftRelatorioFiscalizacaoRepository
     return RelatorioFiscalizacaoInfo(
       id: row.id,
       numero: row.numero,
+      etapaId: row.etapaId,
       servicoId: row.servicoId,
       data: row.data,
       status: StatusFiscalizacao.values.byName(row.status),
+      atividade: row.atividade,
       ocorrencia: row.ocorrencia,
       comentario: row.comentario,
     );
@@ -128,16 +115,6 @@ class DriftRelatorioFiscalizacaoRepository
     );
   }
 
-  RelatorioMedicaoInfo _mapMedicao(db.Medicoe row) {
-    return RelatorioMedicaoInfo(
-      id: row.id,
-      servicoId: row.servicoId,
-      percentualExecutado: row.percentualExecutado,
-      data: row.data,
-      observacao: row.observacao,
-    );
-  }
-
   RelatorioMaoDeObraInfo _mapMaoDeObra(db.VistoriasMaoDeObraData row) {
     return RelatorioMaoDeObraInfo(
       vistoriaServicoId: row.vistoriaServicoId,
@@ -147,9 +124,9 @@ class DriftRelatorioFiscalizacaoRepository
     );
   }
 
-  RelatorioFotoInfo _mapFoto(db.Foto row) {
+  RelatorioFotoInfo _mapFoto(db.VistoriasFoto row) {
     return RelatorioFotoInfo(
-      medicaoId: row.medicaoId,
+      vistoriaServicoId: row.vistoriaServicoId,
       caminhoArquivo: row.caminhoArquivo,
     );
   }

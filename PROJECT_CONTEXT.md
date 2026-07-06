@@ -8,7 +8,9 @@ O app deve funcionar totalmente offline no iPhone, sem login, sem internet, sem 
 
 ## Usuario principal
 
-Fiscal de obra que acompanha uma ou mais obras em campo e precisa registrar andamento, medicoes, fotos, ocorrencias, comentarios, mao de obra, status e gerar relatorios confiaveis.
+Fiscal de obra que acompanha uma ou mais obras em campo e precisa registrar
+andamento, fotos, ocorrencias, comentarios, mao de obra, status e gerar
+relatorios confiaveis.
 
 ## Problema
 
@@ -76,11 +78,9 @@ O app deve persistir automaticamente:
 - Contratantes.
 - Funcionarios.
 - Etapas.
-- Servicos.
 - Fiscalizacoes.
 - Periodos da fiscalizacao.
 - Mao de obra.
-- Medicoes.
 - Fotos.
 - Observacoes.
 - Progresso.
@@ -107,18 +107,16 @@ Estrategia:
 
 - Salvar a imagem no storage local do app.
 - Guardar no banco apenas o caminho do arquivo.
-- Vincular a foto a uma medicao.
+- Vincular a foto diretamente a uma fiscalizacao.
 
 Decisao do MVP:
 
-- Fotos permanecem vinculadas a medicoes.
-- A tela de fiscalizacao deve permitir tirar ou anexar fotos nas medicoes
-  daquela fiscalizacao.
-- A fiscalizacao consome fotos pelas medicoes registradas nela.
-- O relatorio da fiscalizacao deve renderizar as fotos vinculadas as medicoes
-  como evidencias fotograficas.
-- Essa decisao evita duplicidade de origem da evidencia e preserva o fluxo
-  fiscalizacao > medicao > fotos.
+- Fotos permanecem vinculadas diretamente a fiscalizacao.
+- A tela de fiscalizacao deve permitir tirar foto pela camera ou anexar imagem
+  da galeria.
+- O relatorio da fiscalizacao deve renderizar as fotos vinculadas a propria
+  fiscalizacao como evidencias fotograficas.
+- Medicao saiu do fluxo principal do MVP.
 
 ## Modelo de dados
 
@@ -321,7 +319,7 @@ Relacionamentos:
 
 - Uma obra possui varias etapas.
 - Uma etapa pertence a uma obra.
-- Uma etapa possui varios servicos.
+- Uma etapa possui varias fiscalizacoes.
 
 Status possiveis:
 
@@ -332,7 +330,13 @@ Status possiveis:
 - Atrasada.
 - Concluida.
 
-### Servico
+### Servico legado
+
+Servico saiu do fluxo principal do MVP.
+
+O codigo ainda pode manter tabelas e classes legadas para migracao e
+compatibilidade de dados antigos, mas novas fiscalizacoes devem ser criadas a
+partir da etapa.
 
 ```text
 servico
@@ -353,9 +357,7 @@ Relacionamentos:
 
 - Uma etapa possui varios servicos.
 - Um servico pertence a uma etapa.
-- Um servico pode ter varias fiscalizacoes.
-- Um servico so pode ter uma fiscalizacao por dia.
-- Um servico possui varias medicoes.
+- Relacionamentos de fiscalizacao e medicao por servico sao legados.
 
 Status possiveis:
 
@@ -366,16 +368,17 @@ Status possiveis:
 - Atrasada.
 - Concluida.
 
-### Fiscalizacao do servico
+### Fiscalizacao da etapa
 
 Nome tecnico sugerido: `vistoria_servico`.
 
-Representa a fiscalizacao diaria de um servico. Um servico pode ter varias fiscalizacoes ao longo do tempo, mas apenas uma fiscalizacao por dia.
+Representa a fiscalizacao diaria de uma etapa. Uma etapa pode ter varias
+fiscalizacoes ao longo do tempo, mas apenas uma fiscalizacao por dia.
 
 ```text
 vistoria_servico
 - id
-- servico_id
+- etapa_id
 - obra_id
 - contratante_id
 - responsavel_id
@@ -383,22 +386,24 @@ vistoria_servico
 - data
 - dia_semana
 - status
+- atividade
 - ocorrencia
 - comentario
 ```
 
 Relacionamentos:
 
-- Uma fiscalizacao pertence a um servico.
+- Uma fiscalizacao pertence a uma etapa.
 - Uma fiscalizacao aponta para a obra para facilitar consultas e relatorios.
 - Uma fiscalizacao possui um contratante.
 - Uma fiscalizacao possui um responsavel, que e funcionario do contratante.
 - Uma fiscalizacao pode ter uma lista de mao de obra.
 - Uma fiscalizacao pode ter periodos cadastrados para manha, tarde e noite.
+- Uma fiscalizacao pode ter varias fotos.
 
 Regra de unicidade:
 
-- Deve existir no maximo uma `vistoria_servico` por `servico_id` e `data`.
+- Deve existir no maximo uma `vistoria_servico` por `etapa_id` e `data`.
 
 Status possiveis:
 
@@ -411,6 +416,7 @@ Observacoes:
 - `numero` deve ser unico.
 - `data` representa a data da fiscalizacao.
 - `dia_semana` pode ser calculado a partir da `data`, mas pode ser armazenado para facilitar relatorio.
+- `atividade` descreve o que esta acontecendo na etapa durante o dia.
 - `ocorrencia` descreve qualquer coisa relevante que aconteceu durante o dia.
 - `comentario` guarda observacoes gerais da fiscalizacao.
 - O widget de resumo de fiscalizacoes no dashboard deve abrir uma tela com as
@@ -464,8 +470,8 @@ Regra de interface:
 - `periodo` pode ser representado por checkboxes: manha, tarde e noite.
 - Para cada periodo marcado, o usuario escolhe apenas uma opcao de `tempo`.
 - Para cada periodo marcado, o usuario escolhe apenas uma opcao de `condicao`.
-- `tempo` deve funcionar como radio group.
-- `condicao` deve funcionar como radio group.
+- `tempo` nao deve usar radio button.
+- `condicao` nao deve usar radio button.
 
 ### Mao de obra da fiscalizacao
 
@@ -484,9 +490,11 @@ Relacionamentos:
 
 - Uma fiscalizacao pode ter varios funcionarios como mao de obra.
 - Um funcionario pode aparecer em varias fiscalizacoes.
-- O funcionario deve pertencer a empresa contratada vinculada a obra ou ao servico.
+- O funcionario deve pertencer a empresa contratada vinculada a obra da etapa.
 
-### Medicao
+### Medicao legado
+
+Medicao saiu do fluxo principal do MVP.
 
 ```text
 medicao
@@ -499,22 +507,21 @@ medicao
 
 Relacionamentos:
 
-- Um servico possui varias medicoes.
-- Uma medicao pertence a um servico.
+- Relacionamentos por servico sao legados.
 
-### Foto
+### Foto da fiscalizacao
 
 ```text
-foto
+vistoria_foto
 - id
-- medicao_id
+- vistoria_servico_id
 - caminho_arquivo
 ```
 
 Relacionamentos:
 
-- Uma medicao pode ter varias fotos.
-- Uma foto pertence a uma medicao.
+- Uma fiscalizacao pode ter varias fotos.
+- Uma foto pertence a uma fiscalizacao.
 
 ### Historico de alteracoes
 
@@ -545,17 +552,15 @@ O progresso fisico existe em tres niveis:
 
 - Obra.
 - Etapa.
-- Servico.
 
 Regra sugerida:
 
-- O progresso fisico do servico e informado por medicoes.
-- O progresso fisico da etapa e calculado a partir dos servicos.
+- O progresso fisico da etapa e informado ou ajustado no acompanhamento da obra.
 - O progresso fisico da obra e calculado a partir das etapas.
 
 ### Progresso de prazo
 
-Obra, etapa e servico possuem `progresso_prazo_dias`.
+Obra e etapa possuem `progresso_prazo_dias`.
 
 Esse campo representa a contagem de prazo em dias:
 
@@ -590,9 +595,7 @@ Regra:
 - Criar funcionarios.
 - Cadastrar enderecos e contatos.
 - Criar etapas.
-- Criar servicos.
-- Registrar medicoes.
-- Registrar fiscalizacoes diarias por servico.
+- Registrar fiscalizacoes diarias por etapa.
 - Registrar periodos da fiscalizacao.
 - Registrar mao de obra da fiscalizacao.
 - Registrar fotos.
@@ -637,15 +640,16 @@ Compartilhamento esperado:
 2. Cadastro de empresas, contratantes e funcionarios.
 3. Cadastro de obras.
 4. Cadastro de etapas.
-5. Cadastro de servicos.
-6. Fiscalizacao diaria por servico.
-7. Periodos da fiscalizacao.
-8. Mao de obra da fiscalizacao.
-9. Medicoes.
-10. Fotos.
-11. Dashboard local.
-12. Exportacao PDF.
+5. Fiscalizacao diaria por etapa.
+6. Periodos da fiscalizacao.
+7. Mao de obra da fiscalizacao.
+8. Fotos.
+9. Dashboard local.
+10. Exportacao PDF.
 
 ## Criterio de sucesso do MVP
 
-Regis consegue sair para uma fiscalizacao sem internet, registrar o andamento de um servico com status, periodo do dia, tempo, condicao, ocorrencias, comentarios, mao de obra, medicoes e fotos, fechar o app sem perder dados e gerar um PDF local ao final da visita.
+Regis consegue sair para uma fiscalizacao sem internet, registrar o andamento
+de uma etapa com atividade, status, periodo do dia, tempo, condicao,
+ocorrencias, comentarios, mao de obra e fotos, fechar o app sem perder dados e
+gerar um PDF local ao final da visita.

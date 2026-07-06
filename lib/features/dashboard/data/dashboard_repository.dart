@@ -20,10 +20,8 @@ class DriftDashboardRepository implements DashboardRepository {
           '''
           SELECT
             (SELECT COUNT(*) FROM obras) AS total_obras,
-            (SELECT COUNT(*) FROM servicos) AS total_servicos,
             (SELECT COUNT(*) FROM vistorias_servico) AS total_fiscalizacoes,
-            (SELECT COUNT(*) FROM medicoes) AS total_medicoes,
-            (SELECT COUNT(*) FROM fotos) AS total_fotos,
+            (SELECT COUNT(*) FROM vistorias_fotos) AS total_fotos,
             (SELECT COUNT(*) FROM obras WHERE status = ?) AS obras_atrasadas,
             CAST(COALESCE((SELECT AVG(progresso_fisico) FROM obras), 0) AS REAL)
               AS progresso_medio_obras
@@ -33,10 +31,8 @@ class DriftDashboardRepository implements DashboardRepository {
           ],
           readsFrom: {
             _database.obras,
-            _database.servicos,
             _database.vistoriasServico,
-            _database.medicoes,
-            _database.fotos,
+            _database.vistoriasFotos,
           },
         )
         .watchSingle()
@@ -46,9 +42,7 @@ class DriftDashboardRepository implements DashboardRepository {
   DashboardResumo _mapResumo(QueryRow row) {
     return DashboardResumo(
       totalObras: row.read<int>('total_obras'),
-      totalServicos: row.read<int>('total_servicos'),
       totalFiscalizacoes: row.read<int>('total_fiscalizacoes'),
-      totalMedicoes: row.read<int>('total_medicoes'),
       totalFotos: row.read<int>('total_fotos'),
       obrasAtrasadas: row.read<int>('obras_atrasadas'),
       progressoMedioObras: _arredondar(

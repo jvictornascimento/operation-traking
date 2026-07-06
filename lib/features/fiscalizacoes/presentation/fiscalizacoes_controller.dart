@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database_provider.dart';
 import '../../../core/domain/domain_enums.dart';
 import '../../cadastros/domain/funcionario.dart';
+import '../data/fotos_fiscalizacao_repository.dart';
+import '../data/fotos_fiscalizacao_storage.dart';
 import '../data/vistorias_mao_de_obra_repository.dart';
 import '../data/vistorias_periodo_repository.dart';
 import '../data/vistorias_servico_repository.dart';
+import '../domain/foto_fiscalizacao.dart';
 import '../domain/vistoria_mao_de_obra.dart';
 import '../domain/vistoria_periodo.dart';
 import '../domain/vistoria_servico.dart';
@@ -24,15 +27,37 @@ final vistoriasServicoStreamProvider =
   },
 );
 
+final vistoriasEtapaStreamProvider =
+    StreamProvider.family.autoDispose<List<VistoriaServico>, String>(
+  (ref, etapaId) {
+    final repository = ref.watch(vistoriasServicoRepositoryProvider);
+    if (repository is DriftVistoriasServicoRepository) {
+      return repository.watchVistoriasDaEtapa(etapaId);
+    }
+
+    return repository.watchFiscalizacoes();
+  },
+);
+
 final fiscalizacoesFiltroStreamProvider = StreamProvider.family
     .autoDispose<List<VistoriaServico>, FiscalizacoesFiltro>(
   (ref, filtro) {
-    return ref.watch(vistoriasServicoRepositoryProvider).watchFiscalizacoes(
-          servicoId: filtro.servicoId,
-          numero: filtro.numero,
-          status: filtro.status,
-          data: filtro.data,
-        );
+    final repository = ref.watch(vistoriasServicoRepositoryProvider);
+    final etapaId = filtro.etapaId?.trim();
+    if (etapaId != null && etapaId.isNotEmpty) {
+      if (repository is DriftVistoriasServicoRepository) {
+        return repository.watchVistoriasDaEtapa(etapaId);
+      }
+
+      return repository.watchFiscalizacoes();
+    }
+
+    return repository.watchFiscalizacoes(
+      servicoId: filtro.servicoId,
+      numero: filtro.numero,
+      status: filtro.status,
+      data: filtro.data,
+    );
   },
 );
 
@@ -103,14 +128,44 @@ final maoDeObraFiscalizacaoControllerProvider =
   },
 );
 
+final fotosFiscalizacaoRepositoryProvider =
+    Provider<FotosFiscalizacaoRepository>((ref) {
+  return DriftFotosFiscalizacaoRepository(ref.watch(appDatabaseProvider));
+});
+
+final fotosFiscalizacaoStorageProvider = Provider<FotosFiscalizacaoStorage>(
+  (ref) => const LocalFotosFiscalizacaoStorage(),
+);
+
+final fotosFiscalizacaoStreamProvider =
+    StreamProvider.family.autoDispose<List<FotoFiscalizacao>, String>(
+  (ref, vistoriaServicoId) {
+    return ref
+        .watch(fotosFiscalizacaoRepositoryProvider)
+        .watchFotosDaFiscalizacao(vistoriaServicoId);
+  },
+);
+
+final fotosFiscalizacaoControllerProvider =
+    StateNotifierProvider<FotosFiscalizacaoController, AsyncValue<void>>(
+  (ref) {
+    return FotosFiscalizacaoController(
+      repository: ref.watch(fotosFiscalizacaoRepositoryProvider),
+      storage: ref.watch(fotosFiscalizacaoStorageProvider),
+    );
+  },
+);
+
 class FiscalizacoesFiltro {
   const FiscalizacoesFiltro({
+    this.etapaId,
     this.servicoId,
     this.numero,
     this.status,
     this.data,
   });
 
+  final String? etapaId;
   final String? servicoId;
   final String? numero;
   final StatusFiscalizacao? status;
@@ -121,13 +176,14 @@ class FiscalizacoesFiltro {
     return identical(this, other) ||
         other is FiscalizacoesFiltro &&
             other.servicoId == servicoId &&
+            other.etapaId == etapaId &&
             other.numero == numero &&
             other.status == status &&
             other.data == data;
   }
 
   @override
-  int get hashCode => Object.hash(servicoId, numero, status, data);
+  int get hashCode => Object.hash(etapaId, servicoId, numero, status, data);
 }
 
 class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
@@ -137,22 +193,25 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
 
   Future<void> salvar({
     String? id,
-    required String servicoId,
+    String? etapaId,
+    String? servicoId,
     String? obraId,
     String? contratanteId,
     String? responsavelId,
     String? numero,
     required DateTime data,
     StatusFiscalizacao? status,
+    String? atividade,
     String? ocorrencia,
     String? comentario,
   }) async {
-    final servicoIdNormalizado = servicoId.trim();
+    final etapaIdNormalizado = _normalizarTextoOpcional(etapaId);
+    final servicoIdNormalizado = _normalizarTextoOpcional(servicoId);
     final numeroNormalizado = _normalizarTextoOpcional(numero);
 
-    if (servicoIdNormalizado.isEmpty) {
+    if (etapaIdNormalizado == null && servicoIdNormalizado == null) {
       state = AsyncError(
-        ArgumentError('Servico da fiscalizacao e obrigatorio.'),
+        ArgumentError('Etapa da fiscalizacao e obrigatoria.'),
         StackTrace.current,
       );
       return;
@@ -160,9 +219,11 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
 
     ContextoFiscalizacaoServico? contexto;
     try {
-      contexto = await _repository.buscarContextoDoServico(
-        servicoIdNormalizado,
-      );
+      contexto = etapaIdNormalizado != null
+          ? _repository is DriftVistoriasServicoRepository
+              ? await _repository.buscarContextoDaEtapa(etapaIdNormalizado)
+              : await _repository.buscarContextoDoServico(etapaIdNormalizado)
+          : await _repository.buscarContextoDoServico(servicoIdNormalizado!);
     } catch (error, stackTrace) {
       state = AsyncError(error, stackTrace);
       return;
@@ -178,9 +239,9 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
     if (obraIdNormalizado == null || obraIdNormalizado.isEmpty) {
       state = AsyncError(
         ArgumentError(
-          'Nao foi possivel iniciar a fiscalizacao: nao encontrei a obra do '
-          'servico. Abra a fiscalizacao a partir de um servico dentro de uma '
-          'etapa da obra.',
+          'Nao foi possivel iniciar a fiscalizacao: nao encontrei a obra da '
+          'etapa. Abra a fiscalizacao a partir de uma etapa cadastrada dentro '
+          'da obra.',
         ),
         StackTrace.current,
       );
@@ -218,7 +279,8 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
       return _repository.salvarVistoria(
         VistoriaServico(
           id: idFinal,
-          servicoId: servicoIdNormalizado,
+          servicoId: servicoIdNormalizado ?? '',
+          etapaId: etapaIdNormalizado,
           obraId: obraIdNormalizado,
           contratanteId: contratanteIdNormalizado,
           responsavelId: responsavelIdNormalizado,
@@ -226,6 +288,7 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
           data: dataNormalizada,
           diaSemana: dataNormalizada.weekday,
           status: status ?? StatusFiscalizacao.emAndamento,
+          atividade: _normalizarTextoOpcional(atividade),
           ocorrencia: _normalizarTextoOpcional(ocorrencia),
           comentario: _normalizarTextoOpcional(comentario),
         ),
@@ -277,6 +340,75 @@ class FiscalizacoesController extends StateNotifier<AsyncValue<void>> {
       return null;
     }
     return texto;
+  }
+}
+
+class FotosFiscalizacaoController extends StateNotifier<AsyncValue<void>> {
+  FotosFiscalizacaoController({
+    required FotosFiscalizacaoRepository repository,
+    required FotosFiscalizacaoStorage storage,
+  })  : _repository = repository,
+        _storage = storage,
+        super(const AsyncData(null));
+
+  final FotosFiscalizacaoRepository _repository;
+  final FotosFiscalizacaoStorage _storage;
+
+  Future<void> salvarArquivo({
+    required String vistoriaServicoId,
+    required String caminhoOrigem,
+  }) async {
+    final vistoriaServicoIdNormalizado = vistoriaServicoId.trim();
+    final caminhoOrigemNormalizado = caminhoOrigem.trim();
+
+    if (vistoriaServicoIdNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Fiscalizacao da foto e obrigatoria.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    if (caminhoOrigemNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Arquivo da foto e obrigatorio.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      final caminhoArquivo = await _storage.salvarFotoFiscalizacao(
+        vistoriaServicoId: vistoriaServicoIdNormalizado,
+        caminhoOrigem: caminhoOrigemNormalizado,
+      );
+
+      await _repository.salvarFoto(
+        FotoFiscalizacao(
+          id: 'foto-fiscalizacao-${DateTime.now().microsecondsSinceEpoch}',
+          vistoriaServicoId: vistoriaServicoIdNormalizado,
+          caminhoArquivo: caminhoArquivo,
+        ),
+      );
+    });
+  }
+
+  Future<void> remover(String id) async {
+    final idNormalizado = id.trim();
+    if (idNormalizado.isEmpty) {
+      state = AsyncError(
+        ArgumentError('Foto da fiscalizacao e obrigatoria.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() {
+      return _repository.removerFoto(idNormalizado);
+    });
   }
 }
 

@@ -129,7 +129,7 @@ class _EtapasList extends StatelessWidget {
             onPressed: () => onEdit(etapa),
           ),
           onTap: () => context.push(
-            '/obras/${etapa.obraId}/etapas/${etapa.id}/servicos',
+            '/obras/${etapa.obraId}/etapas/${etapa.id}/fiscalizacoes',
           ),
         );
       },

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,20 +12,19 @@ import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_loading.dart';
 import '../../cadastros/domain/funcionario.dart';
 import '../../cadastros/presentation/funcionarios_controller.dart';
-import '../../medicoes/domain/foto_medicao.dart';
-import '../../medicoes/domain/medicao.dart';
-import '../../medicoes/presentation/medicoes_controller.dart';
 import '../../relatorios/domain/relatorio.dart';
 import '../../relatorios/presentation/relatorio_actions.dart';
 import '../../relatorios/presentation/relatorios_controller.dart';
+import '../domain/foto_fiscalizacao.dart';
 import '../domain/vistoria_mao_de_obra.dart';
 import '../domain/vistoria_periodo.dart';
 import '../domain/vistoria_servico.dart';
 import 'fiscalizacoes_controller.dart';
 
 class FiscalizacoesPage extends ConsumerStatefulWidget {
-  const FiscalizacoesPage({super.key, this.servicoId});
+  const FiscalizacoesPage({super.key, this.etapaId, this.servicoId});
 
+  final String? etapaId;
   final String? servicoId;
 
   @override
@@ -46,10 +44,12 @@ class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final etapaId = widget.etapaId;
     final servicoId = widget.servicoId;
     final vistorias = ref.watch(
       fiscalizacoesFiltroStreamProvider(
         FiscalizacoesFiltro(
+          etapaId: etapaId,
           servicoId: servicoId,
           numero: _numeroFiltroController.text,
           status: _statusFiltro,
@@ -70,7 +70,7 @@ class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
       appBar: AppBar(
         leading: const AppBackButton(),
         title: Text(
-          servicoId == null ? 'Fiscalizacoes' : 'Fiscalizacoes do servico',
+          etapaId == null ? 'Fiscalizacoes' : 'Fiscalizacoes da etapa',
         ),
       ),
       body: Column(
@@ -87,13 +87,13 @@ class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
             onSelectData: _selecionarDataFiltro,
             onClearData: () => setState(() => _dataFiltro = null),
           ),
-          if (widget.servicoId == null)
+          if (widget.etapaId == null)
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Para criar fiscalizacao, abra um servico dentro da etapa.',
+                  'Para criar fiscalizacao, abra uma etapa dentro da obra.',
                 ),
               ),
             ),
@@ -108,10 +108,10 @@ class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
           ),
         ],
       ),
-      floatingActionButton: servicoId == null
+      floatingActionButton: etapaId == null
           ? null
           : FloatingActionButton.extended(
-              onPressed: () => _abrirFormulario(context, servicoId: servicoId),
+              onPressed: () => _abrirFormulario(context, etapaId: etapaId),
               icon: const Icon(Icons.add),
               label: const Text('Fiscalizacao'),
             ),
@@ -133,14 +133,14 @@ class _FiscalizacoesPageState extends ConsumerState<FiscalizacoesPage> {
 
   Future<void> _abrirFormulario(
     BuildContext context, {
-    required String servicoId,
+    required String etapaId,
     VistoriaServico? vistoria,
   }) {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) => _FiscalizacaoForm(
-        servicoId: servicoId,
+        etapaId: etapaId,
         vistoria: vistoria,
       ),
     );
@@ -270,7 +270,7 @@ class _FiscalizacoesList extends StatelessWidget {
             context: context,
             isScrollControlled: true,
             builder: (context) => _FiscalizacaoForm(
-              servicoId: vistoria.servicoId,
+              etapaId: vistoria.etapaId ?? '',
               vistoria: vistoria,
             ),
           ),
@@ -361,7 +361,7 @@ class _FiscalizacoesAbertasList extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       builder: (context) => _FiscalizacaoForm(
-        servicoId: fiscalizacao.servicoId,
+        etapaId: fiscalizacao.etapaId ?? '',
         vistoria: fiscalizacao,
       ),
     );
@@ -370,7 +370,7 @@ class _FiscalizacoesAbertasList extends StatelessWidget {
   String _subtitle(VistoriaServico fiscalizacao) {
     return '${_formatarData(fiscalizacao.data)} | '
         '${_statusFiscalizacaoLabel(fiscalizacao.status.name)} | '
-        'servico ${fiscalizacao.servicoId}';
+        'etapa ${fiscalizacao.etapaId ?? '-'}';
   }
 }
 
@@ -445,11 +445,11 @@ String _statusFiscalizacaoLabel(String value) {
 
 class _FiscalizacaoForm extends ConsumerStatefulWidget {
   const _FiscalizacaoForm({
-    required this.servicoId,
+    required this.etapaId,
     this.vistoria,
   });
 
-  final String servicoId;
+  final String etapaId;
   final VistoriaServico? vistoria;
 
   @override
@@ -457,6 +457,7 @@ class _FiscalizacaoForm extends ConsumerStatefulWidget {
 }
 
 class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
+  late final TextEditingController _atividadeController;
   late final TextEditingController _ocorrenciaController;
   late final TextEditingController _comentarioController;
   late DateTime _data;
@@ -472,6 +473,7 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
   void initState() {
     super.initState();
     final vistoria = widget.vistoria;
+    _atividadeController = TextEditingController(text: vistoria?.atividade);
     _ocorrenciaController = TextEditingController(text: vistoria?.ocorrencia);
     _comentarioController = TextEditingController(text: vistoria?.comentario);
     _data = vistoria?.data ?? DateTime.now();
@@ -481,7 +483,7 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
 
     if (vistoria != null) {
       _habilitarAutoSaveTextos();
-    } else if (widget.servicoId.isNotEmpty) {
+    } else if (widget.etapaId.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _criarFiscalizacaoInicial();
       });
@@ -491,6 +493,7 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
   @override
   void dispose() {
     _autoSaveTimer?.cancel();
+    _atividadeController.dispose();
     _ocorrenciaController.dispose();
     _comentarioController.dispose();
     super.dispose();
@@ -536,14 +539,13 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
             ] else if (saving && !fiscalizacaoSalva) ...[
               const _FormStatusMessage(
                 icon: Icons.sync,
-                text: 'Preparando a fiscalizacao do servico...',
+                text: 'Preparando a fiscalizacao da etapa...',
               ),
               const SizedBox(height: 12),
             ] else if (!fiscalizacaoSalva) ...[
               const _FormStatusMessage(
                 icon: Icons.info_outline,
-                text:
-                    'A fiscalizacao sera vinculada automaticamente ao servico.',
+                text: 'A fiscalizacao sera vinculada automaticamente a etapa.',
               ),
               const SizedBox(height: 12),
             ],
@@ -572,6 +574,17 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
                   setState(() => _status = value);
                 }
               },
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _atividadeController,
+              textInputAction: TextInputAction.newline,
+              minLines: 2,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                labelText: 'Atividade',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -605,9 +618,7 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
               const SizedBox(height: 16),
               _MaoDeObraSection(vistoriaServicoId: vistoriaServicoId),
               const SizedBox(height: 16),
-              _MedicoesFiscalizacaoSection(
-                vistoriaServicoId: vistoriaServicoId,
-              ),
+              _FotosFiscalizacaoSection(vistoriaServicoId: vistoriaServicoId),
               const SizedBox(height: 16),
               _RelatorioFiscalizacaoSection(
                 vistoriaServicoId: vistoriaServicoId,
@@ -644,9 +655,10 @@ class _FiscalizacaoFormState extends ConsumerState<_FiscalizacaoForm> {
 
     await ref.read(fiscalizacoesControllerProvider.notifier).salvar(
           id: id,
-          servicoId: widget.servicoId,
+          etapaId: widget.etapaId,
           data: _data,
           status: _status,
+          atividade: _atividadeController.text,
           ocorrencia: _ocorrenciaController.text,
           comentario: _comentarioController.text,
         );
@@ -967,52 +979,44 @@ class _PeriodoEditor extends ConsumerWidget {
           },
         ),
         if (checked) ...[
-          Text(
-            'Tempo',
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          RadioGroup<TempoPeriodo>(
-            groupValue: tempo,
+          DropdownButtonFormField<TempoPeriodo>(
+            initialValue: tempo,
+            decoration: const InputDecoration(
+              labelText: 'Clima',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              for (final option in TempoPeriodo.values)
+                DropdownMenuItem(
+                  value: option,
+                  child: Text(_tempoLabel(option)),
+                ),
+            ],
             onChanged: (selected) {
               if (selected != null) {
                 _salvar(ref, tempo: selected, condicao: condicao);
               }
             },
-            child: Column(
-              children: [
-                for (final option in TempoPeriodo.values)
-                  RadioListTile<TempoPeriodo>(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(_tempoLabel(option)),
-                    value: option,
-                  ),
-              ],
-            ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Condicao',
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          RadioGroup<CondicaoPeriodo>(
-            groupValue: condicao,
+          DropdownButtonFormField<CondicaoPeriodo>(
+            initialValue: condicao,
+            decoration: const InputDecoration(
+              labelText: 'Condicao',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              for (final option in CondicaoPeriodo.values)
+                DropdownMenuItem(
+                  value: option,
+                  child: Text(_condicaoLabel(option)),
+                ),
+            ],
             onChanged: (selected) {
               if (selected != null) {
                 _salvar(ref, tempo: tempo, condicao: selected);
               }
             },
-            child: Column(
-              children: [
-                for (final option in CondicaoPeriodo.values)
-                  RadioListTile<CondicaoPeriodo>(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(_condicaoLabel(option)),
-                    value: option,
-                  ),
-              ],
-            ),
           ),
           const SizedBox(height: 12),
         ],
@@ -1423,40 +1427,20 @@ class _FuncionarioRapidoFormState
   }
 }
 
-class _MedicoesFiscalizacaoSection extends ConsumerStatefulWidget {
-  const _MedicoesFiscalizacaoSection({required this.vistoriaServicoId});
+class _FotosFiscalizacaoSection extends ConsumerWidget {
+  const _FotosFiscalizacaoSection({required this.vistoriaServicoId});
 
   final String vistoriaServicoId;
 
   @override
-  ConsumerState<_MedicoesFiscalizacaoSection> createState() =>
-      _MedicoesFiscalizacaoSectionState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fotos = ref.watch(fotosFiscalizacaoStreamProvider(vistoriaServicoId));
+    final saving = ref.watch(fotosFiscalizacaoControllerProvider).isLoading;
 
-class _MedicoesFiscalizacaoSectionState
-    extends ConsumerState<_MedicoesFiscalizacaoSection> {
-  final _percentualController = TextEditingController();
-  final _observacaoController = TextEditingController();
-  DateTime _data = DateTime.now();
-  Medicao? _editando;
-
-  @override
-  void dispose() {
-    _percentualController.dispose();
-    _observacaoController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final medicoes =
-        ref.watch(medicoesFiscalizacaoStreamProvider(widget.vistoriaServicoId));
-    final saving = ref.watch(medicoesControllerProvider).isLoading;
-
-    ref.listen(medicoesControllerProvider, (previous, next) {
+    ref.listen(fotosFiscalizacaoControllerProvider, (previous, next) {
       if (next.hasError) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error.toString())),
+          SnackBar(content: Text(_mensagemErroFoto(next.error))),
         );
       }
     });
@@ -1465,247 +1449,48 @@ class _MedicoesFiscalizacaoSectionState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Medicao',
+          'Fotos',
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
-        _DateTile(
-          label: 'Data da medicao',
-          value: _data,
-          onTap: _selecionarData,
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _percentualController,
-          keyboardType: TextInputType.number,
-          inputFormatters: [_DecimalInputFormatter()],
-          textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Percentual executado',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _observacaoController,
-          textInputAction: TextInputAction.newline,
-          minLines: 2,
-          maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: 'Observacao da medicao',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 8),
         Row(
-          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            if (_editando != null)
-              TextButton(
-                onPressed: saving ? null : _limparFormulario,
-                child: const Text('Cancelar'),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: saving
+                    ? null
+                    : () => _selecionarFoto(
+                          ref,
+                          source: ImageSource.camera,
+                        ),
+                icon: const Icon(Icons.photo_camera),
+                label: const Text('Tirar foto'),
               ),
+            ),
             const SizedBox(width: 8),
-            FilledButton.icon(
-              onPressed: saving ? null : _salvar,
-              icon: const Icon(Icons.add_chart),
-              label: Text(saving ? 'Salvando...' : _labelSalvar()),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: saving
+                    ? null
+                    : () => _selecionarFoto(
+                          ref,
+                          source: ImageSource.gallery,
+                        ),
+                icon: const Icon(Icons.photo_library),
+                label: const Text('Galeria'),
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        medicoes.when(
-          data: (items) => _MedicoesFiscalizacaoList(
-            medicoes: items,
-            onSelect: _preencherFormulario,
-          ),
+        const SizedBox(height: 8),
+        fotos.when(
+          data: (items) => _FotosFiscalizacaoList(fotos: items),
           loading: () => const AppInlineLoading(),
           error: (error, stackTrace) {
-            return Text('Erro ao carregar medicoes: $error');
+            return Text('Erro ao carregar fotos da fiscalizacao: $error');
           },
         ),
       ],
-    );
-  }
-
-  Future<void> _selecionarData() async {
-    final selected = await showDatePicker(
-      context: context,
-      initialDate: _data,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-
-    if (selected != null) {
-      setState(() => _data = selected);
-    }
-  }
-
-  Future<void> _salvar() async {
-    await ref.read(medicoesControllerProvider.notifier).salvarDaFiscalizacao(
-          id: _editando?.id,
-          vistoriaServicoId: widget.vistoriaServicoId,
-          percentualExecutado:
-              double.tryParse(_percentualController.text) ?? -1,
-          observacao: _observacaoController.text,
-          data: _data,
-        );
-
-    if (!mounted) {
-      return;
-    }
-
-    final state = ref.read(medicoesControllerProvider);
-    if (!state.hasError) {
-      _limparFormulario();
-    }
-  }
-
-  void _preencherFormulario(Medicao medicao) {
-    setState(() {
-      _editando = medicao;
-      _data = medicao.data;
-      _percentualController.text = medicao.percentualExecutado.toString();
-      _observacaoController.text = medicao.observacao ?? '';
-    });
-  }
-
-  void _limparFormulario() {
-    setState(() {
-      _editando = null;
-      _data = DateTime.now();
-      _percentualController.clear();
-      _observacaoController.clear();
-    });
-  }
-
-  String _labelSalvar() {
-    return _editando == null ? 'Adicionar' : 'Atualizar';
-  }
-}
-
-class _MedicoesFiscalizacaoList extends StatelessWidget {
-  const _MedicoesFiscalizacaoList({
-    required this.medicoes,
-    required this.onSelect,
-  });
-
-  final List<Medicao> medicoes;
-  final ValueChanged<Medicao> onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    if (medicoes.isEmpty) {
-      return const Text('Nenhuma medicao cadastrada nesta fiscalizacao');
-    }
-
-    return Column(
-      children: [
-        for (final medicao in medicoes)
-          Column(
-            children: [
-              ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                title: Text('${medicao.percentualExecutado}% executado'),
-                subtitle: Text(_subtitle(medicao)),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      tooltip: 'Historico da medicao',
-                      icon: const Icon(Icons.history),
-                      onPressed: () {
-                        context.push(_historicoPath('medicao', medicao.id));
-                      },
-                    ),
-                    const Icon(Icons.edit),
-                  ],
-                ),
-                onTap: () => onSelect(medicao),
-              ),
-              _FotosFiscalizacaoMedicaoSection(medicaoId: medicao.id),
-              const Divider(height: 20),
-            ],
-          ),
-      ],
-    );
-  }
-
-  String _subtitle(Medicao medicao) {
-    final data =
-        '${medicao.data.day}/${medicao.data.month}/${medicao.data.year}';
-    final observacao = medicao.observacao;
-    if (observacao == null) {
-      return data;
-    }
-
-    return '$data | $observacao';
-  }
-}
-
-class _FotosFiscalizacaoMedicaoSection extends ConsumerWidget {
-  const _FotosFiscalizacaoMedicaoSection({required this.medicaoId});
-
-  final String medicaoId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final fotos = ref.watch(fotosMedicaoStreamProvider(medicaoId));
-    final saving = ref.watch(fotosMedicaoControllerProvider).isLoading;
-
-    ref.listen(fotosMedicaoControllerProvider, (previous, next) {
-      if (next.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_mensagemErroFoto(next.error))),
-        );
-      }
-    });
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: saving
-                      ? null
-                      : () => _selecionarFoto(
-                            ref,
-                            source: ImageSource.camera,
-                          ),
-                  icon: const Icon(Icons.photo_camera),
-                  label: const Text('Tirar foto'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: saving
-                      ? null
-                      : () => _selecionarFoto(
-                            ref,
-                            source: ImageSource.gallery,
-                          ),
-                  icon: const Icon(Icons.photo_library),
-                  label: const Text('Galeria'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          fotos.when(
-            data: (items) => _FotosFiscalizacaoMedicaoList(fotos: items),
-            loading: () => const AppInlineLoading(),
-            error: (error, stackTrace) {
-              return Text('Erro ao carregar fotos da fiscalizacao: $error');
-            },
-          ),
-        ],
-      ),
     );
   }
 
@@ -1722,8 +1507,8 @@ class _FotosFiscalizacaoMedicaoSection extends ConsumerWidget {
       return;
     }
 
-    await ref.read(fotosMedicaoControllerProvider.notifier).salvarArquivo(
-          medicaoId: medicaoId,
+    await ref.read(fotosFiscalizacaoControllerProvider.notifier).salvarArquivo(
+          vistoriaServicoId: vistoriaServicoId,
           caminhoOrigem: picked.path,
         );
   }
@@ -1737,15 +1522,15 @@ class _FotosFiscalizacaoMedicaoSection extends ConsumerWidget {
   }
 }
 
-class _FotosFiscalizacaoMedicaoList extends ConsumerWidget {
-  const _FotosFiscalizacaoMedicaoList({required this.fotos});
+class _FotosFiscalizacaoList extends ConsumerWidget {
+  const _FotosFiscalizacaoList({required this.fotos});
 
-  final List<FotoMedicao> fotos;
+  final List<FotoFiscalizacao> fotos;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (fotos.isEmpty) {
-      return const Text('Nenhuma foto vinculada a esta medicao');
+      return const Text('Nenhuma foto vinculada a esta fiscalizacao');
     }
 
     return Column(
@@ -1764,7 +1549,7 @@ class _FotosFiscalizacaoMedicaoList extends ConsumerWidget {
               icon: const Icon(Icons.delete_outline),
               onPressed: () {
                 ref
-                    .read(fotosMedicaoControllerProvider.notifier)
+                    .read(fotosFiscalizacaoControllerProvider.notifier)
                     .remover(foto.id);
               },
             ),
@@ -1877,19 +1662,5 @@ class _DateTile extends StatelessWidget {
       trailing: const Icon(Icons.calendar_month),
       onTap: onTap,
     );
-  }
-}
-
-class _DecimalInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final normalized = newValue.text.replaceAll(',', '.');
-    if (normalized.isEmpty || double.tryParse(normalized) != null) {
-      return newValue.copyWith(text: normalized);
-    }
-    return oldValue;
   }
 }

@@ -25,10 +25,6 @@ class RelatorioPdfGenerator {
               child: pw.Text('Relatorio da obra'),
             ),
             _obraResumo(dados),
-            _sectionTitle('Servicos'),
-            _servicosTable(dados),
-            _sectionTitle('Medicoes'),
-            _medicoesTable(dados),
             _sectionTitle('Fiscalizacoes'),
             _fiscalizacoesTable(dados),
             _sectionTitle('Mao de obra'),
@@ -65,8 +61,6 @@ class RelatorioPdfGenerator {
             _fiscalizacaoResumo(dados),
             _sectionTitle('Periodos'),
             _periodosTable(dados),
-            _sectionTitle('Medicoes'),
-            _medicoesFiscalizacaoTable(dados),
             _sectionTitle('Mao de obra'),
             _maoDeObraFiscalizacaoTable(dados),
             _sectionTitle('Fotos'),
@@ -94,51 +88,6 @@ class RelatorioPdfGenerator {
         ['Prazo', '${obra.progressoPrazoDias} dias'],
         ['Inicio', _formatarData(obra.dataInicio)],
         ['Fim', _formatarData(obra.dataFim)],
-      ],
-      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-      headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
-      cellAlignment: pw.Alignment.centerLeft,
-    );
-  }
-
-  pw.Widget _servicosTable(RelatorioObraDados dados) {
-    if (dados.servicos.isEmpty) {
-      return pw.Text('Nenhum servico cadastrado.');
-    }
-
-    return pw.TableHelper.fromTextArray(
-      headers: const ['Servico', 'Status', 'Progresso', 'Quantidade', 'Custo'],
-      data: [
-        for (final servico in dados.servicos)
-          [
-            servico.nome,
-            servico.status.name,
-            '${servico.progressoFisico}%',
-            '${servico.quantidade} ${servico.unidade}',
-            servico.precoTotal.toStringAsFixed(2),
-          ],
-      ],
-      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-      headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
-      cellAlignment: pw.Alignment.centerLeft,
-    );
-  }
-
-  pw.Widget _medicoesTable(RelatorioObraDados dados) {
-    if (dados.medicoes.isEmpty) {
-      return pw.Text('Nenhuma medicao cadastrada.');
-    }
-
-    return pw.TableHelper.fromTextArray(
-      headers: const ['Data', 'Servico', 'Percentual', 'Observacao'],
-      data: [
-        for (final medicao in dados.medicoes)
-          [
-            _formatarData(medicao.data),
-            medicao.servicoId,
-            '${medicao.percentualExecutado}%',
-            medicao.observacao ?? '',
-          ],
       ],
       headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
       headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
@@ -201,8 +150,9 @@ class RelatorioPdfGenerator {
         ['Data', _formatarData(fiscalizacao.data)],
         ['Status', fiscalizacao.status.name],
         ['Obra', dados.obra.nome],
-        ['Servico', dados.servico.nome],
-        ['Progresso do servico', '${dados.servico.progressoFisico}%'],
+        ['Etapa', dados.etapa.nome],
+        ['Progresso da etapa', '${dados.etapa.progressoFisico}%'],
+        ['Atividade', fiscalizacao.atividade ?? ''],
         ['Ocorrencia', fiscalizacao.ocorrencia ?? ''],
         ['Comentario', fiscalizacao.comentario ?? ''],
       ],
@@ -225,27 +175,6 @@ class RelatorioPdfGenerator {
             periodo.periodo.name,
             periodo.tempo.name,
             periodo.condicao.name,
-          ],
-      ],
-      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-      headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
-      cellAlignment: pw.Alignment.centerLeft,
-    );
-  }
-
-  pw.Widget _medicoesFiscalizacaoTable(RelatorioFiscalizacaoDados dados) {
-    if (dados.medicoes.isEmpty) {
-      return pw.Text('Nenhuma medicao cadastrada.');
-    }
-
-    return pw.TableHelper.fromTextArray(
-      headers: const ['Data', 'Percentual', 'Observacao'],
-      data: [
-        for (final medicao in dados.medicoes)
-          [
-            _formatarData(medicao.data),
-            '${medicao.percentualExecutado}%',
-            medicao.observacao ?? '',
           ],
       ],
       headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
@@ -283,7 +212,9 @@ class RelatorioPdfGenerator {
     return [
       for (final foto in dados.fotos)
         _fotoEvidenciaCard(
-          titulo: 'Medicao ${foto.medicaoId}',
+          titulo: foto.vistoriaServicoId == null
+              ? 'Foto'
+              : 'Fiscalizacao ${foto.vistoriaServicoId}',
           caminhoArquivo: foto.caminhoArquivo,
         ),
     ];
@@ -297,7 +228,7 @@ class RelatorioPdfGenerator {
     return [
       for (var index = 0; index < dados.fotos.length; index++)
         _fotoEvidenciaCard(
-          titulo: 'Foto ${index + 1} - Medicao ${dados.fotos[index].medicaoId}',
+          titulo: 'Foto ${index + 1}',
           caminhoArquivo: dados.fotos[index].caminhoArquivo,
         ),
     ];
