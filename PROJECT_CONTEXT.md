@@ -413,6 +413,12 @@ Observacoes:
 - `dia_semana` pode ser calculado a partir da `data`, mas pode ser armazenado para facilitar relatorio.
 - `ocorrencia` descreve qualquer coisa relevante que aconteceu durante o dia.
 - `comentario` guarda observacoes gerais da fiscalizacao.
+- O widget de resumo de fiscalizacoes no dashboard deve abrir uma tela com as
+  fiscalizacoes em andamento.
+- A tela de fiscalizacoes em aberto deve permitir editar a fiscalizacao e
+  visualizar o PDF ja gerado quando existir arquivo local vinculado a ela.
+- Relatorios PDF de fiscalizacao devem ter o id da fiscalizacao no nome do
+  arquivo para permitir localizacao offline posterior.
 
 ### Periodo da fiscalizacao
 

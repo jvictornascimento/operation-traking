@@ -23,6 +23,13 @@ final relatorioPdfGeneratorProvider = Provider<RelatorioPdfGenerator>(
   (ref) => const RelatorioPdfGenerator(),
 );
 
+final relatorioFiscalizacaoExistenteProvider =
+    FutureProvider.family.autoDispose<Relatorio?, String>(
+  (ref, fiscalizacaoId) {
+    return buscarRelatorioFiscalizacaoExistente(fiscalizacaoId);
+  },
+);
+
 final relatoriosControllerProvider =
     StateNotifierProvider<RelatoriosController, AsyncValue<Relatorio?>>((ref) {
   return RelatoriosController(
@@ -99,7 +106,9 @@ class RelatoriosController extends StateNotifier<AsyncValue<Relatorio?>> {
       );
       final bytes = await _generator.gerarRelatorioFiscalizacao(dados);
       final criadoEm = DateTime.now();
-      final id = 'relatorio-fiscalizacao-${criadoEm.microsecondsSinceEpoch}';
+      final id = 'relatorio-fiscalizacao-'
+          '${_normalizarNomeArquivo(vistoriaServicoIdNormalizado)}-'
+          '${criadoEm.microsecondsSinceEpoch}';
       final caminhoArquivo = await _salvarPdfLocal(
         id: id,
         bytes: bytes,
@@ -130,4 +139,58 @@ class RelatoriosController extends StateNotifier<AsyncValue<Relatorio?>> {
     await file.writeAsBytes(bytes, flush: true);
     return file.path;
   }
+}
+
+Future<Relatorio?> buscarRelatorioFiscalizacaoExistente(
+  String fiscalizacaoId,
+) async {
+  final fiscalizacaoIdNormalizado = fiscalizacaoId.trim();
+  if (fiscalizacaoIdNormalizado.isEmpty) {
+    return null;
+  }
+
+  final directory = await getApplicationDocumentsDirectory();
+  final relatoriosDir = Directory(p.join(directory.path, 'relatorios'));
+  if (!await relatoriosDir.exists()) {
+    return null;
+  }
+
+  final prefixo = 'relatorio-fiscalizacao-'
+      '${_normalizarNomeArquivo(fiscalizacaoIdNormalizado)}-';
+  final arquivos = await relatoriosDir
+      .list()
+      .where((entity) {
+        if (entity is! File) {
+          return false;
+        }
+
+        final nome = p.basename(entity.path);
+        return nome.startsWith(prefixo) && nome.endsWith('.pdf');
+      })
+      .cast<File>()
+      .toList();
+
+  if (arquivos.isEmpty) {
+    return null;
+  }
+
+  arquivos.sort((a, b) {
+    return b.lastModifiedSync().compareTo(a.lastModifiedSync());
+  });
+
+  final arquivo = arquivos.first;
+  final criadoEm = arquivo.lastModifiedSync();
+  final id = p.basenameWithoutExtension(arquivo.path);
+
+  return Relatorio(
+    id: id,
+    obraId: '',
+    fiscalizacaoId: fiscalizacaoIdNormalizado,
+    criadoEm: criadoEm,
+    caminhoArquivo: arquivo.path,
+  );
+}
+
+String _normalizarNomeArquivo(String value) {
+  return value.trim().replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '-');
 }

@@ -82,6 +82,11 @@ final appRouter = GoRouter(
       builder: (context, state) => const FiscalizacoesPage(),
     ),
     GoRoute(
+      name: 'fiscalizacoes-abertas',
+      path: '/fiscalizacoes/abertas',
+      builder: (context, state) => const FiscalizacoesAbertasPage(),
+    ),
+    GoRoute(
       name: 'medicoes',
       path: '/medicoes',
       builder: (context, state) => const MedicoesPage(),

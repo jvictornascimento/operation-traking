@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:printing/printing.dart';
 
 import '../../../core/domain/domain_enums.dart';
 import '../../../core/widgets/app_back_button.dart';
@@ -15,6 +16,7 @@ import '../../cadastros/presentation/funcionarios_controller.dart';
 import '../../medicoes/domain/foto_medicao.dart';
 import '../../medicoes/domain/medicao.dart';
 import '../../medicoes/presentation/medicoes_controller.dart';
+import '../../relatorios/domain/relatorio.dart';
 import '../../relatorios/presentation/relatorio_actions.dart';
 import '../../relatorios/presentation/relatorios_controller.dart';
 import '../domain/vistoria_mao_de_obra.dart';
@@ -283,6 +285,141 @@ class _FiscalizacoesList extends StatelessWidget {
     return '${_formatarData(vistoria.data)} | '
         '${_statusFiscalizacaoLabel(vistoria.status.name)} | '
         'obra ${vistoria.obraId}';
+  }
+}
+
+class FiscalizacoesAbertasPage extends ConsumerWidget {
+  const FiscalizacoesAbertasPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fiscalizacoes = ref.watch(
+      fiscalizacoesFiltroStreamProvider(
+        const FiscalizacoesFiltro(status: StatusFiscalizacao.emAndamento),
+      ),
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: const AppBackButton(),
+        title: const Text('Fiscalizacoes em aberto'),
+      ),
+      body: fiscalizacoes.when(
+        data: (items) => _FiscalizacoesAbertasList(fiscalizacoes: items),
+        loading: () => const AppLoadingPage(),
+        error: (error, stackTrace) => Center(
+          child: Text('Erro ao carregar fiscalizacoes abertas: $error'),
+        ),
+      ),
+    );
+  }
+}
+
+class _FiscalizacoesAbertasList extends StatelessWidget {
+  const _FiscalizacoesAbertasList({required this.fiscalizacoes});
+
+  final List<VistoriaServico> fiscalizacoes;
+
+  @override
+  Widget build(BuildContext context) {
+    if (fiscalizacoes.isEmpty) {
+      return const Center(
+        child: Text('Nenhuma fiscalizacao em aberto'),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemBuilder: (context, index) {
+        final fiscalizacao = fiscalizacoes[index];
+        return ListTile(
+          title: Text(fiscalizacao.numero),
+          subtitle: Text(_subtitle(fiscalizacao)),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _RelatorioFiscalizacaoExistenteButton(
+                fiscalizacao: fiscalizacao,
+              ),
+              IconButton(
+                tooltip: 'Editar fiscalizacao',
+                icon: const Icon(Icons.edit),
+                onPressed: () => _abrirEdicao(context, fiscalizacao),
+              ),
+            ],
+          ),
+          onTap: () => _abrirEdicao(context, fiscalizacao),
+        );
+      },
+      separatorBuilder: (context, index) => const Divider(height: 1),
+      itemCount: fiscalizacoes.length,
+    );
+  }
+
+  void _abrirEdicao(BuildContext context, VistoriaServico fiscalizacao) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _FiscalizacaoForm(
+        servicoId: fiscalizacao.servicoId,
+        vistoria: fiscalizacao,
+      ),
+    );
+  }
+
+  String _subtitle(VistoriaServico fiscalizacao) {
+    return '${_formatarData(fiscalizacao.data)} | '
+        '${_statusFiscalizacaoLabel(fiscalizacao.status.name)} | '
+        'servico ${fiscalizacao.servicoId}';
+  }
+}
+
+class _RelatorioFiscalizacaoExistenteButton extends ConsumerWidget {
+  const _RelatorioFiscalizacaoExistenteButton({required this.fiscalizacao});
+
+  final VistoriaServico fiscalizacao;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final relatorio = ref.watch(
+      relatorioFiscalizacaoExistenteProvider(fiscalizacao.id),
+    );
+
+    return relatorio.when(
+      data: (value) {
+        final encontrado = value != null;
+        return IconButton(
+          tooltip: encontrado
+              ? 'Visualizar relatorio gerado'
+              : 'Nenhum relatorio gerado',
+          icon: Icon(
+            Icons.visibility,
+            color: encontrado ? null : Theme.of(context).disabledColor,
+          ),
+          onPressed: encontrado ? () => _visualizar(value) : null,
+        );
+      },
+      loading: () => const SizedBox.square(
+        dimension: 48,
+        child: Padding(
+          padding: EdgeInsets.all(14),
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+      error: (error, stackTrace) {
+        return const IconButton(
+          tooltip: 'Erro ao localizar relatorio',
+          icon: Icon(Icons.visibility_off),
+          onPressed: null,
+        );
+      },
+    );
+  }
+
+  Future<void> _visualizar(Relatorio relatorio) {
+    return Printing.layoutPdf(
+      onLayout: (_) => File(relatorio.caminhoArquivo).readAsBytes(),
+    );
   }
 }
 
