@@ -609,11 +609,19 @@ O PDF local deve permitir:
 - Tabelas.
 - Fotos.
 - Assinatura.
-- Progresso da obra.
 - Custos.
 - Fiscalizacoes.
 - Ocorrencias.
 - Mao de obra.
+
+Regras de apresentacao:
+
+- Status devem aparecer com nomes humanizados no relatorio, mesmo que os enums
+  internos continuem tecnicos.
+- Mao de obra deve exibir o nome do funcionario quando existir cadastro
+  vinculado.
+- Fotos devem aparecer em miniaturas, organizadas em ate quatro imagens por
+  linha, sem exibir o caminho local do arquivo.
 
 Compartilhamento esperado:
 
@@ -653,3 +661,13 @@ Regis consegue sair para uma fiscalizacao sem internet, registrar o andamento
 de uma etapa com atividade, status, periodo do dia, tempo, condicao,
 ocorrencias, comentarios, mao de obra e fotos, fechar o app sem perder dados e
 gerar um PDF local ao final da visita.
+
+## Issues registradas
+
+### Issue 27 - Melhorias de apresentacao do relatorio PDF
+
+- Humanizar labels de status no PDF.
+- Exibir nome do funcionario na mao de obra em vez do ID.
+- Renderizar fotos em miniaturas, com quatro imagens por linha.
+- Remover caminho local da imagem no PDF.
+- Remover progresso da obra do relatorio.

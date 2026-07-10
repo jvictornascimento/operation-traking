@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../../../core/domain/domain_enums.dart';
 import '../domain/relatorio_fiscalizacao_dados.dart';
 import '../domain/relatorio_obra_dados.dart';
 
@@ -83,8 +84,7 @@ class RelatorioPdfGenerator {
       headers: const ['Campo', 'Valor'],
       data: [
         ['Obra', obra.nome],
-        ['Status', obra.status.name],
-        ['Progresso fisico', '${obra.progressoFisico}%'],
+        ['Status', _statusExecucaoLabel(obra.status)],
         ['Prazo', '${obra.progressoPrazoDias} dias'],
         ['Inicio', _formatarData(obra.dataInicio)],
         ['Fim', _formatarData(obra.dataFim)],
@@ -107,7 +107,7 @@ class RelatorioPdfGenerator {
           [
             _formatarData(fiscalizacao.data),
             fiscalizacao.numero,
-            fiscalizacao.status.name,
+            _statusFiscalizacaoLabel(fiscalizacao.status),
             fiscalizacao.ocorrencia ?? '',
             fiscalizacao.comentario ?? '',
           ],
@@ -129,7 +129,7 @@ class RelatorioPdfGenerator {
         for (final maoDeObra in dados.maoDeObra)
           [
             maoDeObra.vistoriaServicoId,
-            maoDeObra.funcionarioId,
+            _funcionarioLabel(maoDeObra),
             maoDeObra.funcaoNoDia ?? '',
             maoDeObra.observacao ?? '',
           ],
@@ -148,7 +148,7 @@ class RelatorioPdfGenerator {
       data: [
         ['Fiscalizacao', fiscalizacao.numero],
         ['Data', _formatarData(fiscalizacao.data)],
-        ['Status', fiscalizacao.status.name],
+        ['Status', _statusFiscalizacaoLabel(fiscalizacao.status)],
         ['Obra', dados.obra.nome],
         ['Etapa', dados.etapa.nome],
         ['Progresso da etapa', '${dados.etapa.progressoFisico}%'],
@@ -172,9 +172,9 @@ class RelatorioPdfGenerator {
       data: [
         for (final periodo in dados.periodos)
           [
-            periodo.periodo.name,
-            periodo.tempo.name,
-            periodo.condicao.name,
+            _periodoLabel(periodo.periodo),
+            _tempoLabel(periodo.tempo),
+            _condicaoLabel(periodo.condicao),
           ],
       ],
       headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
@@ -193,7 +193,7 @@ class RelatorioPdfGenerator {
       data: [
         for (final maoDeObra in dados.maoDeObra)
           [
-            maoDeObra.funcionarioId,
+            _funcionarioLabel(maoDeObra),
             maoDeObra.funcaoNoDia ?? '',
             maoDeObra.observacao ?? '',
           ],
@@ -209,15 +209,7 @@ class RelatorioPdfGenerator {
       return [pw.Text('Nenhuma foto cadastrada.')];
     }
 
-    return [
-      for (final foto in dados.fotos)
-        _fotoEvidenciaCard(
-          titulo: foto.vistoriaServicoId == null
-              ? 'Foto'
-              : 'Fiscalizacao ${foto.vistoriaServicoId}',
-          caminhoArquivo: foto.caminhoArquivo,
-        ),
-    ];
+    return [_fotosGrid(dados.fotos)];
   }
 
   List<pw.Widget> _fotosFiscalizacao(RelatorioFiscalizacaoDados dados) {
@@ -225,13 +217,21 @@ class RelatorioPdfGenerator {
       return [pw.Text('Nenhuma foto cadastrada.')];
     }
 
-    return [
-      for (var index = 0; index < dados.fotos.length; index++)
-        _fotoEvidenciaCard(
-          titulo: 'Foto ${index + 1}',
-          caminhoArquivo: dados.fotos[index].caminhoArquivo,
-        ),
-    ];
+    return [_fotosGrid(dados.fotos)];
+  }
+
+  pw.Widget _fotosGrid(List<RelatorioFotoInfo> fotos) {
+    return pw.Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (var index = 0; index < fotos.length; index++)
+          _fotoEvidenciaCard(
+            titulo: 'Foto ${index + 1}',
+            caminhoArquivo: fotos[index].caminhoArquivo,
+          ),
+      ],
+    );
   }
 
   pw.Widget _fotoEvidenciaCard({
@@ -242,8 +242,8 @@ class RelatorioPdfGenerator {
     final existe = file.existsSync();
 
     return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 14),
-      padding: const pw.EdgeInsets.all(8),
+      width: 118,
+      padding: const pw.EdgeInsets.all(6),
       decoration: pw.BoxDecoration(
         border: pw.Border.all(color: PdfColors.grey500),
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
@@ -256,23 +256,29 @@ class RelatorioPdfGenerator {
             style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
           ),
           pw.SizedBox(height: 4),
-          pw.Text(
-            caminhoArquivo,
-            style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
-          ),
-          pw.SizedBox(height: 8),
           if (existe)
-            pw.Center(
+            pw.SizedBox(
+              width: 106,
+              height: 86,
               child: pw.Image(
                 pw.MemoryImage(file.readAsBytesSync()),
-                height: 220,
-                fit: pw.BoxFit.contain,
+                fit: pw.BoxFit.cover,
               ),
             )
           else
-            pw.Text(
-              'Arquivo da foto nao encontrado no dispositivo.',
-              style: const pw.TextStyle(color: PdfColors.red700),
+            pw.SizedBox(
+              width: 106,
+              height: 86,
+              child: pw.Center(
+                child: pw.Text(
+                  'Foto nao encontrada',
+                  textAlign: pw.TextAlign.center,
+                  style: const pw.TextStyle(
+                    color: PdfColors.red700,
+                    fontSize: 8,
+                  ),
+                ),
+              ),
             ),
         ],
       ),
@@ -294,5 +300,56 @@ class RelatorioPdfGenerator {
 
   String _formatarData(DateTime data) {
     return '${data.day}/${data.month}/${data.year}';
+  }
+
+  String _statusExecucaoLabel(StatusExecucao status) {
+    return switch (status) {
+      StatusExecucao.naoComecou => 'Nao comecou',
+      StatusExecucao.emAndamento => 'Em andamento',
+      StatusExecucao.parada => 'Parada',
+      StatusExecucao.embargada => 'Embargada',
+      StatusExecucao.atrasada => 'Atrasada',
+      StatusExecucao.concluida => 'Concluida',
+    };
+  }
+
+  String _statusFiscalizacaoLabel(StatusFiscalizacao status) {
+    return switch (status) {
+      StatusFiscalizacao.emAndamento => 'Em andamento',
+      StatusFiscalizacao.aprovada => 'Aprovada',
+      StatusFiscalizacao.negada => 'Negada',
+    };
+  }
+
+  String _periodoLabel(PeriodoDia periodo) {
+    return switch (periodo) {
+      PeriodoDia.manha => 'Manha',
+      PeriodoDia.tarde => 'Tarde',
+      PeriodoDia.noite => 'Noite',
+    };
+  }
+
+  String _tempoLabel(TempoPeriodo tempo) {
+    return switch (tempo) {
+      TempoPeriodo.claro => 'Claro',
+      TempoPeriodo.nublado => 'Nublado',
+      TempoPeriodo.chuvoso => 'Chuvoso',
+    };
+  }
+
+  String _condicaoLabel(CondicaoPeriodo condicao) {
+    return switch (condicao) {
+      CondicaoPeriodo.praticavel => 'Praticavel',
+      CondicaoPeriodo.impraticavel => 'Impraticavel',
+    };
+  }
+
+  String _funcionarioLabel(RelatorioMaoDeObraInfo maoDeObra) {
+    final nome = maoDeObra.funcionarioNome?.trim();
+    if (nome != null && nome.isNotEmpty) {
+      return nome;
+    }
+
+    return maoDeObra.funcionarioId;
   }
 }

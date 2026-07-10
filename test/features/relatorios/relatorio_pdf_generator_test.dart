@@ -74,6 +74,7 @@ RelatorioObraDados _dados() {
       RelatorioMaoDeObraInfo(
         vistoriaServicoId: 'vistoria-1',
         funcionarioId: 'funcionario-1',
+        funcionarioNome: 'Joao Silva',
         funcaoNoDia: 'Pedreiro',
       ),
     ],
@@ -135,6 +136,7 @@ RelatorioFiscalizacaoDados _dadosFiscalizacao() {
       RelatorioMaoDeObraInfo(
         vistoriaServicoId: 'vistoria-1',
         funcionarioId: 'funcionario-1',
+        funcionarioNome: 'Joao Silva',
         funcaoNoDia: 'Pedreiro',
       ),
     ],

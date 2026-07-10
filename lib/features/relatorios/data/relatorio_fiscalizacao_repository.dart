@@ -61,13 +61,18 @@ class DriftRelatorioFiscalizacaoRepository
           ..where((table) => table.vistoriaServicoId.equals(vistoriaServicoId))
           ..orderBy([(table) => OrderingTerm.asc(table.funcionarioId)]))
         .get();
+    final funcionariosPorId = await _buscarFuncionariosPorId(
+      maoDeObra.map((item) => item.funcionarioId),
+    );
 
     return RelatorioFiscalizacaoDados(
       obra: _mapObra(obra),
       etapa: _mapEtapa(etapa),
       fiscalizacao: _mapFiscalizacao(fiscalizacao),
       periodos: periodos.map(_mapPeriodo).toList(),
-      maoDeObra: maoDeObra.map(_mapMaoDeObra).toList(),
+      maoDeObra: maoDeObra
+          .map((item) => _mapMaoDeObra(item, funcionariosPorId))
+          .toList(),
       fotos: fotos.map(_mapFoto).toList(),
     );
   }
@@ -115,10 +120,31 @@ class DriftRelatorioFiscalizacaoRepository
     );
   }
 
-  RelatorioMaoDeObraInfo _mapMaoDeObra(db.VistoriasMaoDeObraData row) {
+  Future<Map<String, String>> _buscarFuncionariosPorId(
+    Iterable<String> funcionarioIds,
+  ) async {
+    final ids = funcionarioIds.toSet().toList();
+    if (ids.isEmpty) {
+      return const {};
+    }
+
+    final funcionarios = await (_database.select(_database.funcionarios)
+          ..where((table) => table.id.isIn(ids)))
+        .get();
+
+    return {
+      for (final funcionario in funcionarios) funcionario.id: funcionario.nome,
+    };
+  }
+
+  RelatorioMaoDeObraInfo _mapMaoDeObra(
+    db.VistoriasMaoDeObraData row,
+    Map<String, String> funcionariosPorId,
+  ) {
     return RelatorioMaoDeObraInfo(
       vistoriaServicoId: row.vistoriaServicoId,
       funcionarioId: row.funcionarioId,
+      funcionarioNome: funcionariosPorId[row.funcionarioId],
       funcaoNoDia: row.funcaoNoDia,
       observacao: row.observacao,
     );
