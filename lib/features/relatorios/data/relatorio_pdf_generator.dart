@@ -83,18 +83,25 @@ class RelatorioPdfGenerator {
   pw.Widget _obraResumo(RelatorioObraDados dados) {
     final obra = dados.obra;
 
-    return pw.TableHelper.fromTextArray(
-      headers: const ['Campo', 'Valor'],
-      data: [
-        ['Obra', obra.nome],
-        ['Status', _statusExecucaoLabel(obra.status)],
-        ['Prazo', '${obra.progressoPrazoDias} dias'],
-        ['Inicio', _formatarData(obra.dataInicio)],
-        ['Fim', _formatarData(obra.dataFim)],
+    return _headerResumo(
+      titulo: obra.nome,
+      subtitulo: 'Relatorio geral da obra',
+      status: _statusExecucaoLabel(obra.status),
+      statusColor: _statusExecucaoColor(obra.status),
+      items: [
+        _HeaderInfoItem(
+          label: 'Prazo',
+          value: '${obra.progressoPrazoDias} dias',
+        ),
+        _HeaderInfoItem(
+          label: 'Inicio',
+          value: _formatarData(obra.dataInicio),
+        ),
+        _HeaderInfoItem(
+          label: 'Fim',
+          value: _formatarData(obra.dataFim),
+        ),
       ],
-      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-      headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
-      cellAlignment: pw.Alignment.centerLeft,
     );
   }
 
@@ -143,25 +150,167 @@ class RelatorioPdfGenerator {
     );
   }
 
+  pw.Widget _headerResumo({
+    required String titulo,
+    required String subtitulo,
+    required String status,
+    required PdfColor statusColor,
+    required List<_HeaderInfoItem> items,
+  }) {
+    return pw.Container(
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey400),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Container(
+            padding: const pw.EdgeInsets.all(14),
+            decoration: const pw.BoxDecoration(
+              color: PdfColors.grey900,
+              borderRadius: pw.BorderRadius.only(
+                topLeft: pw.Radius.circular(6),
+                topRight: pw.Radius.circular(6),
+              ),
+            ),
+            child: pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        subtitulo,
+                        style: const pw.TextStyle(
+                          color: PdfColors.grey300,
+                          fontSize: 9,
+                        ),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        titulo,
+                        style: pw.TextStyle(
+                          color: PdfColors.white,
+                          fontSize: 20,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: pw.BoxDecoration(
+                    color: statusColor,
+                    borderRadius: const pw.BorderRadius.all(
+                      pw.Radius.circular(14),
+                    ),
+                  ),
+                  child: pw.Text(
+                    status,
+                    style: pw.TextStyle(
+                      color: PdfColors.white,
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          pw.Padding(
+            padding: const pw.EdgeInsets.all(12),
+            child: pw.Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final item in items)
+                  _headerInfoCard(
+                    label: item.label,
+                    value: item.value,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _headerInfoCard({
+    required String label,
+    required String value,
+  }) {
+    return pw.Container(
+      width: 154,
+      padding: const pw.EdgeInsets.all(10),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.grey100,
+        border: pw.Border.all(color: PdfColors.grey300),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            label,
+            style: const pw.TextStyle(
+              color: PdfColors.grey700,
+              fontSize: 8,
+            ),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            value,
+            style: pw.TextStyle(
+              fontSize: 11,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   pw.Widget _fiscalizacaoResumo(RelatorioFiscalizacaoDados dados) {
     final fiscalizacao = dados.fiscalizacao;
 
-    return pw.TableHelper.fromTextArray(
-      headers: const ['Campo', 'Valor'],
-      data: [
-        ['Fiscalizacao', fiscalizacao.numero],
-        ['Data', _formatarData(fiscalizacao.data)],
-        ['Status', _statusFiscalizacaoLabel(fiscalizacao.status)],
-        ['Obra', dados.obra.nome],
-        ['Etapa', dados.etapa.nome],
-        ['Progresso da etapa', '${dados.etapa.progressoFisico}%'],
-        ['Atividade', fiscalizacao.atividade ?? ''],
-        ['Ocorrencia', fiscalizacao.ocorrencia ?? ''],
-        ['Comentario', fiscalizacao.comentario ?? ''],
+    return _headerResumo(
+      titulo: dados.obra.nome,
+      subtitulo: 'Fiscalizacao ${fiscalizacao.numero}',
+      status: _statusFiscalizacaoLabel(fiscalizacao.status),
+      statusColor: _statusFiscalizacaoColor(fiscalizacao.status),
+      items: [
+        _HeaderInfoItem(
+          label: 'Data',
+          value: _formatarData(fiscalizacao.data),
+        ),
+        _HeaderInfoItem(
+          label: 'Etapa',
+          value: dados.etapa.nome,
+        ),
+        _HeaderInfoItem(
+          label: 'Progresso da etapa',
+          value: '${dados.etapa.progressoFisico}%',
+        ),
+        _HeaderInfoItem(
+          label: 'Atividade',
+          value: fiscalizacao.atividade ?? '-',
+        ),
+        _HeaderInfoItem(
+          label: 'Ocorrencia',
+          value: fiscalizacao.ocorrencia ?? '-',
+        ),
+        _HeaderInfoItem(
+          label: 'Comentario',
+          value: fiscalizacao.comentario ?? '-',
+        ),
       ],
-      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-      headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
-      cellAlignment: pw.Alignment.centerLeft,
     );
   }
 
@@ -384,11 +533,30 @@ class RelatorioPdfGenerator {
     };
   }
 
+  PdfColor _statusExecucaoColor(StatusExecucao status) {
+    return switch (status) {
+      StatusExecucao.naoComecou => PdfColors.blueGrey600,
+      StatusExecucao.emAndamento => PdfColors.blue700,
+      StatusExecucao.parada => PdfColors.orange700,
+      StatusExecucao.embargada => PdfColors.deepOrange700,
+      StatusExecucao.atrasada => PdfColors.red700,
+      StatusExecucao.concluida => PdfColors.green700,
+    };
+  }
+
   String _statusFiscalizacaoLabel(StatusFiscalizacao status) {
     return switch (status) {
       StatusFiscalizacao.emAndamento => 'Em andamento',
       StatusFiscalizacao.aprovada => 'Aprovada',
       StatusFiscalizacao.negada => 'Negada',
+    };
+  }
+
+  PdfColor _statusFiscalizacaoColor(StatusFiscalizacao status) {
+    return switch (status) {
+      StatusFiscalizacao.emAndamento => PdfColors.blue700,
+      StatusFiscalizacao.aprovada => PdfColors.green700,
+      StatusFiscalizacao.negada => PdfColors.red700,
     };
   }
 
@@ -423,4 +591,14 @@ class RelatorioPdfGenerator {
 
     return maoDeObra.funcionarioId;
   }
+}
+
+class _HeaderInfoItem {
+  const _HeaderInfoItem({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
 }

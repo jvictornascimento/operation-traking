@@ -630,6 +630,8 @@ Regras de apresentacao:
   contratante, com o nome desse funcionario abaixo da linha.
 - Todas as paginas do PDF devem ter rodape com o nome do app de um lado e a
   versao do outro.
+- O inicio do relatorio deve usar um cabecalho visual profissional com resumo,
+  status e metadados, evitando tabela simples para as informacoes principais.
 
 Compartilhamento esperado:
 
@@ -693,3 +695,9 @@ gerar um PDF local ao final da visita.
 - Salvar a legenda junto da foto da fiscalizacao.
 - Exibir a legenda no relatorio abaixo da foto quando preenchida.
 - Nao renderizar legenda vazia no relatorio.
+
+### Issue 30 - Cabecalho profissional no inicio dos relatorios
+
+- Substituir a tabela inicial de informacoes por um cabecalho visual.
+- Destacar titulo, subtitulo e status no inicio do PDF.
+- Organizar metadados principais em blocos compactos e legiveis.
