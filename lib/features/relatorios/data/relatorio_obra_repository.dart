@@ -57,6 +57,9 @@ class DriftRelatorioObraRepository implements RelatorioObraRepository {
               ..where((table) => table.vistoriaServicoId.isIn(fiscalizacaoIds))
               ..orderBy([(table) => OrderingTerm.asc(table.id)]))
             .get();
+    final responsavel = fiscalizacoes.isEmpty
+        ? null
+        : await _buscarFuncionario(fiscalizacoes.first.responsavelId);
 
     return RelatorioObraDados(
       obra: _mapObra(obra),
@@ -67,6 +70,7 @@ class DriftRelatorioObraRepository implements RelatorioObraRepository {
           .map((item) => _mapMaoDeObra(item, funcionariosPorId))
           .toList(),
       fotos: fotos.map(_mapFoto).toList(),
+      assinatura: _mapAssinatura(responsavel),
     );
   }
 
@@ -113,6 +117,12 @@ class DriftRelatorioObraRepository implements RelatorioObraRepository {
     };
   }
 
+  Future<db.Funcionario?> _buscarFuncionario(String funcionarioId) {
+    return (_database.select(_database.funcionarios)
+          ..where((table) => table.id.equals(funcionarioId)))
+        .getSingleOrNull();
+  }
+
   RelatorioMaoDeObraInfo _mapMaoDeObra(
     db.VistoriasMaoDeObraData row,
     Map<String, String> funcionariosPorId,
@@ -130,6 +140,17 @@ class DriftRelatorioObraRepository implements RelatorioObraRepository {
     return RelatorioFotoInfo(
       vistoriaServicoId: row.vistoriaServicoId,
       caminhoArquivo: row.caminhoArquivo,
+    );
+  }
+
+  RelatorioAssinaturaInfo? _mapAssinatura(db.Funcionario? row) {
+    if (row == null) {
+      return null;
+    }
+
+    return RelatorioAssinaturaInfo(
+      nome: row.nome,
+      assinaturaPath: row.assinaturaPath,
     );
   }
 }

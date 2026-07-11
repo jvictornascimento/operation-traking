@@ -8,6 +8,7 @@ class RelatorioObraDados {
     required this.fiscalizacoes,
     required this.maoDeObra,
     required this.fotos,
+    this.assinatura,
   });
 
   final RelatorioObraInfo obra;
@@ -16,6 +17,7 @@ class RelatorioObraDados {
   final List<RelatorioFiscalizacaoInfo> fiscalizacoes;
   final List<RelatorioMaoDeObraInfo> maoDeObra;
   final List<RelatorioFotoInfo> fotos;
+  final RelatorioAssinaturaInfo? assinatura;
 }
 
 class RelatorioObraInfo {
@@ -124,4 +126,14 @@ class RelatorioFotoInfo {
   final String? medicaoId;
   final String? vistoriaServicoId;
   final String caminhoArquivo;
+}
+
+class RelatorioAssinaturaInfo {
+  const RelatorioAssinaturaInfo({
+    required this.nome,
+    this.assinaturaPath,
+  });
+
+  final String nome;
+  final String? assinaturaPath;
 }

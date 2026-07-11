@@ -8,6 +8,7 @@ class RelatorioFiscalizacaoDados {
     required this.periodos,
     required this.maoDeObra,
     required this.fotos,
+    this.assinatura,
     RelatorioEtapaInfo? etapa,
     RelatorioServicoInfo? servico,
     this.medicoes = const [],
@@ -21,6 +22,7 @@ class RelatorioFiscalizacaoDados {
   final List<RelatorioPeriodoInfo> periodos;
   final List<RelatorioMaoDeObraInfo> maoDeObra;
   final List<RelatorioFotoInfo> fotos;
+  final RelatorioAssinaturaInfo? assinatura;
   final List<RelatorioMedicaoInfo> medicoes;
 
   RelatorioEtapaInfo get etapa {

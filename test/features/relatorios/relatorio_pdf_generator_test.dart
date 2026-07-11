@@ -84,6 +84,10 @@ RelatorioObraDados _dados() {
         caminhoArquivo: '/arquivo/nao/existe.jpg',
       ),
     ],
+    assinatura: const RelatorioAssinaturaInfo(
+      nome: 'Maria Representante',
+      assinaturaPath: '/arquivo/assinatura/nao/existe.png',
+    ),
   );
 }
 
@@ -146,5 +150,9 @@ RelatorioFiscalizacaoDados _dadosFiscalizacao() {
         caminhoArquivo: '/arquivo/nao/existe.jpg',
       ),
     ],
+    assinatura: const RelatorioAssinaturaInfo(
+      nome: 'Maria Representante',
+      assinaturaPath: '/arquivo/assinatura/nao/existe.png',
+    ),
   );
 }

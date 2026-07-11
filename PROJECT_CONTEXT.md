@@ -622,6 +622,10 @@ Regras de apresentacao:
   vinculado.
 - Fotos devem aparecer em miniaturas, organizadas em ate quatro imagens por
   linha, sem exibir o caminho local do arquivo.
+- A assinatura deve exibir o PNG cadastrado no funcionario responsavel do
+  contratante, com o nome desse funcionario abaixo da linha.
+- Todas as paginas do PDF devem ter rodape com o nome do app de um lado e a
+  versao do outro.
 
 Compartilhamento esperado:
 
@@ -671,3 +675,10 @@ gerar um PDF local ao final da visita.
 - Renderizar fotos em miniaturas, com quatro imagens por linha.
 - Remover caminho local da imagem no PDF.
 - Remover progresso da obra do relatorio.
+
+### Issue 28 - Assinatura e rodape nos relatorios PDF
+
+- Exibir nome do funcionario representante do contratante na assinatura.
+- Renderizar o PNG de assinatura cadastrado no funcionario quando existir.
+- Colocar o nome do app e a versao no rodape de todas as paginas.
+- Garantir que o relatorio nao volte a exibir progresso da obra.

@@ -11,6 +11,9 @@ import '../domain/relatorio_obra_dados.dart';
 class RelatorioPdfGenerator {
   const RelatorioPdfGenerator();
 
+  static const _appName = 'Operational Tracking';
+  static const _appVersion = 'Versao 0.1.0';
+
   Future<Uint8List> gerarRelatorioObra(RelatorioObraDados dados) async {
     final document = pw.Document();
 
@@ -19,6 +22,7 @@ class RelatorioPdfGenerator {
         pageTheme: const pw.PageTheme(
           margin: pw.EdgeInsets.all(32),
         ),
+        footer: _footer,
         build: (context) {
           return [
             pw.Header(
@@ -33,8 +37,7 @@ class RelatorioPdfGenerator {
             _sectionTitle('Fotos'),
             ..._fotos(dados),
             pw.SizedBox(height: 24),
-            pw.Divider(),
-            pw.Text('Assinatura: ________________________________'),
+            _assinatura(dados.assinatura),
           ];
         },
       ),
@@ -53,6 +56,7 @@ class RelatorioPdfGenerator {
         pageTheme: const pw.PageTheme(
           margin: pw.EdgeInsets.all(32),
         ),
+        footer: _footer,
         build: (context) {
           return [
             pw.Header(
@@ -67,8 +71,7 @@ class RelatorioPdfGenerator {
             _sectionTitle('Fotos'),
             ..._fotosFiscalizacao(dados),
             pw.SizedBox(height: 24),
-            pw.Divider(),
-            pw.Text('Assinatura: ________________________________'),
+            _assinatura(dados.assinatura),
           ];
         },
       ),
@@ -294,6 +297,64 @@ class RelatorioPdfGenerator {
           fontWeight: pw.FontWeight.bold,
           fontSize: 16,
         ),
+      ),
+    );
+  }
+
+  pw.Widget _assinatura(RelatorioAssinaturaInfo? assinatura) {
+    final assinaturaPath = assinatura?.assinaturaPath?.trim();
+    final assinaturaFile = assinaturaPath == null || assinaturaPath.isEmpty
+        ? null
+        : File(assinaturaPath);
+    final possuiArquivo = assinaturaFile != null && assinaturaFile.existsSync();
+    final nome = assinatura?.nome.trim();
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.center,
+      children: [
+        pw.Divider(),
+        pw.SizedBox(height: 18),
+        if (possuiArquivo) ...[
+          pw.Image(
+            pw.MemoryImage(assinaturaFile.readAsBytesSync()),
+            height: 58,
+            fit: pw.BoxFit.contain,
+          ),
+          pw.SizedBox(height: 6),
+        ] else
+          pw.SizedBox(height: 42),
+        pw.Container(
+          width: 220,
+          height: 1,
+          color: PdfColors.grey700,
+        ),
+        pw.SizedBox(height: 4),
+        pw.Text(
+          nome == null || nome.isEmpty ? 'Representante do contratante' : nome,
+          textAlign: pw.TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _footer(pw.Context context) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.only(top: 8),
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(top: pw.BorderSide(color: PdfColors.grey400)),
+      ),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            _appName,
+            style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+          ),
+          pw.Text(
+            _appVersion,
+            style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+          ),
+        ],
       ),
     );
   }
