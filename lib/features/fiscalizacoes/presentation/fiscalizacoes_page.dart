@@ -1531,46 +1531,43 @@ class _FotosFiscalizacaoSection extends ConsumerWidget {
     );
   }
 
-  Future<String?> _pedirLegenda(BuildContext context) async {
-    final controller = TextEditingController();
-    try {
-      return await showDialog<String?>(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Legenda da foto'),
-            content: TextField(
-              controller: controller,
-              autofocus: true,
-              textInputAction: TextInputAction.newline,
-              minLines: 2,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                hintText: 'Adicione uma legenda opcional',
-                border: OutlineInputBorder(),
-              ),
+  Future<String?> _pedirLegenda(BuildContext context) {
+    var legenda = '';
+
+    return showDialog<String?>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Legenda da foto'),
+          content: TextField(
+            autofocus: true,
+            textInputAction: TextInputAction.newline,
+            minLines: 2,
+            maxLines: 4,
+            onChanged: (value) => legenda = value,
+            decoration: const InputDecoration(
+              hintText: 'Adicione uma legenda opcional',
+              border: OutlineInputBorder(),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(null),
-                child: const Text('Sem legenda'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  final legenda = controller.text.trim();
-                  Navigator.of(context).pop(
-                    legenda.isEmpty ? null : legenda,
-                  );
-                },
-                child: const Text('Salvar'),
-              ),
-            ],
-          );
-        },
-      );
-    } finally {
-      controller.dispose();
-    }
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(null),
+              child: const Text('Sem legenda'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final texto = legenda.trim();
+                Navigator.of(context).pop(
+                  texto.isEmpty ? null : texto,
+                );
+              },
+              child: const Text('Salvar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   String _mensagemErroFoto(Object? error) {
