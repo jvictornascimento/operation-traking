@@ -295,10 +295,6 @@ class RelatorioPdfGenerator {
           value: dados.etapa.nome,
         ),
         _HeaderInfoItem(
-          label: 'Progresso da etapa',
-          value: '${dados.etapa.progressoFisico}%',
-        ),
-        _HeaderInfoItem(
           label: 'Atividade',
           value: fiscalizacao.atividade ?? '-',
         ),
@@ -397,7 +393,7 @@ class RelatorioPdfGenerator {
     final legendaNormalizada = legenda?.trim();
 
     return pw.Container(
-      width: 118,
+      width: 160,
       padding: const pw.EdgeInsets.all(6),
       decoration: pw.BoxDecoration(
         border: pw.Border.all(color: PdfColors.grey500),
@@ -413,8 +409,8 @@ class RelatorioPdfGenerator {
           pw.SizedBox(height: 4),
           if (existe)
             pw.SizedBox(
-              width: 106,
-              height: 86,
+              width: 148,
+              height: 112,
               child: pw.Image(
                 pw.MemoryImage(file.readAsBytesSync()),
                 fit: pw.BoxFit.cover,
@@ -422,8 +418,8 @@ class RelatorioPdfGenerator {
             )
           else
             pw.SizedBox(
-              width: 106,
-              height: 86,
+              width: 148,
+              height: 112,
               child: pw.Center(
                 child: pw.Text(
                   'Foto nao encontrada',

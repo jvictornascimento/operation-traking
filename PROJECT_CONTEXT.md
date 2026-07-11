@@ -624,7 +624,7 @@ Regras de apresentacao:
   internos continuem tecnicos.
 - Mao de obra deve exibir o nome do funcionario quando existir cadastro
   vinculado.
-- Fotos devem aparecer em miniaturas, organizadas em ate quatro imagens por
+- Fotos devem aparecer em miniaturas, organizadas em ate tres imagens por
   linha, sem exibir o caminho local do arquivo.
 - A assinatura deve exibir o PNG cadastrado no funcionario responsavel do
   contratante, com o nome desse funcionario abaixo da linha.
@@ -632,6 +632,7 @@ Regras de apresentacao:
   versao do outro.
 - O inicio do relatorio deve usar um cabecalho visual profissional com resumo,
   status e metadados, evitando tabela simples para as informacoes principais.
+- O cabecalho do relatorio nao deve exibir progresso fisico da obra ou da etapa.
 
 Compartilhamento esperado:
 
@@ -678,7 +679,7 @@ gerar um PDF local ao final da visita.
 
 - Humanizar labels de status no PDF.
 - Exibir nome do funcionario na mao de obra em vez do ID.
-- Renderizar fotos em miniaturas, com quatro imagens por linha.
+- Renderizar fotos em miniaturas, com tres imagens por linha.
 - Remover caminho local da imagem no PDF.
 - Remover progresso da obra do relatorio.
 
@@ -701,3 +702,4 @@ gerar um PDF local ao final da visita.
 - Substituir a tabela inicial de informacoes por um cabecalho visual.
 - Destacar titulo, subtitulo e status no inicio do PDF.
 - Organizar metadados principais em blocos compactos e legiveis.
+- Remover progresso fisico do cabecalho.
