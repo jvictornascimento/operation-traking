@@ -1461,7 +1461,9 @@ class _FotosFiscalizacaoSection extends ConsumerWidget {
                     ? null
                     : () => _selecionarFoto(
                           context,
-                          ref,
+                          ref.read(
+                            fotosFiscalizacaoControllerProvider.notifier,
+                          ),
                           source: ImageSource.camera,
                         ),
                 icon: const Icon(Icons.photo_camera),
@@ -1475,7 +1477,9 @@ class _FotosFiscalizacaoSection extends ConsumerWidget {
                     ? null
                     : () => _selecionarFoto(
                           context,
-                          ref,
+                          ref.read(
+                            fotosFiscalizacaoControllerProvider.notifier,
+                          ),
                           source: ImageSource.gallery,
                         ),
                 icon: const Icon(Icons.photo_library),
@@ -1498,7 +1502,7 @@ class _FotosFiscalizacaoSection extends ConsumerWidget {
 
   Future<void> _selecionarFoto(
     BuildContext context,
-    WidgetRef ref, {
+    FotosFiscalizacaoController controller, {
     required ImageSource source,
   }) async {
     final picked = await ImagePicker().pickImage(
@@ -1520,11 +1524,11 @@ class _FotosFiscalizacaoSection extends ConsumerWidget {
       return;
     }
 
-    await ref.read(fotosFiscalizacaoControllerProvider.notifier).salvarArquivo(
-          vistoriaServicoId: vistoriaServicoId,
-          caminhoOrigem: picked.path,
-          legenda: legenda,
-        );
+    await controller.salvarArquivo(
+      vistoriaServicoId: vistoriaServicoId,
+      caminhoOrigem: picked.path,
+      legenda: legenda,
+    );
   }
 
   Future<String?> _pedirLegenda(BuildContext context) async {
