@@ -162,6 +162,7 @@ class DriftRelatorioFiscalizacaoRepository
     return RelatorioFotoInfo(
       vistoriaServicoId: row.vistoriaServicoId,
       caminhoArquivo: row.caminhoArquivo,
+      legenda: row.legenda,
     );
   }
 

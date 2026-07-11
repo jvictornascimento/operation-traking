@@ -49,6 +49,7 @@ class DriftFotosFiscalizacaoRepository implements FotosFiscalizacaoRepository {
             id: foto.id,
             vistoriaServicoId: foto.vistoriaServicoId,
             caminhoArquivo: foto.caminhoArquivo,
+            legenda: Value(foto.legenda),
           ),
         );
   }
@@ -65,6 +66,7 @@ class DriftFotosFiscalizacaoRepository implements FotosFiscalizacaoRepository {
       id: row.id,
       vistoriaServicoId: row.vistoriaServicoId,
       caminhoArquivo: row.caminhoArquivo,
+      legenda: row.legenda,
     );
   }
 }

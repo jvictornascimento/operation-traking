@@ -357,9 +357,11 @@ class FotosFiscalizacaoController extends StateNotifier<AsyncValue<void>> {
   Future<void> salvarArquivo({
     required String vistoriaServicoId,
     required String caminhoOrigem,
+    String? legenda,
   }) async {
     final vistoriaServicoIdNormalizado = vistoriaServicoId.trim();
     final caminhoOrigemNormalizado = caminhoOrigem.trim();
+    final legendaNormalizada = _normalizarTextoOpcional(legenda);
 
     if (vistoriaServicoIdNormalizado.isEmpty) {
       state = AsyncError(
@@ -390,6 +392,7 @@ class FotosFiscalizacaoController extends StateNotifier<AsyncValue<void>> {
           id: 'foto-fiscalizacao-${DateTime.now().microsecondsSinceEpoch}',
           vistoriaServicoId: vistoriaServicoIdNormalizado,
           caminhoArquivo: caminhoArquivo,
+          legenda: legendaNormalizada,
         ),
       );
     });
@@ -409,6 +412,14 @@ class FotosFiscalizacaoController extends StateNotifier<AsyncValue<void>> {
     state = await AsyncValue.guard(() {
       return _repository.removerFoto(idNormalizado);
     });
+  }
+
+  String? _normalizarTextoOpcional(String? value) {
+    final texto = value?.trim();
+    if (texto == null || texto.isEmpty) {
+      return null;
+    }
+    return texto;
   }
 }
 

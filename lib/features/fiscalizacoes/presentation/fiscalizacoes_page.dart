@@ -1460,6 +1460,7 @@ class _FotosFiscalizacaoSection extends ConsumerWidget {
                 onPressed: saving
                     ? null
                     : () => _selecionarFoto(
+                          context,
                           ref,
                           source: ImageSource.camera,
                         ),
@@ -1473,6 +1474,7 @@ class _FotosFiscalizacaoSection extends ConsumerWidget {
                 onPressed: saving
                     ? null
                     : () => _selecionarFoto(
+                          context,
                           ref,
                           source: ImageSource.gallery,
                         ),
@@ -1495,6 +1497,7 @@ class _FotosFiscalizacaoSection extends ConsumerWidget {
   }
 
   Future<void> _selecionarFoto(
+    BuildContext context,
     WidgetRef ref, {
     required ImageSource source,
   }) async {
@@ -1507,10 +1510,59 @@ class _FotosFiscalizacaoSection extends ConsumerWidget {
       return;
     }
 
+    if (!context.mounted) {
+      return;
+    }
+
+    final legenda = await _pedirLegenda(context);
+
     await ref.read(fotosFiscalizacaoControllerProvider.notifier).salvarArquivo(
           vistoriaServicoId: vistoriaServicoId,
           caminhoOrigem: picked.path,
+          legenda: legenda,
         );
+  }
+
+  Future<String?> _pedirLegenda(BuildContext context) async {
+    final controller = TextEditingController();
+    try {
+      return showDialog<String?>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Legenda da foto'),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              textInputAction: TextInputAction.newline,
+              minLines: 2,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                hintText: 'Adicione uma legenda opcional',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(null),
+                child: const Text('Sem legenda'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final legenda = controller.text.trim();
+                  Navigator.of(context).pop(
+                    legenda.isEmpty ? null : legenda,
+                  );
+                },
+                child: const Text('Salvar'),
+              ),
+            ],
+          );
+        },
+      );
+    } finally {
+      controller.dispose();
+    }
   }
 
   String _mensagemErroFoto(Object? error) {
@@ -1543,7 +1595,7 @@ class _FotosFiscalizacaoList extends ConsumerWidget {
               caminhoArquivo: foto.caminhoArquivo,
             ),
             title: const Text('Foto do relatorio'),
-            subtitle: Text(foto.caminhoArquivo),
+            subtitle: foto.legenda == null ? null : Text(foto.legenda!),
             trailing: IconButton(
               tooltip: 'Remover foto',
               icon: const Icon(Icons.delete_outline),

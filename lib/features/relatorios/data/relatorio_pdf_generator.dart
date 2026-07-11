@@ -232,6 +232,7 @@ class RelatorioPdfGenerator {
           _fotoEvidenciaCard(
             titulo: 'Foto ${index + 1}',
             caminhoArquivo: fotos[index].caminhoArquivo,
+            legenda: fotos[index].legenda,
           ),
       ],
     );
@@ -240,9 +241,11 @@ class RelatorioPdfGenerator {
   pw.Widget _fotoEvidenciaCard({
     required String titulo,
     required String caminhoArquivo,
+    String? legenda,
   }) {
     final file = File(caminhoArquivo);
     final existe = file.existsSync();
+    final legendaNormalizada = legenda?.trim();
 
     return pw.Container(
       width: 118,
@@ -283,6 +286,13 @@ class RelatorioPdfGenerator {
                 ),
               ),
             ),
+          if (legendaNormalizada != null && legendaNormalizada.isNotEmpty) ...[
+            pw.SizedBox(height: 4),
+            pw.Text(
+              legendaNormalizada,
+              style: const pw.TextStyle(fontSize: 8),
+            ),
+          ],
         ],
       ),
     );

@@ -114,6 +114,8 @@ Decisao do MVP:
 - Fotos permanecem vinculadas diretamente a fiscalizacao.
 - A tela de fiscalizacao deve permitir tirar foto pela camera ou anexar imagem
   da galeria.
+- Ao salvar uma foto, o usuario pode informar uma legenda opcional; legenda em
+  branco nao deve aparecer no relatorio.
 - O relatorio da fiscalizacao deve renderizar as fotos vinculadas a propria
   fiscalizacao como evidencias fotograficas.
 - Medicao saiu do fluxo principal do MVP.
@@ -516,12 +518,14 @@ vistoria_foto
 - id
 - vistoria_servico_id
 - caminho_arquivo
+- legenda
 ```
 
 Relacionamentos:
 
 - Uma fiscalizacao pode ter varias fotos.
 - Uma foto pertence a uma fiscalizacao.
+- Uma foto pode ter uma legenda opcional.
 
 ### Historico de alteracoes
 
@@ -682,3 +686,10 @@ gerar um PDF local ao final da visita.
 - Renderizar o PNG de assinatura cadastrado no funcionario quando existir.
 - Colocar o nome do app e a versao no rodape de todas as paginas.
 - Garantir que o relatorio nao volte a exibir progresso da obra.
+
+### Issue 29 - Legenda opcional em fotos da fiscalizacao
+
+- Ao tirar ou anexar uma foto, permitir informar uma legenda opcional.
+- Salvar a legenda junto da foto da fiscalizacao.
+- Exibir a legenda no relatorio abaixo da foto quando preenchida.
+- Nao renderizar legenda vazia no relatorio.

@@ -32,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -82,6 +82,9 @@ class AppDatabase extends _$AppDatabase {
               WHERE etapa_id IS NULL
               ''',
             );
+          }
+          if (from < 8) {
+            await migrator.addColumn(vistoriasFotos, vistoriasFotos.legenda);
           }
         },
       );
@@ -274,6 +277,7 @@ class VistoriasFotos extends Table {
   TextColumn get vistoriaServicoId =>
       text().references(VistoriasServico, #id)();
   TextColumn get caminhoArquivo => text()();
+  TextColumn get legenda => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

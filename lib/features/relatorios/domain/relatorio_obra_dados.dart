@@ -121,11 +121,13 @@ class RelatorioFotoInfo {
     required this.caminhoArquivo,
     this.medicaoId,
     this.vistoriaServicoId,
+    this.legenda,
   });
 
   final String? medicaoId;
   final String? vistoriaServicoId;
   final String caminhoArquivo;
+  final String? legenda;
 }
 
 class RelatorioAssinaturaInfo {

@@ -82,6 +82,7 @@ RelatorioObraDados _dados() {
       RelatorioFotoInfo(
         medicaoId: 'medicao-1',
         caminhoArquivo: '/arquivo/nao/existe.jpg',
+        legenda: 'Frente norte em andamento',
       ),
     ],
     assinatura: const RelatorioAssinaturaInfo(
@@ -148,6 +149,7 @@ RelatorioFiscalizacaoDados _dadosFiscalizacao() {
       RelatorioFotoInfo(
         medicaoId: 'medicao-1',
         caminhoArquivo: '/arquivo/nao/existe.jpg',
+        legenda: 'Frente norte em andamento',
       ),
     ],
     assinatura: const RelatorioAssinaturaInfo(
