@@ -1516,6 +1516,10 @@ class _FotosFiscalizacaoSection extends ConsumerWidget {
 
     final legenda = await _pedirLegenda(context);
 
+    if (!context.mounted) {
+      return;
+    }
+
     await ref.read(fotosFiscalizacaoControllerProvider.notifier).salvarArquivo(
           vistoriaServicoId: vistoriaServicoId,
           caminhoOrigem: picked.path,
@@ -1526,7 +1530,7 @@ class _FotosFiscalizacaoSection extends ConsumerWidget {
   Future<String?> _pedirLegenda(BuildContext context) async {
     final controller = TextEditingController();
     try {
-      return showDialog<String?>(
+      return await showDialog<String?>(
         context: context,
         builder: (context) {
           return AlertDialog(
