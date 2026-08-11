@@ -70,7 +70,7 @@ class DriftVistoriasMaoDeObraRepository
     }
 
     final query = _database.select(_database.funcionarios)
-      ..where((table) => table.empresaId.equals(empresaId))
+      ..where((table) => table.empresaId.equals(empresaId) & table.ativo)
       ..orderBy([(table) => OrderingTerm.asc(table.nome)]);
 
     yield* query.watch().map((rows) => rows.map(_mapFuncionario).toList());
@@ -84,7 +84,9 @@ class DriftVistoriasMaoDeObraRepository
   @override
   Future<void> salvarMaoDeObra(VistoriaMaoDeObra maoDeObra) {
     return _database.transaction(() async {
-      await _validarFuncionarioDaEmpresaContratada(maoDeObra);
+      final funcionario = await _validarFuncionarioDaEmpresaContratada(
+        maoDeObra,
+      );
       await _garantirFuncionarioUnicoNaVistoria(maoDeObra);
 
       final existente = await (_database.select(_database.vistoriasMaoDeObra)
@@ -95,6 +97,9 @@ class DriftVistoriasMaoDeObraRepository
         id: Value(maoDeObra.id),
         vistoriaServicoId: Value(maoDeObra.vistoriaServicoId),
         funcionarioId: Value(maoDeObra.funcionarioId),
+        funcionarioNomeSnapshot: Value(funcionario.nome),
+        funcionarioCargoSnapshot: Value(funcionario.cargo),
+        funcionarioTelefoneSnapshot: Value(funcionario.telefone),
         funcaoNoDia: Value(maoDeObra.funcaoNoDia),
         observacao: Value(maoDeObra.observacao),
       );
@@ -117,7 +122,7 @@ class DriftVistoriasMaoDeObraRepository
         .go();
   }
 
-  Future<void> _validarFuncionarioDaEmpresaContratada(
+  Future<db.Funcionario> _validarFuncionarioDaEmpresaContratada(
     VistoriaMaoDeObra maoDeObra,
   ) async {
     final empresaId = await _empresaIdDaVistoria(maoDeObra.vistoriaServicoId);
@@ -127,9 +132,12 @@ class DriftVistoriasMaoDeObraRepository
 
     if (empresaId == null ||
         funcionario == null ||
-        funcionario.empresaId != empresaId) {
+        funcionario.empresaId != empresaId ||
+        !funcionario.ativo) {
       throw MaoDeObraFuncionarioInvalidoException(maoDeObra.funcionarioId);
     }
+
+    return funcionario;
   }
 
   Future<void> _garantirFuncionarioUnicoNaVistoria(
@@ -169,6 +177,9 @@ class DriftVistoriasMaoDeObraRepository
       id: row.id,
       vistoriaServicoId: row.vistoriaServicoId,
       funcionarioId: row.funcionarioId,
+      funcionarioNomeSnapshot: row.funcionarioNomeSnapshot,
+      funcionarioCargoSnapshot: row.funcionarioCargoSnapshot,
+      funcionarioTelefoneSnapshot: row.funcionarioTelefoneSnapshot,
       funcaoNoDia: row.funcaoNoDia,
       observacao: row.observacao,
     );
@@ -185,6 +196,9 @@ class DriftVistoriasMaoDeObraRepository
       cargo: row.cargo,
       tipo: row.tipo,
       assinaturaPath: row.assinaturaPath,
+      ativo: row.ativo,
+      excluidoEm: row.excluidoEm,
+      motivoInativacao: row.motivoInativacao,
     );
   }
 }

@@ -23,7 +23,7 @@ class DriftFuncionariosRepository implements FuncionariosRepository {
   @override
   Stream<List<Funcionario>> watchFuncionariosDaEmpresa(String empresaId) {
     final query = _database.select(_database.funcionarios)
-      ..where((table) => table.empresaId.equals(empresaId))
+      ..where((table) => table.empresaId.equals(empresaId) & table.ativo)
       ..orderBy([(table) => OrderingTerm.asc(table.nome)]);
 
     return query.watch().map((rows) => rows.map(_mapFuncionario).toList());
@@ -34,7 +34,8 @@ class DriftFuncionariosRepository implements FuncionariosRepository {
     String contratanteId,
   ) {
     final query = _database.select(_database.funcionarios)
-      ..where((table) => table.contratanteId.equals(contratanteId))
+      ..where(
+          (table) => table.contratanteId.equals(contratanteId) & table.ativo)
       ..orderBy([(table) => OrderingTerm.asc(table.nome)]);
 
     return query.watch().map((rows) => rows.map(_mapFuncionario).toList());
@@ -53,15 +54,24 @@ class DriftFuncionariosRepository implements FuncionariosRepository {
             cargo: funcionario.cargo,
             tipo: Value(funcionario.tipo),
             assinaturaPath: Value(funcionario.assinaturaPath),
+            ativo: Value(funcionario.ativo),
+            excluidoEm: Value(funcionario.excluidoEm),
+            motivoInativacao: Value(funcionario.motivoInativacao),
           ),
         );
   }
 
   @override
   Future<void> removerFuncionario(String id) {
-    return (_database.delete(_database.funcionarios)
+    return (_database.update(_database.funcionarios)
           ..where((table) => table.id.equals(id)))
-        .go();
+        .write(
+      db.FuncionariosCompanion(
+        ativo: const Value(false),
+        excluidoEm: Value(DateTime.now()),
+        motivoInativacao: const Value('Removido pelo usuario.'),
+      ),
+    );
   }
 
   Funcionario _mapFuncionario(db.Funcionario row) {
@@ -75,6 +85,9 @@ class DriftFuncionariosRepository implements FuncionariosRepository {
       cargo: row.cargo,
       tipo: row.tipo,
       assinaturaPath: row.assinaturaPath,
+      ativo: row.ativo,
+      excluidoEm: row.excluidoEm,
+      motivoInativacao: row.motivoInativacao,
     );
   }
 }

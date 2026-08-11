@@ -57,6 +57,8 @@ void main() {
       expect(rows, hasLength(1));
       expect(rows.single.vistoriaServicoId, 'vistoria-1');
       expect(rows.single.funcionarioId, 'funcionario-empresa-1');
+      expect(rows.single.funcionarioNomeSnapshot, 'Ana');
+      expect(rows.single.funcionarioCargoSnapshot, 'Pedreira');
       expect(rows.single.funcaoNoDia, 'Pedreiro');
       expect(rows.single.observacao, 'Frente norte');
     });
@@ -79,6 +81,18 @@ void main() {
           _maoDeObra(
             id: 'mao-obra-1',
             funcionarioId: 'funcionario-outra-empresa',
+          ),
+        ),
+        throwsA(isA<MaoDeObraFuncionarioInvalidoException>()),
+      );
+    });
+
+    test('rejeita funcionario inativo da empresa contratada', () async {
+      expect(
+        () => repository.salvarMaoDeObra(
+          _maoDeObra(
+            id: 'mao-obra-1',
+            funcionarioId: 'funcionario-inativo',
           ),
         ),
         throwsA(isA<MaoDeObraFuncionarioInvalidoException>()),
@@ -201,6 +215,16 @@ Future<void> _popularDadosBase(db.AppDatabase database) async {
           empresaId: const Value('empresa-2'),
           nome: 'Carlos',
           cargo: 'Ajudante',
+        ),
+      );
+  await database.into(database.funcionarios).insert(
+        db.FuncionariosCompanion.insert(
+          id: 'funcionario-inativo',
+          empresaId: const Value('empresa-1'),
+          nome: 'Davi',
+          cargo: 'Eletricista',
+          ativo: const Value(false),
+          excluidoEm: Value(DateTime(2026, 5, 2)),
         ),
       );
   await database.into(database.funcionarios).insert(

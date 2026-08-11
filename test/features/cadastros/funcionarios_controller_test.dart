@@ -82,7 +82,7 @@ void main() {
           repository.funcionarios.single.assinaturaPath, '/app/assinatura.png');
     });
 
-    test('remove funcionario normalizando id', () async {
+    test('inativa funcionario normalizando id', () async {
       final repository = _FakeFuncionariosRepository();
       final controller = FuncionariosController(repository);
 
@@ -95,7 +95,9 @@ void main() {
       await controller.remover(' funcionario-1 ');
 
       expect(controller.state, isA<AsyncData<void>>());
-      expect(repository.funcionarios, isEmpty);
+      expect(repository.funcionarios, hasLength(1));
+      expect(repository.funcionarios.single.ativo, isFalse);
+      expect(repository.funcionarios.single.excluidoEm, isNotNull);
     });
   });
 }
@@ -105,19 +107,46 @@ class _FakeFuncionariosRepository implements FuncionariosRepository {
 
   @override
   Future<void> salvarFuncionario(Funcionario funcionario) async {
-    funcionarios.add(funcionario);
+    final index = funcionarios.indexWhere((item) => item.id == funcionario.id);
+    if (index == -1) {
+      funcionarios.add(funcionario);
+      return;
+    }
+
+    funcionarios[index] = funcionario;
   }
 
   @override
   Future<void> removerFuncionario(String id) async {
-    funcionarios.removeWhere((funcionario) => funcionario.id == id);
+    final index =
+        funcionarios.indexWhere((funcionario) => funcionario.id == id);
+    if (index == -1) {
+      return;
+    }
+
+    final funcionario = funcionarios[index];
+    funcionarios[index] = Funcionario(
+      id: funcionario.id,
+      empresaId: funcionario.empresaId,
+      contratanteId: funcionario.contratanteId,
+      nome: funcionario.nome,
+      cpf: funcionario.cpf,
+      telefone: funcionario.telefone,
+      cargo: funcionario.cargo,
+      tipo: funcionario.tipo,
+      assinaturaPath: funcionario.assinaturaPath,
+      ativo: false,
+      excluidoEm: DateTime.now(),
+      motivoInativacao: 'Removido pelo usuario.',
+    );
   }
 
   @override
   Stream<List<Funcionario>> watchFuncionariosDaEmpresa(String empresaId) {
     return Stream.value(
       funcionarios
-          .where((funcionario) => funcionario.empresaId == empresaId)
+          .where((funcionario) =>
+              funcionario.empresaId == empresaId && funcionario.ativo)
           .toList(),
     );
   }
@@ -128,7 +157,8 @@ class _FakeFuncionariosRepository implements FuncionariosRepository {
   ) {
     return Stream.value(
       funcionarios
-          .where((funcionario) => funcionario.contratanteId == contratanteId)
+          .where((funcionario) =>
+              funcionario.contratanteId == contratanteId && funcionario.ativo)
           .toList(),
     );
   }

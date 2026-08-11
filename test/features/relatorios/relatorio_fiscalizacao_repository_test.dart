@@ -34,12 +34,12 @@ void main() {
       final dados = await repository.carregarDadosDaFiscalizacao('vistoria-1');
 
       expect(dados.obra.nome, 'Obra Regis');
-      expect(dados.servico.nome, 'Escavacao');
+      expect(dados.etapa.nome, 'Fundacao');
       expect(dados.fiscalizacao.numero, '001');
       expect(dados.periodos, hasLength(1));
-      expect(dados.medicoes, hasLength(1));
-      expect(dados.medicoes.single.id, 'medicao-vistoria-1');
+      expect(dados.medicoes, isEmpty);
       expect(dados.maoDeObra, hasLength(1));
+      expect(dados.maoDeObra.single.funcionarioNome, 'Ana Snapshot');
       expect(dados.fotos, hasLength(1));
       expect(dados.fotos.single.caminhoArquivo, '/local/foto-1.jpg');
     });
@@ -138,6 +138,7 @@ Future<void> _popularDadosBase(db.AppDatabase database) async {
         db.VistoriasServicoCompanion.insert(
           id: 'vistoria-1',
           servicoId: 'servico-1',
+          etapaId: const Value('etapa-1'),
           obraId: 'obra-1',
           contratanteId: 'contratante-1',
           responsavelId: 'funcionario-contratante-1',
@@ -149,30 +150,10 @@ Future<void> _popularDadosBase(db.AppDatabase database) async {
         ),
       );
 
-  await database.into(database.medicoes).insert(
-        db.MedicoesCompanion.insert(
-          id: 'medicao-vistoria-1',
-          servicoId: 'servico-1',
-          vistoriaServicoId: const Value('vistoria-1'),
-          percentualExecutado: 60,
-          observacao: const Value('Frente norte'),
-          data: DateTime(2026, 5, 20),
-        ),
-      );
-
-  await database.into(database.medicoes).insert(
-        db.MedicoesCompanion.insert(
-          id: 'medicao-sem-vistoria',
-          servicoId: 'servico-1',
-          percentualExecutado: 20,
-          data: DateTime(2026, 5, 19),
-        ),
-      );
-
-  await database.into(database.fotos).insert(
-        db.FotosCompanion.insert(
+  await database.into(database.vistoriasFotos).insert(
+        db.VistoriasFotosCompanion.insert(
           id: 'foto-1',
-          medicaoId: 'medicao-vistoria-1',
+          vistoriaServicoId: 'vistoria-1',
           caminhoArquivo: '/local/foto-1.jpg',
         ),
       );
@@ -192,6 +173,8 @@ Future<void> _popularDadosBase(db.AppDatabase database) async {
           id: 'mao-obra-1',
           vistoriaServicoId: 'vistoria-1',
           funcionarioId: 'funcionario-empresa-1',
+          funcionarioNomeSnapshot: const Value('Ana Snapshot'),
+          funcionarioCargoSnapshot: const Value('Pedreira Snapshot'),
           funcaoNoDia: const Value('Pedreira'),
         ),
       );

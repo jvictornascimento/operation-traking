@@ -34,10 +34,11 @@ void main() {
       final dados = await repository.carregarDadosDaObra('obra-1');
 
       expect(dados.obra.nome, 'Obra Regis');
-      expect(dados.servicos, hasLength(1));
-      expect(dados.medicoes, hasLength(1));
+      expect(dados.servicos, isEmpty);
+      expect(dados.medicoes, isEmpty);
       expect(dados.fiscalizacoes, hasLength(1));
       expect(dados.maoDeObra, hasLength(1));
+      expect(dados.maoDeObra.single.funcionarioNome, 'Ana Snapshot');
       expect(dados.fotos, hasLength(1));
       expect(dados.fotos.single.caminhoArquivo, '/local/foto-1.jpg');
     });
@@ -134,28 +135,11 @@ Future<void> _popularDadosBase(db.AppDatabase database) async {
         ),
       );
 
-  await database.into(database.medicoes).insert(
-        db.MedicoesCompanion.insert(
-          id: 'medicao-1',
-          servicoId: 'servico-1',
-          percentualExecutado: 60,
-          observacao: const Value('Frente norte'),
-          data: DateTime(2026, 5, 20),
-        ),
-      );
-
-  await database.into(database.fotos).insert(
-        db.FotosCompanion.insert(
-          id: 'foto-1',
-          medicaoId: 'medicao-1',
-          caminhoArquivo: '/local/foto-1.jpg',
-        ),
-      );
-
   await database.into(database.vistoriasServico).insert(
         db.VistoriasServicoCompanion.insert(
           id: 'vistoria-1',
           servicoId: 'servico-1',
+          etapaId: const Value('etapa-1'),
           obraId: 'obra-1',
           contratanteId: 'contratante-1',
           responsavelId: 'funcionario-contratante-1',
@@ -167,11 +151,21 @@ Future<void> _popularDadosBase(db.AppDatabase database) async {
         ),
       );
 
+  await database.into(database.vistoriasFotos).insert(
+        db.VistoriasFotosCompanion.insert(
+          id: 'foto-1',
+          vistoriaServicoId: 'vistoria-1',
+          caminhoArquivo: '/local/foto-1.jpg',
+        ),
+      );
+
   await database.into(database.vistoriasMaoDeObra).insert(
         db.VistoriasMaoDeObraCompanion.insert(
           id: 'mao-obra-1',
           vistoriaServicoId: 'vistoria-1',
           funcionarioId: 'funcionario-empresa-1',
+          funcionarioNomeSnapshot: const Value('Ana Snapshot'),
+          funcionarioCargoSnapshot: const Value('Pedreira Snapshot'),
           funcaoNoDia: const Value('Pedreira'),
         ),
       );

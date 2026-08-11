@@ -105,6 +105,8 @@ class RelatorioMaoDeObraInfo {
     required this.vistoriaServicoId,
     required this.funcionarioId,
     this.funcionarioNome,
+    this.funcionarioCargo,
+    this.funcionarioTelefone,
     this.funcaoNoDia,
     this.observacao,
   });
@@ -112,6 +114,8 @@ class RelatorioMaoDeObraInfo {
   final String vistoriaServicoId;
   final String funcionarioId;
   final String? funcionarioNome;
+  final String? funcionarioCargo;
+  final String? funcionarioTelefone;
   final String? funcaoNoDia;
   final String? observacao;
 }

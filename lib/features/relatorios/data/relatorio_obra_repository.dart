@@ -100,7 +100,7 @@ class DriftRelatorioObraRepository implements RelatorioObraRepository {
     );
   }
 
-  Future<Map<String, String>> _buscarFuncionariosPorId(
+  Future<Map<String, db.Funcionario>> _buscarFuncionariosPorId(
     Iterable<String> funcionarioIds,
   ) async {
     final ids = funcionarioIds.toSet().toList();
@@ -113,7 +113,7 @@ class DriftRelatorioObraRepository implements RelatorioObraRepository {
         .get();
 
     return {
-      for (final funcionario in funcionarios) funcionario.id: funcionario.nome,
+      for (final funcionario in funcionarios) funcionario.id: funcionario,
     };
   }
 
@@ -125,12 +125,17 @@ class DriftRelatorioObraRepository implements RelatorioObraRepository {
 
   RelatorioMaoDeObraInfo _mapMaoDeObra(
     db.VistoriasMaoDeObraData row,
-    Map<String, String> funcionariosPorId,
+    Map<String, db.Funcionario> funcionariosPorId,
   ) {
+    final funcionario = funcionariosPorId[row.funcionarioId];
+
     return RelatorioMaoDeObraInfo(
       vistoriaServicoId: row.vistoriaServicoId,
       funcionarioId: row.funcionarioId,
-      funcionarioNome: funcionariosPorId[row.funcionarioId],
+      funcionarioNome: row.funcionarioNomeSnapshot ?? funcionario?.nome,
+      funcionarioCargo: row.funcionarioCargoSnapshot ?? funcionario?.cargo,
+      funcionarioTelefone:
+          row.funcionarioTelefoneSnapshot ?? funcionario?.telefone,
       funcaoNoDia: row.funcaoNoDia,
       observacao: row.observacao,
     );

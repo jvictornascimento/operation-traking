@@ -1292,7 +1292,7 @@ class _MaoDeObraSelecionadaList extends StatelessWidget {
           ListTile(
             dense: true,
             contentPadding: EdgeInsets.zero,
-            title: Text(_nomeFuncionario(item.funcionarioId)),
+            title: Text(_nomeFuncionario(item)),
             subtitle: Text(_subtitle(item)),
             trailing: IconButton(
               tooltip: 'Remover',
@@ -1317,14 +1317,14 @@ class _MaoDeObraSelecionadaList extends StatelessWidget {
     return partes.join(' | ');
   }
 
-  String _nomeFuncionario(String funcionarioId) {
+  String _nomeFuncionario(VistoriaMaoDeObra item) {
     for (final funcionario in funcionarios) {
-      if (funcionario.id == funcionarioId) {
+      if (funcionario.id == item.funcionarioId) {
         return funcionario.nome;
       }
     }
 
-    return funcionarioId;
+    return item.nomeParaHistorico;
   }
 }
 

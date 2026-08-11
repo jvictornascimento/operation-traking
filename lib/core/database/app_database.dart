@@ -32,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -86,6 +86,26 @@ class AppDatabase extends _$AppDatabase {
           if (from < 8) {
             await migrator.addColumn(vistoriasFotos, vistoriasFotos.legenda);
           }
+          if (from < 9) {
+            await migrator.addColumn(funcionarios, funcionarios.ativo);
+            await migrator.addColumn(funcionarios, funcionarios.excluidoEm);
+            await migrator.addColumn(
+              funcionarios,
+              funcionarios.motivoInativacao,
+            );
+            await migrator.addColumn(
+              vistoriasMaoDeObra,
+              vistoriasMaoDeObra.funcionarioNomeSnapshot,
+            );
+            await migrator.addColumn(
+              vistoriasMaoDeObra,
+              vistoriasMaoDeObra.funcionarioCargoSnapshot,
+            );
+            await migrator.addColumn(
+              vistoriasMaoDeObra,
+              vistoriasMaoDeObra.funcionarioTelefoneSnapshot,
+            );
+          }
         },
       );
 }
@@ -129,6 +149,9 @@ class Funcionarios extends Table {
   TextColumn get cargo => text()();
   TextColumn get tipo => text().withDefault(const Constant('func_empresa'))();
   TextColumn get assinaturaPath => text().nullable()();
+  BoolColumn get ativo => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get excluidoEm => dateTime().nullable()();
+  TextColumn get motivoInativacao => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -265,6 +288,9 @@ class VistoriasMaoDeObra extends Table {
   TextColumn get vistoriaServicoId =>
       text().references(VistoriasServico, #id)();
   TextColumn get funcionarioId => text().references(Funcionarios, #id)();
+  TextColumn get funcionarioNomeSnapshot => text().nullable()();
+  TextColumn get funcionarioCargoSnapshot => text().nullable()();
+  TextColumn get funcionarioTelefoneSnapshot => text().nullable()();
   TextColumn get funcaoNoDia => text().nullable()();
   TextColumn get observacao => text().nullable()();
 

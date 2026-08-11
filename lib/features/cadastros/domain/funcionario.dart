@@ -9,6 +9,9 @@ class Funcionario {
     this.cpf,
     this.telefone,
     this.assinaturaPath,
+    this.ativo = true,
+    this.excluidoEm,
+    this.motivoInativacao,
   }) : assert(
           (empresaId == null) != (contratanteId == null),
           'Funcionario deve pertencer a uma empresa ou a um contratante.',
@@ -23,8 +26,13 @@ class Funcionario {
   final String cargo;
   final String tipo;
   final String? assinaturaPath;
+  final bool ativo;
+  final DateTime? excluidoEm;
+  final String? motivoInativacao;
 
   bool get pertenceAEmpresa => empresaId != null;
 
   bool get pertenceAContratante => contratanteId != null;
+
+  bool get inativo => !ativo;
 }

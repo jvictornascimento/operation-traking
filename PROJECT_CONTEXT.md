@@ -223,6 +223,9 @@ funcionario
 - cargo
 - tipo
 - assinatura_path
+- ativo
+- excluido_em
+- motivo_inativacao
 ```
 
 Relacionamentos:
@@ -242,6 +245,11 @@ Regra:
 - `tipo` deve ser `func_contratante` para funcionario de contratante.
 - Funcionarios de contratante podem ter assinatura em PNG salva no storage local
   do app, mantendo no banco apenas `assinatura_path`.
+- Funcionarios usados em historico nao devem ser apagados fisicamente.
+- A acao de remover funcionario deve inativar o cadastro (`ativo = false`) e
+  preencher `excluido_em`; novos cadastros/fiscalizacoes devem listar apenas
+  funcionarios ativos.
+- Fiscalizacoes antigas devem continuar exibindo funcionarios inativos.
 
 ### Endereco
 
@@ -484,6 +492,9 @@ vistoria_mao_de_obra
 - id
 - vistoria_servico_id
 - funcionario_id
+- funcionario_nome_snapshot
+- funcionario_cargo_snapshot
+- funcionario_telefone_snapshot
 - funcao_no_dia
 - observacao
 ```
@@ -493,6 +504,9 @@ Relacionamentos:
 - Uma fiscalizacao pode ter varios funcionarios como mao de obra.
 - Um funcionario pode aparecer em varias fiscalizacoes.
 - O funcionario deve pertencer a empresa contratada vinculada a obra da etapa.
+- Ao adicionar funcionario na mao de obra, salvar snapshot minimo de nome, cargo
+  e telefone para preservar o historico mesmo se o cadastro for alterado ou
+  inativado depois.
 
 ### Medicao legado
 
@@ -703,3 +717,13 @@ gerar um PDF local ao final da visita.
 - Destacar titulo, subtitulo e status no inicio do PDF.
 - Organizar metadados principais em blocos compactos e legiveis.
 - Remover progresso fisico do cabecalho.
+
+### Issue 31 - Inativacao de funcionarios e snapshot historico
+
+- Remover funcionario deve fazer soft delete, mantendo o registro no banco.
+- Funcionarios inativos nao devem aparecer em novas listas de selecao.
+- Fiscalizacoes antigas devem continuar exibindo o funcionario usado na epoca.
+- A mao de obra da fiscalizacao deve salvar snapshot de nome, cargo e telefone
+  do funcionario no momento do vinculo.
+- Relatorios devem preferir o snapshot e usar o cadastro atual apenas como
+  fallback.

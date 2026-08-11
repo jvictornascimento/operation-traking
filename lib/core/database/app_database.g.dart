@@ -587,6 +587,27 @@ class $FuncionariosTable extends Funcionarios
   late final GeneratedColumn<String> assinaturaPath = GeneratedColumn<String>(
       'assinatura_path', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _ativoMeta = const VerificationMeta('ativo');
+  @override
+  late final GeneratedColumn<bool> ativo = GeneratedColumn<bool>(
+      'ativo', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("ativo" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _excluidoEmMeta =
+      const VerificationMeta('excluidoEm');
+  @override
+  late final GeneratedColumn<DateTime> excluidoEm = GeneratedColumn<DateTime>(
+      'excluido_em', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _motivoInativacaoMeta =
+      const VerificationMeta('motivoInativacao');
+  @override
+  late final GeneratedColumn<String> motivoInativacao = GeneratedColumn<String>(
+      'motivo_inativacao', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -597,7 +618,10 @@ class $FuncionariosTable extends Funcionarios
         telefone,
         cargo,
         tipo,
-        assinaturaPath
+        assinaturaPath,
+        ativo,
+        excluidoEm,
+        motivoInativacao
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -654,6 +678,22 @@ class $FuncionariosTable extends Funcionarios
           assinaturaPath.isAcceptableOrUnknown(
               data['assinatura_path']!, _assinaturaPathMeta));
     }
+    if (data.containsKey('ativo')) {
+      context.handle(
+          _ativoMeta, ativo.isAcceptableOrUnknown(data['ativo']!, _ativoMeta));
+    }
+    if (data.containsKey('excluido_em')) {
+      context.handle(
+          _excluidoEmMeta,
+          excluidoEm.isAcceptableOrUnknown(
+              data['excluido_em']!, _excluidoEmMeta));
+    }
+    if (data.containsKey('motivo_inativacao')) {
+      context.handle(
+          _motivoInativacaoMeta,
+          motivoInativacao.isAcceptableOrUnknown(
+              data['motivo_inativacao']!, _motivoInativacaoMeta));
+    }
     return context;
   }
 
@@ -681,6 +721,12 @@ class $FuncionariosTable extends Funcionarios
           .read(DriftSqlType.string, data['${effectivePrefix}tipo'])!,
       assinaturaPath: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}assinatura_path']),
+      ativo: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}ativo'])!,
+      excluidoEm: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}excluido_em']),
+      motivoInativacao: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}motivo_inativacao']),
     );
   }
 
@@ -700,6 +746,9 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
   final String cargo;
   final String tipo;
   final String? assinaturaPath;
+  final bool ativo;
+  final DateTime? excluidoEm;
+  final String? motivoInativacao;
   const Funcionario(
       {required this.id,
       this.empresaId,
@@ -709,7 +758,10 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
       this.telefone,
       required this.cargo,
       required this.tipo,
-      this.assinaturaPath});
+      this.assinaturaPath,
+      required this.ativo,
+      this.excluidoEm,
+      this.motivoInativacao});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -731,6 +783,13 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
     map['tipo'] = Variable<String>(tipo);
     if (!nullToAbsent || assinaturaPath != null) {
       map['assinatura_path'] = Variable<String>(assinaturaPath);
+    }
+    map['ativo'] = Variable<bool>(ativo);
+    if (!nullToAbsent || excluidoEm != null) {
+      map['excluido_em'] = Variable<DateTime>(excluidoEm);
+    }
+    if (!nullToAbsent || motivoInativacao != null) {
+      map['motivo_inativacao'] = Variable<String>(motivoInativacao);
     }
     return map;
   }
@@ -754,6 +813,13 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
       assinaturaPath: assinaturaPath == null && nullToAbsent
           ? const Value.absent()
           : Value(assinaturaPath),
+      ativo: Value(ativo),
+      excluidoEm: excluidoEm == null && nullToAbsent
+          ? const Value.absent()
+          : Value(excluidoEm),
+      motivoInativacao: motivoInativacao == null && nullToAbsent
+          ? const Value.absent()
+          : Value(motivoInativacao),
     );
   }
 
@@ -770,6 +836,9 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
       cargo: serializer.fromJson<String>(json['cargo']),
       tipo: serializer.fromJson<String>(json['tipo']),
       assinaturaPath: serializer.fromJson<String?>(json['assinaturaPath']),
+      ativo: serializer.fromJson<bool>(json['ativo']),
+      excluidoEm: serializer.fromJson<DateTime?>(json['excluidoEm']),
+      motivoInativacao: serializer.fromJson<String?>(json['motivoInativacao']),
     );
   }
   @override
@@ -785,6 +854,9 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
       'cargo': serializer.toJson<String>(cargo),
       'tipo': serializer.toJson<String>(tipo),
       'assinaturaPath': serializer.toJson<String?>(assinaturaPath),
+      'ativo': serializer.toJson<bool>(ativo),
+      'excluidoEm': serializer.toJson<DateTime?>(excluidoEm),
+      'motivoInativacao': serializer.toJson<String?>(motivoInativacao),
     };
   }
 
@@ -797,7 +869,10 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
           Value<String?> telefone = const Value.absent(),
           String? cargo,
           String? tipo,
-          Value<String?> assinaturaPath = const Value.absent()}) =>
+          Value<String?> assinaturaPath = const Value.absent(),
+          bool? ativo,
+          Value<DateTime?> excluidoEm = const Value.absent(),
+          Value<String?> motivoInativacao = const Value.absent()}) =>
       Funcionario(
         id: id ?? this.id,
         empresaId: empresaId.present ? empresaId.value : this.empresaId,
@@ -810,6 +885,11 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
         tipo: tipo ?? this.tipo,
         assinaturaPath:
             assinaturaPath.present ? assinaturaPath.value : this.assinaturaPath,
+        ativo: ativo ?? this.ativo,
+        excluidoEm: excluidoEm.present ? excluidoEm.value : this.excluidoEm,
+        motivoInativacao: motivoInativacao.present
+            ? motivoInativacao.value
+            : this.motivoInativacao,
       );
   Funcionario copyWithCompanion(FuncionariosCompanion data) {
     return Funcionario(
@@ -826,6 +906,12 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
       assinaturaPath: data.assinaturaPath.present
           ? data.assinaturaPath.value
           : this.assinaturaPath,
+      ativo: data.ativo.present ? data.ativo.value : this.ativo,
+      excluidoEm:
+          data.excluidoEm.present ? data.excluidoEm.value : this.excluidoEm,
+      motivoInativacao: data.motivoInativacao.present
+          ? data.motivoInativacao.value
+          : this.motivoInativacao,
     );
   }
 
@@ -840,14 +926,28 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
           ..write('telefone: $telefone, ')
           ..write('cargo: $cargo, ')
           ..write('tipo: $tipo, ')
-          ..write('assinaturaPath: $assinaturaPath')
+          ..write('assinaturaPath: $assinaturaPath, ')
+          ..write('ativo: $ativo, ')
+          ..write('excluidoEm: $excluidoEm, ')
+          ..write('motivoInativacao: $motivoInativacao')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, empresaId, contratanteId, nome, cpf,
-      telefone, cargo, tipo, assinaturaPath);
+  int get hashCode => Object.hash(
+      id,
+      empresaId,
+      contratanteId,
+      nome,
+      cpf,
+      telefone,
+      cargo,
+      tipo,
+      assinaturaPath,
+      ativo,
+      excluidoEm,
+      motivoInativacao);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -860,7 +960,10 @@ class Funcionario extends DataClass implements Insertable<Funcionario> {
           other.telefone == this.telefone &&
           other.cargo == this.cargo &&
           other.tipo == this.tipo &&
-          other.assinaturaPath == this.assinaturaPath);
+          other.assinaturaPath == this.assinaturaPath &&
+          other.ativo == this.ativo &&
+          other.excluidoEm == this.excluidoEm &&
+          other.motivoInativacao == this.motivoInativacao);
 }
 
 class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
@@ -873,6 +976,9 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
   final Value<String> cargo;
   final Value<String> tipo;
   final Value<String?> assinaturaPath;
+  final Value<bool> ativo;
+  final Value<DateTime?> excluidoEm;
+  final Value<String?> motivoInativacao;
   final Value<int> rowid;
   const FuncionariosCompanion({
     this.id = const Value.absent(),
@@ -884,6 +990,9 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
     this.cargo = const Value.absent(),
     this.tipo = const Value.absent(),
     this.assinaturaPath = const Value.absent(),
+    this.ativo = const Value.absent(),
+    this.excluidoEm = const Value.absent(),
+    this.motivoInativacao = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   FuncionariosCompanion.insert({
@@ -896,6 +1005,9 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
     required String cargo,
     this.tipo = const Value.absent(),
     this.assinaturaPath = const Value.absent(),
+    this.ativo = const Value.absent(),
+    this.excluidoEm = const Value.absent(),
+    this.motivoInativacao = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         nome = Value(nome),
@@ -910,6 +1022,9 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
     Expression<String>? cargo,
     Expression<String>? tipo,
     Expression<String>? assinaturaPath,
+    Expression<bool>? ativo,
+    Expression<DateTime>? excluidoEm,
+    Expression<String>? motivoInativacao,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -922,6 +1037,9 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
       if (cargo != null) 'cargo': cargo,
       if (tipo != null) 'tipo': tipo,
       if (assinaturaPath != null) 'assinatura_path': assinaturaPath,
+      if (ativo != null) 'ativo': ativo,
+      if (excluidoEm != null) 'excluido_em': excluidoEm,
+      if (motivoInativacao != null) 'motivo_inativacao': motivoInativacao,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -936,6 +1054,9 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
       Value<String>? cargo,
       Value<String>? tipo,
       Value<String?>? assinaturaPath,
+      Value<bool>? ativo,
+      Value<DateTime?>? excluidoEm,
+      Value<String?>? motivoInativacao,
       Value<int>? rowid}) {
     return FuncionariosCompanion(
       id: id ?? this.id,
@@ -947,6 +1068,9 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
       cargo: cargo ?? this.cargo,
       tipo: tipo ?? this.tipo,
       assinaturaPath: assinaturaPath ?? this.assinaturaPath,
+      ativo: ativo ?? this.ativo,
+      excluidoEm: excluidoEm ?? this.excluidoEm,
+      motivoInativacao: motivoInativacao ?? this.motivoInativacao,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -981,6 +1105,15 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
     if (assinaturaPath.present) {
       map['assinatura_path'] = Variable<String>(assinaturaPath.value);
     }
+    if (ativo.present) {
+      map['ativo'] = Variable<bool>(ativo.value);
+    }
+    if (excluidoEm.present) {
+      map['excluido_em'] = Variable<DateTime>(excluidoEm.value);
+    }
+    if (motivoInativacao.present) {
+      map['motivo_inativacao'] = Variable<String>(motivoInativacao.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -999,6 +1132,9 @@ class FuncionariosCompanion extends UpdateCompanion<Funcionario> {
           ..write('cargo: $cargo, ')
           ..write('tipo: $tipo, ')
           ..write('assinaturaPath: $assinaturaPath, ')
+          ..write('ativo: $ativo, ')
+          ..write('excluidoEm: $excluidoEm, ')
+          ..write('motivoInativacao: $motivoInativacao, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4684,6 +4820,25 @@ class $VistoriasMaoDeObraTable extends VistoriasMaoDeObra
       requiredDuringInsert: true,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('REFERENCES funcionarios (id)'));
+  static const VerificationMeta _funcionarioNomeSnapshotMeta =
+      const VerificationMeta('funcionarioNomeSnapshot');
+  @override
+  late final GeneratedColumn<String> funcionarioNomeSnapshot =
+      GeneratedColumn<String>('funcionario_nome_snapshot', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _funcionarioCargoSnapshotMeta =
+      const VerificationMeta('funcionarioCargoSnapshot');
+  @override
+  late final GeneratedColumn<String> funcionarioCargoSnapshot =
+      GeneratedColumn<String>('funcionario_cargo_snapshot', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _funcionarioTelefoneSnapshotMeta =
+      const VerificationMeta('funcionarioTelefoneSnapshot');
+  @override
+  late final GeneratedColumn<String> funcionarioTelefoneSnapshot =
+      GeneratedColumn<String>(
+          'funcionario_telefone_snapshot', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _funcaoNoDiaMeta =
       const VerificationMeta('funcaoNoDia');
   @override
@@ -4697,8 +4852,16 @@ class $VistoriasMaoDeObraTable extends VistoriasMaoDeObra
       'observacao', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, vistoriaServicoId, funcionarioId, funcaoNoDia, observacao];
+  List<GeneratedColumn> get $columns => [
+        id,
+        vistoriaServicoId,
+        funcionarioId,
+        funcionarioNomeSnapshot,
+        funcionarioCargoSnapshot,
+        funcionarioTelefoneSnapshot,
+        funcaoNoDia,
+        observacao
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -4731,6 +4894,27 @@ class $VistoriasMaoDeObraTable extends VistoriasMaoDeObra
     } else if (isInserting) {
       context.missing(_funcionarioIdMeta);
     }
+    if (data.containsKey('funcionario_nome_snapshot')) {
+      context.handle(
+          _funcionarioNomeSnapshotMeta,
+          funcionarioNomeSnapshot.isAcceptableOrUnknown(
+              data['funcionario_nome_snapshot']!,
+              _funcionarioNomeSnapshotMeta));
+    }
+    if (data.containsKey('funcionario_cargo_snapshot')) {
+      context.handle(
+          _funcionarioCargoSnapshotMeta,
+          funcionarioCargoSnapshot.isAcceptableOrUnknown(
+              data['funcionario_cargo_snapshot']!,
+              _funcionarioCargoSnapshotMeta));
+    }
+    if (data.containsKey('funcionario_telefone_snapshot')) {
+      context.handle(
+          _funcionarioTelefoneSnapshotMeta,
+          funcionarioTelefoneSnapshot.isAcceptableOrUnknown(
+              data['funcionario_telefone_snapshot']!,
+              _funcionarioTelefoneSnapshotMeta));
+    }
     if (data.containsKey('funcao_no_dia')) {
       context.handle(
           _funcaoNoDiaMeta,
@@ -4758,6 +4942,15 @@ class $VistoriasMaoDeObraTable extends VistoriasMaoDeObra
           DriftSqlType.string, data['${effectivePrefix}vistoria_servico_id'])!,
       funcionarioId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}funcionario_id'])!,
+      funcionarioNomeSnapshot: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}funcionario_nome_snapshot']),
+      funcionarioCargoSnapshot: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}funcionario_cargo_snapshot']),
+      funcionarioTelefoneSnapshot: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}funcionario_telefone_snapshot']),
       funcaoNoDia: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}funcao_no_dia']),
       observacao: attachedDatabase.typeMapping
@@ -4776,12 +4969,18 @@ class VistoriasMaoDeObraData extends DataClass
   final String id;
   final String vistoriaServicoId;
   final String funcionarioId;
+  final String? funcionarioNomeSnapshot;
+  final String? funcionarioCargoSnapshot;
+  final String? funcionarioTelefoneSnapshot;
   final String? funcaoNoDia;
   final String? observacao;
   const VistoriasMaoDeObraData(
       {required this.id,
       required this.vistoriaServicoId,
       required this.funcionarioId,
+      this.funcionarioNomeSnapshot,
+      this.funcionarioCargoSnapshot,
+      this.funcionarioTelefoneSnapshot,
       this.funcaoNoDia,
       this.observacao});
   @override
@@ -4790,6 +4989,18 @@ class VistoriasMaoDeObraData extends DataClass
     map['id'] = Variable<String>(id);
     map['vistoria_servico_id'] = Variable<String>(vistoriaServicoId);
     map['funcionario_id'] = Variable<String>(funcionarioId);
+    if (!nullToAbsent || funcionarioNomeSnapshot != null) {
+      map['funcionario_nome_snapshot'] =
+          Variable<String>(funcionarioNomeSnapshot);
+    }
+    if (!nullToAbsent || funcionarioCargoSnapshot != null) {
+      map['funcionario_cargo_snapshot'] =
+          Variable<String>(funcionarioCargoSnapshot);
+    }
+    if (!nullToAbsent || funcionarioTelefoneSnapshot != null) {
+      map['funcionario_telefone_snapshot'] =
+          Variable<String>(funcionarioTelefoneSnapshot);
+    }
     if (!nullToAbsent || funcaoNoDia != null) {
       map['funcao_no_dia'] = Variable<String>(funcaoNoDia);
     }
@@ -4804,6 +5015,16 @@ class VistoriasMaoDeObraData extends DataClass
       id: Value(id),
       vistoriaServicoId: Value(vistoriaServicoId),
       funcionarioId: Value(funcionarioId),
+      funcionarioNomeSnapshot: funcionarioNomeSnapshot == null && nullToAbsent
+          ? const Value.absent()
+          : Value(funcionarioNomeSnapshot),
+      funcionarioCargoSnapshot: funcionarioCargoSnapshot == null && nullToAbsent
+          ? const Value.absent()
+          : Value(funcionarioCargoSnapshot),
+      funcionarioTelefoneSnapshot:
+          funcionarioTelefoneSnapshot == null && nullToAbsent
+              ? const Value.absent()
+              : Value(funcionarioTelefoneSnapshot),
       funcaoNoDia: funcaoNoDia == null && nullToAbsent
           ? const Value.absent()
           : Value(funcaoNoDia),
@@ -4820,6 +5041,12 @@ class VistoriasMaoDeObraData extends DataClass
       id: serializer.fromJson<String>(json['id']),
       vistoriaServicoId: serializer.fromJson<String>(json['vistoriaServicoId']),
       funcionarioId: serializer.fromJson<String>(json['funcionarioId']),
+      funcionarioNomeSnapshot:
+          serializer.fromJson<String?>(json['funcionarioNomeSnapshot']),
+      funcionarioCargoSnapshot:
+          serializer.fromJson<String?>(json['funcionarioCargoSnapshot']),
+      funcionarioTelefoneSnapshot:
+          serializer.fromJson<String?>(json['funcionarioTelefoneSnapshot']),
       funcaoNoDia: serializer.fromJson<String?>(json['funcaoNoDia']),
       observacao: serializer.fromJson<String?>(json['observacao']),
     );
@@ -4831,6 +5058,12 @@ class VistoriasMaoDeObraData extends DataClass
       'id': serializer.toJson<String>(id),
       'vistoriaServicoId': serializer.toJson<String>(vistoriaServicoId),
       'funcionarioId': serializer.toJson<String>(funcionarioId),
+      'funcionarioNomeSnapshot':
+          serializer.toJson<String?>(funcionarioNomeSnapshot),
+      'funcionarioCargoSnapshot':
+          serializer.toJson<String?>(funcionarioCargoSnapshot),
+      'funcionarioTelefoneSnapshot':
+          serializer.toJson<String?>(funcionarioTelefoneSnapshot),
       'funcaoNoDia': serializer.toJson<String?>(funcaoNoDia),
       'observacao': serializer.toJson<String?>(observacao),
     };
@@ -4840,12 +5073,24 @@ class VistoriasMaoDeObraData extends DataClass
           {String? id,
           String? vistoriaServicoId,
           String? funcionarioId,
+          Value<String?> funcionarioNomeSnapshot = const Value.absent(),
+          Value<String?> funcionarioCargoSnapshot = const Value.absent(),
+          Value<String?> funcionarioTelefoneSnapshot = const Value.absent(),
           Value<String?> funcaoNoDia = const Value.absent(),
           Value<String?> observacao = const Value.absent()}) =>
       VistoriasMaoDeObraData(
         id: id ?? this.id,
         vistoriaServicoId: vistoriaServicoId ?? this.vistoriaServicoId,
         funcionarioId: funcionarioId ?? this.funcionarioId,
+        funcionarioNomeSnapshot: funcionarioNomeSnapshot.present
+            ? funcionarioNomeSnapshot.value
+            : this.funcionarioNomeSnapshot,
+        funcionarioCargoSnapshot: funcionarioCargoSnapshot.present
+            ? funcionarioCargoSnapshot.value
+            : this.funcionarioCargoSnapshot,
+        funcionarioTelefoneSnapshot: funcionarioTelefoneSnapshot.present
+            ? funcionarioTelefoneSnapshot.value
+            : this.funcionarioTelefoneSnapshot,
         funcaoNoDia: funcaoNoDia.present ? funcaoNoDia.value : this.funcaoNoDia,
         observacao: observacao.present ? observacao.value : this.observacao,
       );
@@ -4858,6 +5103,15 @@ class VistoriasMaoDeObraData extends DataClass
       funcionarioId: data.funcionarioId.present
           ? data.funcionarioId.value
           : this.funcionarioId,
+      funcionarioNomeSnapshot: data.funcionarioNomeSnapshot.present
+          ? data.funcionarioNomeSnapshot.value
+          : this.funcionarioNomeSnapshot,
+      funcionarioCargoSnapshot: data.funcionarioCargoSnapshot.present
+          ? data.funcionarioCargoSnapshot.value
+          : this.funcionarioCargoSnapshot,
+      funcionarioTelefoneSnapshot: data.funcionarioTelefoneSnapshot.present
+          ? data.funcionarioTelefoneSnapshot.value
+          : this.funcionarioTelefoneSnapshot,
       funcaoNoDia:
           data.funcaoNoDia.present ? data.funcaoNoDia.value : this.funcaoNoDia,
       observacao:
@@ -4871,6 +5125,9 @@ class VistoriasMaoDeObraData extends DataClass
           ..write('id: $id, ')
           ..write('vistoriaServicoId: $vistoriaServicoId, ')
           ..write('funcionarioId: $funcionarioId, ')
+          ..write('funcionarioNomeSnapshot: $funcionarioNomeSnapshot, ')
+          ..write('funcionarioCargoSnapshot: $funcionarioCargoSnapshot, ')
+          ..write('funcionarioTelefoneSnapshot: $funcionarioTelefoneSnapshot, ')
           ..write('funcaoNoDia: $funcaoNoDia, ')
           ..write('observacao: $observacao')
           ..write(')'))
@@ -4879,7 +5136,14 @@ class VistoriasMaoDeObraData extends DataClass
 
   @override
   int get hashCode => Object.hash(
-      id, vistoriaServicoId, funcionarioId, funcaoNoDia, observacao);
+      id,
+      vistoriaServicoId,
+      funcionarioId,
+      funcionarioNomeSnapshot,
+      funcionarioCargoSnapshot,
+      funcionarioTelefoneSnapshot,
+      funcaoNoDia,
+      observacao);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4887,6 +5151,10 @@ class VistoriasMaoDeObraData extends DataClass
           other.id == this.id &&
           other.vistoriaServicoId == this.vistoriaServicoId &&
           other.funcionarioId == this.funcionarioId &&
+          other.funcionarioNomeSnapshot == this.funcionarioNomeSnapshot &&
+          other.funcionarioCargoSnapshot == this.funcionarioCargoSnapshot &&
+          other.funcionarioTelefoneSnapshot ==
+              this.funcionarioTelefoneSnapshot &&
           other.funcaoNoDia == this.funcaoNoDia &&
           other.observacao == this.observacao);
 }
@@ -4896,6 +5164,9 @@ class VistoriasMaoDeObraCompanion
   final Value<String> id;
   final Value<String> vistoriaServicoId;
   final Value<String> funcionarioId;
+  final Value<String?> funcionarioNomeSnapshot;
+  final Value<String?> funcionarioCargoSnapshot;
+  final Value<String?> funcionarioTelefoneSnapshot;
   final Value<String?> funcaoNoDia;
   final Value<String?> observacao;
   final Value<int> rowid;
@@ -4903,6 +5174,9 @@ class VistoriasMaoDeObraCompanion
     this.id = const Value.absent(),
     this.vistoriaServicoId = const Value.absent(),
     this.funcionarioId = const Value.absent(),
+    this.funcionarioNomeSnapshot = const Value.absent(),
+    this.funcionarioCargoSnapshot = const Value.absent(),
+    this.funcionarioTelefoneSnapshot = const Value.absent(),
     this.funcaoNoDia = const Value.absent(),
     this.observacao = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -4911,6 +5185,9 @@ class VistoriasMaoDeObraCompanion
     required String id,
     required String vistoriaServicoId,
     required String funcionarioId,
+    this.funcionarioNomeSnapshot = const Value.absent(),
+    this.funcionarioCargoSnapshot = const Value.absent(),
+    this.funcionarioTelefoneSnapshot = const Value.absent(),
     this.funcaoNoDia = const Value.absent(),
     this.observacao = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -4921,6 +5198,9 @@ class VistoriasMaoDeObraCompanion
     Expression<String>? id,
     Expression<String>? vistoriaServicoId,
     Expression<String>? funcionarioId,
+    Expression<String>? funcionarioNomeSnapshot,
+    Expression<String>? funcionarioCargoSnapshot,
+    Expression<String>? funcionarioTelefoneSnapshot,
     Expression<String>? funcaoNoDia,
     Expression<String>? observacao,
     Expression<int>? rowid,
@@ -4929,6 +5209,12 @@ class VistoriasMaoDeObraCompanion
       if (id != null) 'id': id,
       if (vistoriaServicoId != null) 'vistoria_servico_id': vistoriaServicoId,
       if (funcionarioId != null) 'funcionario_id': funcionarioId,
+      if (funcionarioNomeSnapshot != null)
+        'funcionario_nome_snapshot': funcionarioNomeSnapshot,
+      if (funcionarioCargoSnapshot != null)
+        'funcionario_cargo_snapshot': funcionarioCargoSnapshot,
+      if (funcionarioTelefoneSnapshot != null)
+        'funcionario_telefone_snapshot': funcionarioTelefoneSnapshot,
       if (funcaoNoDia != null) 'funcao_no_dia': funcaoNoDia,
       if (observacao != null) 'observacao': observacao,
       if (rowid != null) 'rowid': rowid,
@@ -4939,6 +5225,9 @@ class VistoriasMaoDeObraCompanion
       {Value<String>? id,
       Value<String>? vistoriaServicoId,
       Value<String>? funcionarioId,
+      Value<String?>? funcionarioNomeSnapshot,
+      Value<String?>? funcionarioCargoSnapshot,
+      Value<String?>? funcionarioTelefoneSnapshot,
       Value<String?>? funcaoNoDia,
       Value<String?>? observacao,
       Value<int>? rowid}) {
@@ -4946,6 +5235,12 @@ class VistoriasMaoDeObraCompanion
       id: id ?? this.id,
       vistoriaServicoId: vistoriaServicoId ?? this.vistoriaServicoId,
       funcionarioId: funcionarioId ?? this.funcionarioId,
+      funcionarioNomeSnapshot:
+          funcionarioNomeSnapshot ?? this.funcionarioNomeSnapshot,
+      funcionarioCargoSnapshot:
+          funcionarioCargoSnapshot ?? this.funcionarioCargoSnapshot,
+      funcionarioTelefoneSnapshot:
+          funcionarioTelefoneSnapshot ?? this.funcionarioTelefoneSnapshot,
       funcaoNoDia: funcaoNoDia ?? this.funcaoNoDia,
       observacao: observacao ?? this.observacao,
       rowid: rowid ?? this.rowid,
@@ -4963,6 +5258,18 @@ class VistoriasMaoDeObraCompanion
     }
     if (funcionarioId.present) {
       map['funcionario_id'] = Variable<String>(funcionarioId.value);
+    }
+    if (funcionarioNomeSnapshot.present) {
+      map['funcionario_nome_snapshot'] =
+          Variable<String>(funcionarioNomeSnapshot.value);
+    }
+    if (funcionarioCargoSnapshot.present) {
+      map['funcionario_cargo_snapshot'] =
+          Variable<String>(funcionarioCargoSnapshot.value);
+    }
+    if (funcionarioTelefoneSnapshot.present) {
+      map['funcionario_telefone_snapshot'] =
+          Variable<String>(funcionarioTelefoneSnapshot.value);
     }
     if (funcaoNoDia.present) {
       map['funcao_no_dia'] = Variable<String>(funcaoNoDia.value);
@@ -4982,6 +5289,9 @@ class VistoriasMaoDeObraCompanion
           ..write('id: $id, ')
           ..write('vistoriaServicoId: $vistoriaServicoId, ')
           ..write('funcionarioId: $funcionarioId, ')
+          ..write('funcionarioNomeSnapshot: $funcionarioNomeSnapshot, ')
+          ..write('funcionarioCargoSnapshot: $funcionarioCargoSnapshot, ')
+          ..write('funcionarioTelefoneSnapshot: $funcionarioTelefoneSnapshot, ')
           ..write('funcaoNoDia: $funcaoNoDia, ')
           ..write('observacao: $observacao, ')
           ..write('rowid: $rowid')
@@ -6667,6 +6977,9 @@ typedef $$FuncionariosTableCreateCompanionBuilder = FuncionariosCompanion
   required String cargo,
   Value<String> tipo,
   Value<String?> assinaturaPath,
+  Value<bool> ativo,
+  Value<DateTime?> excluidoEm,
+  Value<String?> motivoInativacao,
   Value<int> rowid,
 });
 typedef $$FuncionariosTableUpdateCompanionBuilder = FuncionariosCompanion
@@ -6680,6 +6993,9 @@ typedef $$FuncionariosTableUpdateCompanionBuilder = FuncionariosCompanion
   Value<String> cargo,
   Value<String> tipo,
   Value<String?> assinaturaPath,
+  Value<bool> ativo,
+  Value<DateTime?> excluidoEm,
+  Value<String?> motivoInativacao,
   Value<int> rowid,
 });
 
@@ -6709,6 +7025,9 @@ class $$FuncionariosTableTableManager extends RootTableManager<
             Value<String> cargo = const Value.absent(),
             Value<String> tipo = const Value.absent(),
             Value<String?> assinaturaPath = const Value.absent(),
+            Value<bool> ativo = const Value.absent(),
+            Value<DateTime?> excluidoEm = const Value.absent(),
+            Value<String?> motivoInativacao = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               FuncionariosCompanion(
@@ -6721,6 +7040,9 @@ class $$FuncionariosTableTableManager extends RootTableManager<
             cargo: cargo,
             tipo: tipo,
             assinaturaPath: assinaturaPath,
+            ativo: ativo,
+            excluidoEm: excluidoEm,
+            motivoInativacao: motivoInativacao,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -6733,6 +7055,9 @@ class $$FuncionariosTableTableManager extends RootTableManager<
             required String cargo,
             Value<String> tipo = const Value.absent(),
             Value<String?> assinaturaPath = const Value.absent(),
+            Value<bool> ativo = const Value.absent(),
+            Value<DateTime?> excluidoEm = const Value.absent(),
+            Value<String?> motivoInativacao = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               FuncionariosCompanion.insert(
@@ -6745,6 +7070,9 @@ class $$FuncionariosTableTableManager extends RootTableManager<
             cargo: cargo,
             tipo: tipo,
             assinaturaPath: assinaturaPath,
+            ativo: ativo,
+            excluidoEm: excluidoEm,
+            motivoInativacao: motivoInativacao,
             rowid: rowid,
           ),
         ));
@@ -6785,6 +7113,21 @@ class $$FuncionariosTableFilterComposer
 
   ColumnFilters<String> get assinaturaPath => $state.composableBuilder(
       column: $state.table.assinaturaPath,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get ativo => $state.composableBuilder(
+      column: $state.table.ativo,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<DateTime> get excluidoEm => $state.composableBuilder(
+      column: $state.table.excluidoEm,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get motivoInativacao => $state.composableBuilder(
+      column: $state.table.motivoInativacao,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -6879,6 +7222,21 @@ class $$FuncionariosTableOrderingComposer
 
   ColumnOrderings<String> get assinaturaPath => $state.composableBuilder(
       column: $state.table.assinaturaPath,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get ativo => $state.composableBuilder(
+      column: $state.table.ativo,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<DateTime> get excluidoEm => $state.composableBuilder(
+      column: $state.table.excluidoEm,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get motivoInativacao => $state.composableBuilder(
+      column: $state.table.motivoInativacao,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
@@ -8623,6 +8981,9 @@ typedef $$VistoriasMaoDeObraTableCreateCompanionBuilder
   required String id,
   required String vistoriaServicoId,
   required String funcionarioId,
+  Value<String?> funcionarioNomeSnapshot,
+  Value<String?> funcionarioCargoSnapshot,
+  Value<String?> funcionarioTelefoneSnapshot,
   Value<String?> funcaoNoDia,
   Value<String?> observacao,
   Value<int> rowid,
@@ -8632,6 +8993,9 @@ typedef $$VistoriasMaoDeObraTableUpdateCompanionBuilder
   Value<String> id,
   Value<String> vistoriaServicoId,
   Value<String> funcionarioId,
+  Value<String?> funcionarioNomeSnapshot,
+  Value<String?> funcionarioCargoSnapshot,
+  Value<String?> funcionarioTelefoneSnapshot,
   Value<String?> funcaoNoDia,
   Value<String?> observacao,
   Value<int> rowid,
@@ -8658,6 +9022,9 @@ class $$VistoriasMaoDeObraTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<String> vistoriaServicoId = const Value.absent(),
             Value<String> funcionarioId = const Value.absent(),
+            Value<String?> funcionarioNomeSnapshot = const Value.absent(),
+            Value<String?> funcionarioCargoSnapshot = const Value.absent(),
+            Value<String?> funcionarioTelefoneSnapshot = const Value.absent(),
             Value<String?> funcaoNoDia = const Value.absent(),
             Value<String?> observacao = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -8666,6 +9033,9 @@ class $$VistoriasMaoDeObraTableTableManager extends RootTableManager<
             id: id,
             vistoriaServicoId: vistoriaServicoId,
             funcionarioId: funcionarioId,
+            funcionarioNomeSnapshot: funcionarioNomeSnapshot,
+            funcionarioCargoSnapshot: funcionarioCargoSnapshot,
+            funcionarioTelefoneSnapshot: funcionarioTelefoneSnapshot,
             funcaoNoDia: funcaoNoDia,
             observacao: observacao,
             rowid: rowid,
@@ -8674,6 +9044,9 @@ class $$VistoriasMaoDeObraTableTableManager extends RootTableManager<
             required String id,
             required String vistoriaServicoId,
             required String funcionarioId,
+            Value<String?> funcionarioNomeSnapshot = const Value.absent(),
+            Value<String?> funcionarioCargoSnapshot = const Value.absent(),
+            Value<String?> funcionarioTelefoneSnapshot = const Value.absent(),
             Value<String?> funcaoNoDia = const Value.absent(),
             Value<String?> observacao = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -8682,6 +9055,9 @@ class $$VistoriasMaoDeObraTableTableManager extends RootTableManager<
             id: id,
             vistoriaServicoId: vistoriaServicoId,
             funcionarioId: funcionarioId,
+            funcionarioNomeSnapshot: funcionarioNomeSnapshot,
+            funcionarioCargoSnapshot: funcionarioCargoSnapshot,
+            funcionarioTelefoneSnapshot: funcionarioTelefoneSnapshot,
             funcaoNoDia: funcaoNoDia,
             observacao: observacao,
             rowid: rowid,
@@ -8696,6 +9072,23 @@ class $$VistoriasMaoDeObraTableFilterComposer
       column: $state.table.id,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get funcionarioNomeSnapshot => $state.composableBuilder(
+      column: $state.table.funcionarioNomeSnapshot,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get funcionarioCargoSnapshot =>
+      $state.composableBuilder(
+          column: $state.table.funcionarioCargoSnapshot,
+          builder: (column, joinBuilders) =>
+              ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get funcionarioTelefoneSnapshot => $state
+      .composableBuilder(
+          column: $state.table.funcionarioTelefoneSnapshot,
+          builder: (column, joinBuilders) =>
+              ColumnFilters(column, joinBuilders: joinBuilders));
 
   ColumnFilters<String> get funcaoNoDia => $state.composableBuilder(
       column: $state.table.funcaoNoDia,
@@ -8740,6 +9133,24 @@ class $$VistoriasMaoDeObraTableOrderingComposer
       column: $state.table.id,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get funcionarioNomeSnapshot =>
+      $state.composableBuilder(
+          column: $state.table.funcionarioNomeSnapshot,
+          builder: (column, joinBuilders) =>
+              ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get funcionarioCargoSnapshot =>
+      $state.composableBuilder(
+          column: $state.table.funcionarioCargoSnapshot,
+          builder: (column, joinBuilders) =>
+              ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get funcionarioTelefoneSnapshot =>
+      $state.composableBuilder(
+          column: $state.table.funcionarioTelefoneSnapshot,
+          builder: (column, joinBuilders) =>
+              ColumnOrderings(column, joinBuilders: joinBuilders));
 
   ColumnOrderings<String> get funcaoNoDia => $state.composableBuilder(
       column: $state.table.funcaoNoDia,
