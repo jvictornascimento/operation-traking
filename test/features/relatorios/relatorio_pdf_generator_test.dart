@@ -38,6 +38,7 @@ RelatorioObraDados _dados() {
       progressoPrazoDias: 5,
       dataInicio: DateTime(2026, 5, 1),
       dataFim: DateTime(2026, 6, 1),
+      numeroContrato: 'CTR-001',
     ),
     servicos: const [
       RelatorioServicoInfo(
@@ -102,6 +103,7 @@ RelatorioFiscalizacaoDados _dadosFiscalizacao() {
       progressoPrazoDias: 5,
       dataInicio: DateTime(2026, 5, 1),
       dataFim: DateTime(2026, 6, 1),
+      numeroContrato: 'CTR-001',
     ),
     servico: const RelatorioServicoInfo(
       id: 'servico-1',

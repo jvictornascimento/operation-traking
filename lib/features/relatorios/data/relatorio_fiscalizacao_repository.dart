@@ -88,6 +88,7 @@ class DriftRelatorioFiscalizacaoRepository
       progressoPrazoDias: row.progressoPrazoDias,
       dataInicio: row.dataInicio,
       dataFim: row.dataFim,
+      numeroContrato: row.numeroContrato,
     );
   }
 

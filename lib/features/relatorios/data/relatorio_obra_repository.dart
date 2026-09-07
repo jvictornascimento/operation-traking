@@ -83,6 +83,7 @@ class DriftRelatorioObraRepository implements RelatorioObraRepository {
       progressoPrazoDias: row.progressoPrazoDias,
       dataInicio: row.dataInicio,
       dataFim: row.dataFim,
+      numeroContrato: row.numeroContrato,
     );
   }
 

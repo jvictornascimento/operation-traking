@@ -279,32 +279,47 @@ class RelatorioPdfGenerator {
 
   pw.Widget _fiscalizacaoResumo(RelatorioFiscalizacaoDados dados) {
     final fiscalizacao = dados.fiscalizacao;
+    final prazo = _calcularPrazo(
+      dataInicio: dados.obra.dataInicio,
+      dataFim: dados.obra.dataFim,
+      dataReferencia: fiscalizacao.data,
+    );
 
     return _headerResumo(
       titulo: dados.obra.nome,
-      subtitulo: 'Fiscalizacao ${fiscalizacao.numero}',
+      subtitulo: 'Relatorio de fiscalizacao',
       status: _statusFiscalizacaoLabel(fiscalizacao.status),
       statusColor: _statusFiscalizacaoColor(fiscalizacao.status),
       items: [
         _HeaderInfoItem(
-          label: 'Data',
+          label: 'Numero do relatorio',
+          value: fiscalizacao.numero,
+        ),
+        _HeaderInfoItem(
+          label: 'Data do relatorio',
           value: _formatarData(fiscalizacao.data),
         ),
         _HeaderInfoItem(
-          label: 'Etapa',
-          value: dados.etapa.nome,
+          label: 'Dia da semana',
+          value: _diaSemanaLabel(fiscalizacao.data.weekday),
         ),
         _HeaderInfoItem(
-          label: 'Atividade',
-          value: fiscalizacao.atividade ?? '-',
+          label: 'Contrato',
+          value: dados.obra.numeroContrato ?? '-',
         ),
         _HeaderInfoItem(
-          label: 'Ocorrencia',
-          value: fiscalizacao.ocorrencia ?? '-',
+          label: 'Prazo contratual',
+          value: '${_formatarData(dados.obra.dataInicio)} a '
+              '${_formatarData(dados.obra.dataFim)} '
+              '(${prazo.diasTotais} dias)',
         ),
         _HeaderInfoItem(
-          label: 'Comentario',
-          value: fiscalizacao.comentario ?? '-',
+          label: 'Prazo decorrido',
+          value: '${prazo.diasDecorridos} dias',
+        ),
+        _HeaderInfoItem(
+          label: 'Prazo a vencer',
+          value: '${prazo.diasAVencer} dias',
         ),
       ],
     );
@@ -370,8 +385,8 @@ class RelatorioPdfGenerator {
 
   pw.Widget _fotosGrid(List<RelatorioFotoInfo> fotos) {
     return pw.Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: 6,
+      runSpacing: 6,
       children: [
         for (final foto in fotos)
           _fotoEvidenciaCard(
@@ -391,8 +406,8 @@ class RelatorioPdfGenerator {
     final legendaNormalizada = legenda?.trim();
 
     return pw.Container(
-      width: 160,
-      padding: const pw.EdgeInsets.all(6),
+      width: 252,
+      padding: const pw.EdgeInsets.all(4),
       decoration: pw.BoxDecoration(
         border: pw.Border.all(color: PdfColors.grey500),
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
@@ -402,8 +417,8 @@ class RelatorioPdfGenerator {
         children: [
           if (existe)
             pw.SizedBox(
-              width: 148,
-              height: 112,
+              width: 244,
+              height: 168,
               child: pw.Image(
                 pw.MemoryImage(file.readAsBytesSync()),
                 fit: pw.BoxFit.cover,
@@ -411,8 +426,8 @@ class RelatorioPdfGenerator {
             )
           else
             pw.SizedBox(
-              width: 148,
-              height: 112,
+              width: 244,
+              height: 168,
               child: pw.Center(
                 child: pw.Text(
                   'Foto nao encontrada',
@@ -508,7 +523,48 @@ class RelatorioPdfGenerator {
   }
 
   String _formatarData(DateTime data) {
-    return '${data.day}/${data.month}/${data.year}';
+    return '${data.day.toString().padLeft(2, '0')}/'
+        '${data.month.toString().padLeft(2, '0')}/'
+        '${data.year.toString().padLeft(4, '0')}';
+  }
+
+  String _diaSemanaLabel(int weekday) {
+    return switch (weekday) {
+      DateTime.monday => 'Segunda-feira',
+      DateTime.tuesday => 'Terca-feira',
+      DateTime.wednesday => 'Quarta-feira',
+      DateTime.thursday => 'Quinta-feira',
+      DateTime.friday => 'Sexta-feira',
+      DateTime.saturday => 'Sabado',
+      DateTime.sunday => 'Domingo',
+      _ => '-',
+    };
+  }
+
+  _PrazoRelatorio _calcularPrazo({
+    required DateTime dataInicio,
+    required DateTime dataFim,
+    required DateTime dataReferencia,
+  }) {
+    final inicio = DateTime(dataInicio.year, dataInicio.month, dataInicio.day);
+    final fim = DateTime(dataFim.year, dataFim.month, dataFim.day);
+    final referencia = DateTime(
+      dataReferencia.year,
+      dataReferencia.month,
+      dataReferencia.day,
+    );
+    final diasTotais = fim.difference(inicio).inDays + 1;
+    final diasDecorridos = referencia.isBefore(inicio)
+        ? 0
+        : referencia.difference(inicio).inDays + 1;
+    final diasDecorridosLimitados = diasDecorridos.clamp(0, diasTotais).toInt();
+
+    return _PrazoRelatorio(
+      diasTotais: diasTotais,
+      diasDecorridos: diasDecorridosLimitados,
+      diasAVencer:
+          (diasTotais - diasDecorridosLimitados).clamp(0, diasTotais).toInt(),
+    );
   }
 
   String _statusExecucaoLabel(StatusExecucao status) {
@@ -590,4 +646,16 @@ class _HeaderInfoItem {
 
   final String label;
   final String value;
+}
+
+class _PrazoRelatorio {
+  const _PrazoRelatorio({
+    required this.diasTotais,
+    required this.diasDecorridos,
+    required this.diasAVencer,
+  });
+
+  final int diasTotais;
+  final int diasDecorridos;
+  final int diasAVencer;
 }

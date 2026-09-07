@@ -768,3 +768,16 @@ gerar um PDF local ao final da visita.
 - Ao anexar foto que ja veio da galeria, evitar criar duplicata na galeria.
 - Relatorio deve usar a foto vinculada e a legenda opcional, sem marcadores
   genericos como FOTO1/FOTO2.
+
+### Issue #27 GitHub - Cabecalho e fotos do relatorio de fiscalizacao
+
+- O cabecalho do relatorio de fiscalizacao deve destacar o nome da obra e
+  agrupar: numero do relatorio, data do relatorio, dia da semana, contrato,
+  prazo contratual, prazo decorrido e prazo a vencer.
+- Endereco, contratante e responsavel nao devem aparecer no bloco inicial do
+  relatorio de fiscalizacao.
+- O nome do arquivo PDF da fiscalizacao deve ser amigavel, iniciando por nome
+  da obra, data e horario, mantendo identificacao tecnica da fiscalizacao para
+  permitir localizar relatorios ja gerados.
+- Fotos do relatorio devem ocupar duas colunas, com pouco espaco entre elas e
+  sem ultrapassar as margens do PDF.

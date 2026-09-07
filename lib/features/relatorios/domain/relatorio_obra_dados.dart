@@ -29,6 +29,7 @@ class RelatorioObraInfo {
     required this.progressoPrazoDias,
     required this.dataInicio,
     required this.dataFim,
+    this.numeroContrato,
   });
 
   final String id;
@@ -38,6 +39,7 @@ class RelatorioObraInfo {
   final int progressoPrazoDias;
   final DateTime dataInicio;
   final DateTime dataFim;
+  final String? numeroContrato;
 }
 
 class RelatorioServicoInfo {

@@ -9,6 +9,7 @@ import '../data/relatorio_fiscalizacao_repository.dart';
 import '../data/relatorio_obra_repository.dart';
 import '../data/relatorio_pdf_generator.dart';
 import '../domain/relatorio.dart';
+import '../domain/relatorio_fiscalizacao_dados.dart';
 
 final relatorioObraRepositoryProvider = Provider<RelatorioObraRepository>(
   (ref) => DriftRelatorioObraRepository(ref.watch(appDatabaseProvider)),
@@ -106,9 +107,10 @@ class RelatoriosController extends StateNotifier<AsyncValue<Relatorio?>> {
       );
       final bytes = await _generator.gerarRelatorioFiscalizacao(dados);
       final criadoEm = DateTime.now();
-      final id = 'relatorio-fiscalizacao-'
-          '${_normalizarNomeArquivo(vistoriaServicoIdNormalizado)}-'
-          '${criadoEm.microsecondsSinceEpoch}';
+      final id = criarIdRelatorioFiscalizacao(
+        dados: dados,
+        criadoEm: criadoEm,
+      );
       final caminhoArquivo = await _salvarPdfLocal(
         id: id,
         bytes: bytes,
@@ -155,7 +157,9 @@ Future<Relatorio?> buscarRelatorioFiscalizacaoExistente(
     return null;
   }
 
-  final prefixo = 'relatorio-fiscalizacao-'
+  final sufixoNovo = '-fiscalizacao-'
+      '${_normalizarNomeArquivo(fiscalizacaoIdNormalizado)}.pdf';
+  final prefixoAntigo = 'relatorio-fiscalizacao-'
       '${_normalizarNomeArquivo(fiscalizacaoIdNormalizado)}-';
   final arquivos = await relatoriosDir
       .list()
@@ -165,7 +169,8 @@ Future<Relatorio?> buscarRelatorioFiscalizacaoExistente(
         }
 
         final nome = p.basename(entity.path);
-        return nome.startsWith(prefixo) && nome.endsWith('.pdf');
+        return nome.endsWith(sufixoNovo) ||
+            (nome.startsWith(prefixoAntigo) && nome.endsWith('.pdf'));
       })
       .cast<File>()
       .toList();
@@ -192,5 +197,34 @@ Future<Relatorio?> buscarRelatorioFiscalizacaoExistente(
 }
 
 String _normalizarNomeArquivo(String value) {
-  return value.trim().replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '-');
+  final normalizado = value
+      .trim()
+      .replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '-')
+      .replaceAll(RegExp('-+'), '-')
+      .replaceAll(RegExp(r'^-|-$'), '');
+
+  return normalizado.isEmpty ? 'relatorio' : normalizado;
+}
+
+String criarIdRelatorioFiscalizacao({
+  required RelatorioFiscalizacaoDados dados,
+  required DateTime criadoEm,
+}) {
+  final obra = _normalizarNomeArquivo(dados.obra.nome);
+  final data = _formatarDataArquivo(dados.fiscalizacao.data);
+  final horario = _formatarHorarioArquivo(criadoEm);
+  final fiscalizacaoId = _normalizarNomeArquivo(dados.fiscalizacao.id);
+
+  return '$obra-$data-$horario-fiscalizacao-$fiscalizacaoId';
+}
+
+String _formatarDataArquivo(DateTime data) {
+  return '${data.day.toString().padLeft(2, '0')}-'
+      '${data.month.toString().padLeft(2, '0')}-'
+      '${data.year.toString().padLeft(4, '0')}';
+}
+
+String _formatarHorarioArquivo(DateTime data) {
+  return '${data.hour.toString().padLeft(2, '0')}-'
+      '${data.minute.toString().padLeft(2, '0')}';
 }

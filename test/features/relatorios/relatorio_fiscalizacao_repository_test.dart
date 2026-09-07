@@ -36,6 +36,7 @@ void main() {
       expect(dados.obra.nome, 'Obra Regis');
       expect(dados.etapa.nome, 'Fundacao');
       expect(dados.fiscalizacao.numero, '001');
+      expect(dados.obra.numeroContrato, 'CTR-001');
       expect(dados.periodos, hasLength(1));
       expect(dados.medicoes, isEmpty);
       expect(dados.maoDeObra, hasLength(1));
@@ -104,6 +105,7 @@ Future<void> _popularDadosBase(db.AppDatabase database) async {
           empresaId: 'empresa-1',
           enderecoId: 'endereco-1',
           nome: 'Obra Regis',
+          numeroContrato: const Value('CTR-001'),
           dataInicio: DateTime(2026, 5, 1),
           dataFim: DateTime(2026, 6, 1),
           status: StatusExecucao.emAndamento.name,
