@@ -2,11 +2,30 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:photo_manager/photo_manager.dart';
 
 abstract class FotosFiscalizacaoStorage {
-  Future<String> salvarFotoFiscalizacao({
+  Future<FotoFiscalizacaoStorageResult> salvarFotoFiscalizacao({
     required String vistoriaServicoId,
     required String caminhoOrigem,
+    required bool publicarNaGaleria,
+  });
+}
+
+class FotoFiscalizacaoStorageResult {
+  const FotoFiscalizacaoStorageResult({
+    required this.caminhoArquivo,
+    this.uriGaleria,
+  });
+
+  final String caminhoArquivo;
+  final String? uriGaleria;
+}
+
+abstract class FotosFiscalizacaoGaleria {
+  Future<String> publicarFoto({
+    required String caminhoArquivo,
+    required String titulo,
   });
 }
 
@@ -21,13 +40,58 @@ class ArquivoFotoFiscalizacaoInvalidoException implements Exception {
   }
 }
 
-class LocalFotosFiscalizacaoStorage implements FotosFiscalizacaoStorage {
-  const LocalFotosFiscalizacaoStorage();
+class PermissaoGaleriaFotosNegadaException implements Exception {
+  const PermissaoGaleriaFotosNegadaException();
 
   @override
-  Future<String> salvarFotoFiscalizacao({
+  String toString() {
+    return 'Permissao para salvar a foto na galeria foi negada.';
+  }
+}
+
+class PhotoManagerFotosFiscalizacaoGaleria implements FotosFiscalizacaoGaleria {
+  const PhotoManagerFotosFiscalizacaoGaleria();
+
+  @override
+  Future<String> publicarFoto({
+    required String caminhoArquivo,
+    required String titulo,
+  }) async {
+    final permission = await PhotoManager.requestPermissionExtend(
+      requestOption: const PermissionRequestOption(
+        androidPermission: AndroidPermission(
+          type: RequestType.image,
+          mediaLocation: false,
+        ),
+      ),
+    );
+
+    if (!permission.hasAccess) {
+      throw const PermissaoGaleriaFotosNegadaException();
+    }
+
+    final asset = await PhotoManager.editor.saveImageWithPath(
+      caminhoArquivo,
+      title: titulo,
+      relativePath: 'Pictures/Operational Tracking',
+    );
+
+    return 'photo_manager://asset/${Uri.encodeComponent(asset.id)}';
+  }
+}
+
+class LocalFotosFiscalizacaoStorage implements FotosFiscalizacaoStorage {
+  const LocalFotosFiscalizacaoStorage({
+    FotosFiscalizacaoGaleria? galeria,
+  }) : _galeria = galeria;
+
+  final FotosFiscalizacaoGaleria? _galeria;
+
+  @override
+  Future<FotoFiscalizacaoStorageResult> salvarFotoFiscalizacao({
     required String vistoriaServicoId,
     required String caminhoOrigem,
+    required bool publicarNaGaleria,
   }) async {
     final arquivoOrigem = File(caminhoOrigem);
     if (!await arquivoOrigem.exists()) {
@@ -49,6 +113,17 @@ class LocalFotosFiscalizacaoStorage implements FotosFiscalizacaoStorage {
     final destino = File(p.join(fotosDir.path, nomeArquivo));
 
     await arquivoOrigem.copy(destino.path);
-    return destino.path;
+    final uriGaleria = publicarNaGaleria
+        ? await (_galeria ?? const PhotoManagerFotosFiscalizacaoGaleria())
+            .publicarFoto(
+            caminhoArquivo: destino.path,
+            titulo: nomeArquivo,
+          )
+        : null;
+
+    return FotoFiscalizacaoStorageResult(
+      caminhoArquivo: destino.path,
+      uriGaleria: uriGaleria,
+    );
   }
 }

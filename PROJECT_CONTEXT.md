@@ -106,7 +106,10 @@ Nao salvar imagens diretamente no banco.
 Estrategia:
 
 - Salvar a imagem no storage local do app.
-- Guardar no banco apenas o caminho do arquivo.
+- Quando a foto for tirada pela camera no Android, publicar tambem uma copia na
+  galeria do aparelho.
+- Guardar no banco apenas caminho/URI local e metadados, nunca o binario da
+  imagem.
 - Vincular a foto diretamente a uma fiscalizacao.
 
 Decisao do MVP:
@@ -118,6 +121,8 @@ Decisao do MVP:
   branco nao deve aparecer no relatorio.
 - O relatorio da fiscalizacao deve renderizar as fotos vinculadas a propria
   fiscalizacao como evidencias fotograficas.
+- A URI/asset da galeria deve ser persistida quando existir, mantendo o caminho
+  local como fonte principal para montagem offline do PDF.
 - Medicao saiu do fluxo principal do MVP.
 
 ## Modelo de dados
@@ -751,3 +756,15 @@ gerar um PDF local ao final da visita.
   sem depender de internet, login, cloud, Firebase ou servico nativo permanente.
 - Antes da copia do SQLite, executar checkpoint para reduzir risco de arquivo
   inconsistente durante escrita.
+
+### Issue #28 GitHub - Fotos da fiscalizacao na galeria Android
+
+- Usar `photo_manager` para publicar fotos tiradas pela camera na galeria do
+  Android.
+- Continuar salvando uma copia no storage local do app para uso offline no PDF.
+- Persistir `caminhoArquivo`, `uriGaleria` quando existir e legenda opcional na
+  tabela de fotos da fiscalizacao.
+- Nao salvar binario de imagem no SQLite.
+- Ao anexar foto que ja veio da galeria, evitar criar duplicata na galeria.
+- Relatorio deve usar a foto vinculada e a legenda opcional, sem marcadores
+  genericos como FOTO1/FOTO2.

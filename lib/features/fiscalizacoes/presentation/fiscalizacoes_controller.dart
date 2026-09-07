@@ -357,6 +357,7 @@ class FotosFiscalizacaoController extends StateNotifier<AsyncValue<void>> {
   Future<void> salvarArquivo({
     required String vistoriaServicoId,
     required String caminhoOrigem,
+    bool publicarNaGaleria = false,
     String? legenda,
   }) async {
     final vistoriaServicoIdNormalizado = vistoriaServicoId.trim();
@@ -382,16 +383,18 @@ class FotosFiscalizacaoController extends StateNotifier<AsyncValue<void>> {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
-      final caminhoArquivo = await _storage.salvarFotoFiscalizacao(
+      final fotoSalva = await _storage.salvarFotoFiscalizacao(
         vistoriaServicoId: vistoriaServicoIdNormalizado,
         caminhoOrigem: caminhoOrigemNormalizado,
+        publicarNaGaleria: publicarNaGaleria,
       );
 
       await _repository.salvarFoto(
         FotoFiscalizacao(
           id: 'foto-fiscalizacao-${DateTime.now().microsecondsSinceEpoch}',
           vistoriaServicoId: vistoriaServicoIdNormalizado,
-          caminhoArquivo: caminhoArquivo,
+          caminhoArquivo: fotoSalva.caminhoArquivo,
+          uriGaleria: fotoSalva.uriGaleria,
           legenda: legendaNormalizada,
         ),
       );

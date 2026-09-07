@@ -145,6 +145,7 @@ class DriftRelatorioObraRepository implements RelatorioObraRepository {
     return RelatorioFotoInfo(
       vistoriaServicoId: row.vistoriaServicoId,
       caminhoArquivo: row.caminhoArquivo,
+      uriGaleria: row.uriGaleria,
       legenda: row.legenda,
     );
   }

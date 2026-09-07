@@ -5326,6 +5326,12 @@ class $VistoriasFotosTable extends VistoriasFotos
   late final GeneratedColumn<String> caminhoArquivo = GeneratedColumn<String>(
       'caminho_arquivo', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _uriGaleriaMeta =
+      const VerificationMeta('uriGaleria');
+  @override
+  late final GeneratedColumn<String> uriGaleria = GeneratedColumn<String>(
+      'uri_galeria', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _legendaMeta =
       const VerificationMeta('legenda');
   @override
@@ -5334,7 +5340,7 @@ class $VistoriasFotosTable extends VistoriasFotos
       type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, vistoriaServicoId, caminhoArquivo, legenda];
+      [id, vistoriaServicoId, caminhoArquivo, uriGaleria, legenda];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -5366,6 +5372,12 @@ class $VistoriasFotosTable extends VistoriasFotos
     } else if (isInserting) {
       context.missing(_caminhoArquivoMeta);
     }
+    if (data.containsKey('uri_galeria')) {
+      context.handle(
+          _uriGaleriaMeta,
+          uriGaleria.isAcceptableOrUnknown(
+              data['uri_galeria']!, _uriGaleriaMeta));
+    }
     if (data.containsKey('legenda')) {
       context.handle(_legendaMeta,
           legenda.isAcceptableOrUnknown(data['legenda']!, _legendaMeta));
@@ -5385,6 +5397,8 @@ class $VistoriasFotosTable extends VistoriasFotos
           DriftSqlType.string, data['${effectivePrefix}vistoria_servico_id'])!,
       caminhoArquivo: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}caminho_arquivo'])!,
+      uriGaleria: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uri_galeria']),
       legenda: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}legenda']),
     );
@@ -5400,11 +5414,13 @@ class VistoriasFoto extends DataClass implements Insertable<VistoriasFoto> {
   final String id;
   final String vistoriaServicoId;
   final String caminhoArquivo;
+  final String? uriGaleria;
   final String? legenda;
   const VistoriasFoto(
       {required this.id,
       required this.vistoriaServicoId,
       required this.caminhoArquivo,
+      this.uriGaleria,
       this.legenda});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -5412,6 +5428,9 @@ class VistoriasFoto extends DataClass implements Insertable<VistoriasFoto> {
     map['id'] = Variable<String>(id);
     map['vistoria_servico_id'] = Variable<String>(vistoriaServicoId);
     map['caminho_arquivo'] = Variable<String>(caminhoArquivo);
+    if (!nullToAbsent || uriGaleria != null) {
+      map['uri_galeria'] = Variable<String>(uriGaleria);
+    }
     if (!nullToAbsent || legenda != null) {
       map['legenda'] = Variable<String>(legenda);
     }
@@ -5423,6 +5442,9 @@ class VistoriasFoto extends DataClass implements Insertable<VistoriasFoto> {
       id: Value(id),
       vistoriaServicoId: Value(vistoriaServicoId),
       caminhoArquivo: Value(caminhoArquivo),
+      uriGaleria: uriGaleria == null && nullToAbsent
+          ? const Value.absent()
+          : Value(uriGaleria),
       legenda: legenda == null && nullToAbsent
           ? const Value.absent()
           : Value(legenda),
@@ -5436,6 +5458,7 @@ class VistoriasFoto extends DataClass implements Insertable<VistoriasFoto> {
       id: serializer.fromJson<String>(json['id']),
       vistoriaServicoId: serializer.fromJson<String>(json['vistoriaServicoId']),
       caminhoArquivo: serializer.fromJson<String>(json['caminhoArquivo']),
+      uriGaleria: serializer.fromJson<String?>(json['uriGaleria']),
       legenda: serializer.fromJson<String?>(json['legenda']),
     );
   }
@@ -5446,6 +5469,7 @@ class VistoriasFoto extends DataClass implements Insertable<VistoriasFoto> {
       'id': serializer.toJson<String>(id),
       'vistoriaServicoId': serializer.toJson<String>(vistoriaServicoId),
       'caminhoArquivo': serializer.toJson<String>(caminhoArquivo),
+      'uriGaleria': serializer.toJson<String?>(uriGaleria),
       'legenda': serializer.toJson<String?>(legenda),
     };
   }
@@ -5454,11 +5478,13 @@ class VistoriasFoto extends DataClass implements Insertable<VistoriasFoto> {
           {String? id,
           String? vistoriaServicoId,
           String? caminhoArquivo,
+          Value<String?> uriGaleria = const Value.absent(),
           Value<String?> legenda = const Value.absent()}) =>
       VistoriasFoto(
         id: id ?? this.id,
         vistoriaServicoId: vistoriaServicoId ?? this.vistoriaServicoId,
         caminhoArquivo: caminhoArquivo ?? this.caminhoArquivo,
+        uriGaleria: uriGaleria.present ? uriGaleria.value : this.uriGaleria,
         legenda: legenda.present ? legenda.value : this.legenda,
       );
   VistoriasFoto copyWithCompanion(VistoriasFotosCompanion data) {
@@ -5470,6 +5496,8 @@ class VistoriasFoto extends DataClass implements Insertable<VistoriasFoto> {
       caminhoArquivo: data.caminhoArquivo.present
           ? data.caminhoArquivo.value
           : this.caminhoArquivo,
+      uriGaleria:
+          data.uriGaleria.present ? data.uriGaleria.value : this.uriGaleria,
       legenda: data.legenda.present ? data.legenda.value : this.legenda,
     );
   }
@@ -5480,6 +5508,7 @@ class VistoriasFoto extends DataClass implements Insertable<VistoriasFoto> {
           ..write('id: $id, ')
           ..write('vistoriaServicoId: $vistoriaServicoId, ')
           ..write('caminhoArquivo: $caminhoArquivo, ')
+          ..write('uriGaleria: $uriGaleria, ')
           ..write('legenda: $legenda')
           ..write(')'))
         .toString();
@@ -5487,7 +5516,7 @@ class VistoriasFoto extends DataClass implements Insertable<VistoriasFoto> {
 
   @override
   int get hashCode =>
-      Object.hash(id, vistoriaServicoId, caminhoArquivo, legenda);
+      Object.hash(id, vistoriaServicoId, caminhoArquivo, uriGaleria, legenda);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5495,6 +5524,7 @@ class VistoriasFoto extends DataClass implements Insertable<VistoriasFoto> {
           other.id == this.id &&
           other.vistoriaServicoId == this.vistoriaServicoId &&
           other.caminhoArquivo == this.caminhoArquivo &&
+          other.uriGaleria == this.uriGaleria &&
           other.legenda == this.legenda);
 }
 
@@ -5502,12 +5532,14 @@ class VistoriasFotosCompanion extends UpdateCompanion<VistoriasFoto> {
   final Value<String> id;
   final Value<String> vistoriaServicoId;
   final Value<String> caminhoArquivo;
+  final Value<String?> uriGaleria;
   final Value<String?> legenda;
   final Value<int> rowid;
   const VistoriasFotosCompanion({
     this.id = const Value.absent(),
     this.vistoriaServicoId = const Value.absent(),
     this.caminhoArquivo = const Value.absent(),
+    this.uriGaleria = const Value.absent(),
     this.legenda = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -5515,6 +5547,7 @@ class VistoriasFotosCompanion extends UpdateCompanion<VistoriasFoto> {
     required String id,
     required String vistoriaServicoId,
     required String caminhoArquivo,
+    this.uriGaleria = const Value.absent(),
     this.legenda = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
@@ -5524,6 +5557,7 @@ class VistoriasFotosCompanion extends UpdateCompanion<VistoriasFoto> {
     Expression<String>? id,
     Expression<String>? vistoriaServicoId,
     Expression<String>? caminhoArquivo,
+    Expression<String>? uriGaleria,
     Expression<String>? legenda,
     Expression<int>? rowid,
   }) {
@@ -5531,6 +5565,7 @@ class VistoriasFotosCompanion extends UpdateCompanion<VistoriasFoto> {
       if (id != null) 'id': id,
       if (vistoriaServicoId != null) 'vistoria_servico_id': vistoriaServicoId,
       if (caminhoArquivo != null) 'caminho_arquivo': caminhoArquivo,
+      if (uriGaleria != null) 'uri_galeria': uriGaleria,
       if (legenda != null) 'legenda': legenda,
       if (rowid != null) 'rowid': rowid,
     });
@@ -5540,12 +5575,14 @@ class VistoriasFotosCompanion extends UpdateCompanion<VistoriasFoto> {
       {Value<String>? id,
       Value<String>? vistoriaServicoId,
       Value<String>? caminhoArquivo,
+      Value<String?>? uriGaleria,
       Value<String?>? legenda,
       Value<int>? rowid}) {
     return VistoriasFotosCompanion(
       id: id ?? this.id,
       vistoriaServicoId: vistoriaServicoId ?? this.vistoriaServicoId,
       caminhoArquivo: caminhoArquivo ?? this.caminhoArquivo,
+      uriGaleria: uriGaleria ?? this.uriGaleria,
       legenda: legenda ?? this.legenda,
       rowid: rowid ?? this.rowid,
     );
@@ -5563,6 +5600,9 @@ class VistoriasFotosCompanion extends UpdateCompanion<VistoriasFoto> {
     if (caminhoArquivo.present) {
       map['caminho_arquivo'] = Variable<String>(caminhoArquivo.value);
     }
+    if (uriGaleria.present) {
+      map['uri_galeria'] = Variable<String>(uriGaleria.value);
+    }
     if (legenda.present) {
       map['legenda'] = Variable<String>(legenda.value);
     }
@@ -5578,6 +5618,7 @@ class VistoriasFotosCompanion extends UpdateCompanion<VistoriasFoto> {
           ..write('id: $id, ')
           ..write('vistoriaServicoId: $vistoriaServicoId, ')
           ..write('caminhoArquivo: $caminhoArquivo, ')
+          ..write('uriGaleria: $uriGaleria, ')
           ..write('legenda: $legenda, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -9891,6 +9932,7 @@ typedef $$VistoriasFotosTableCreateCompanionBuilder = VistoriasFotosCompanion
   required String id,
   required String vistoriaServicoId,
   required String caminhoArquivo,
+  Value<String?> uriGaleria,
   Value<String?> legenda,
   Value<int> rowid,
 });
@@ -9899,6 +9941,7 @@ typedef $$VistoriasFotosTableUpdateCompanionBuilder = VistoriasFotosCompanion
   Value<String> id,
   Value<String> vistoriaServicoId,
   Value<String> caminhoArquivo,
+  Value<String?> uriGaleria,
   Value<String?> legenda,
   Value<int> rowid,
 });
@@ -9924,6 +9967,7 @@ class $$VistoriasFotosTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<String> vistoriaServicoId = const Value.absent(),
             Value<String> caminhoArquivo = const Value.absent(),
+            Value<String?> uriGaleria = const Value.absent(),
             Value<String?> legenda = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -9931,6 +9975,7 @@ class $$VistoriasFotosTableTableManager extends RootTableManager<
             id: id,
             vistoriaServicoId: vistoriaServicoId,
             caminhoArquivo: caminhoArquivo,
+            uriGaleria: uriGaleria,
             legenda: legenda,
             rowid: rowid,
           ),
@@ -9938,6 +9983,7 @@ class $$VistoriasFotosTableTableManager extends RootTableManager<
             required String id,
             required String vistoriaServicoId,
             required String caminhoArquivo,
+            Value<String?> uriGaleria = const Value.absent(),
             Value<String?> legenda = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -9945,6 +9991,7 @@ class $$VistoriasFotosTableTableManager extends RootTableManager<
             id: id,
             vistoriaServicoId: vistoriaServicoId,
             caminhoArquivo: caminhoArquivo,
+            uriGaleria: uriGaleria,
             legenda: legenda,
             rowid: rowid,
           ),
@@ -9961,6 +10008,11 @@ class $$VistoriasFotosTableFilterComposer
 
   ColumnFilters<String> get caminhoArquivo => $state.composableBuilder(
       column: $state.table.caminhoArquivo,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get uriGaleria => $state.composableBuilder(
+      column: $state.table.uriGaleria,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -9993,6 +10045,11 @@ class $$VistoriasFotosTableOrderingComposer
 
   ColumnOrderings<String> get caminhoArquivo => $state.composableBuilder(
       column: $state.table.caminhoArquivo,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get uriGaleria => $state.composableBuilder(
+      column: $state.table.uriGaleria,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

@@ -373,18 +373,16 @@ class RelatorioPdfGenerator {
       spacing: 8,
       runSpacing: 8,
       children: [
-        for (var index = 0; index < fotos.length; index++)
+        for (final foto in fotos)
           _fotoEvidenciaCard(
-            titulo: 'Foto ${index + 1}',
-            caminhoArquivo: fotos[index].caminhoArquivo,
-            legenda: fotos[index].legenda,
+            caminhoArquivo: foto.caminhoArquivo,
+            legenda: foto.legenda,
           ),
       ],
     );
   }
 
   pw.Widget _fotoEvidenciaCard({
-    required String titulo,
     required String caminhoArquivo,
     String? legenda,
   }) {
@@ -402,11 +400,6 @@ class RelatorioPdfGenerator {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text(
-            titulo,
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-          ),
-          pw.SizedBox(height: 4),
           if (existe)
             pw.SizedBox(
               width: 148,

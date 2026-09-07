@@ -1527,6 +1527,7 @@ class _FotosFiscalizacaoSection extends ConsumerWidget {
     await controller.salvarArquivo(
       vistoriaServicoId: vistoriaServicoId,
       caminhoOrigem: picked.path,
+      publicarNaGaleria: source == ImageSource.camera,
       legenda: legenda,
     );
   }
@@ -1599,7 +1600,7 @@ class _FotosFiscalizacaoList extends ConsumerWidget {
             leading: _FotoFiscalizacaoPreview(
               caminhoArquivo: foto.caminhoArquivo,
             ),
-            title: const Text('Foto do relatorio'),
+            title: const Text('Foto da fiscalizacao'),
             subtitle: foto.legenda == null ? null : Text(foto.legenda!),
             trailing: IconButton(
               tooltip: 'Remover foto',

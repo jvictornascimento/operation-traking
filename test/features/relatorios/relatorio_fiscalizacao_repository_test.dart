@@ -42,6 +42,7 @@ void main() {
       expect(dados.maoDeObra.single.funcionarioNome, 'Ana Snapshot');
       expect(dados.fotos, hasLength(1));
       expect(dados.fotos.single.caminhoArquivo, '/local/foto-1.jpg');
+      expect(dados.fotos.single.uriGaleria, 'photo_manager://asset/foto-1');
     });
 
     test('rejeita fiscalizacao inexistente', () async {
@@ -155,6 +156,7 @@ Future<void> _popularDadosBase(db.AppDatabase database) async {
           id: 'foto-1',
           vistoriaServicoId: 'vistoria-1',
           caminhoArquivo: '/local/foto-1.jpg',
+          uriGaleria: const Value('photo_manager://asset/foto-1'),
         ),
       );
 
