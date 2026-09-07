@@ -24,6 +24,8 @@ part 'app_database.g.dart';
     Medicoes,
     Fotos,
     HistoricosAlteracao,
+    ConfiguracoesBackup,
+    Backups,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -32,7 +34,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -105,6 +107,10 @@ class AppDatabase extends _$AppDatabase {
               vistoriasMaoDeObra,
               vistoriasMaoDeObra.funcionarioTelefoneSnapshot,
             );
+          }
+          if (from < 10) {
+            await migrator.createTable(configuracoesBackup);
+            await migrator.createTable(backups);
           }
         },
       );
@@ -340,6 +346,29 @@ class HistoricosAlteracao extends Table {
   TextColumn get valorNovo => text().nullable()();
   DateTimeColumn get data => dateTime()();
   TextColumn get usuario => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class ConfiguracoesBackup extends Table {
+  TextColumn get id => text()();
+  TextColumn get frequencia => text()();
+  IntColumn get copiasMantidas => integer().withDefault(const Constant(3))();
+  DateTimeColumn get atualizadoEm => dateTime()();
+  TextColumn get ultimoBackupId => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class Backups extends Table {
+  TextColumn get id => text()();
+  TextColumn get caminhoArquivo => text().nullable()();
+  DateTimeColumn get criadoEm => dateTime()();
+  TextColumn get status => text()();
+  TextColumn get mensagemErro => text().nullable()();
+  IntColumn get tamanhoBytes => integer().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

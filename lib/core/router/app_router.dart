@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/cadastros/presentation/contratantes_page.dart';
 import '../../features/cadastros/presentation/empresas_page.dart';
+import '../../features/configuracoes/presentation/configuracoes_page.dart';
 import '../../features/dashboard/presentation/dashboard_page.dart';
 import '../../features/etapas/presentation/etapas_page.dart';
 import '../../features/fiscalizacoes/presentation/fiscalizacoes_page.dart';
@@ -85,6 +86,11 @@ final appRouter = GoRouter(
           ),
         );
       },
+    ),
+    GoRoute(
+      name: 'configuracoes',
+      path: '/configuracoes',
+      builder: (context, state) => const ConfiguracoesPage(),
     ),
   ],
 );

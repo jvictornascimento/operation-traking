@@ -727,3 +727,27 @@ gerar um PDF local ao final da visita.
   do funcionario no momento do vinculo.
 - Relatorios devem preferir o snapshot e usar o cadastro atual apenas como
   fallback.
+
+### Issue 32 - Teste integrado Android do fluxo obra/fiscalizacao
+
+- Criar teste integrado executavel no Android.
+- Validar fluxo principal com repositorios reais e SQLite local: empresa,
+  contratante, funcionarios, obra, etapa, fiscalizacao, periodo e mao de obra.
+- Ajustar build Android para compilar com SDK exigido pelos plugins atuais.
+
+### Issue 21 - Configuracoes e backup local agendado
+
+- Criar tela de Configuracoes acessivel pelo dashboard.
+- Centralizar configuracoes futuras nessa tela.
+- Criar area de Backup local.
+- Permitir gerar backup manual do banco SQLite no storage local do app.
+- Registrar plano local de backup com frequencia: desativado, diario, semanal,
+  quinzenal ou mensal.
+- Permitir configurar quantidade de copias locais mantidas entre 1 e 10.
+- Exibir ultimo backup com data, status, tamanho e caminho/identificacao local.
+- Permitir compartilhar/exportar o arquivo de backup local.
+- Falhas de backup devem ser registradas e exibidas com mensagem clara.
+- Backup agendado do MVP deve ser verificado ao abrir a tela de Configuracoes,
+  sem depender de internet, login, cloud, Firebase ou servico nativo permanente.
+- Antes da copia do SQLite, executar checkpoint para reduzir risco de arquivo
+  inconsistente durante escrita.

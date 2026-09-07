@@ -6633,6 +6633,699 @@ class HistoricosAlteracaoCompanion
   }
 }
 
+class $ConfiguracoesBackupTable extends ConfiguracoesBackup
+    with TableInfo<$ConfiguracoesBackupTable, ConfiguracoesBackupData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ConfiguracoesBackupTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _frequenciaMeta =
+      const VerificationMeta('frequencia');
+  @override
+  late final GeneratedColumn<String> frequencia = GeneratedColumn<String>(
+      'frequencia', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _copiasMantidasMeta =
+      const VerificationMeta('copiasMantidas');
+  @override
+  late final GeneratedColumn<int> copiasMantidas = GeneratedColumn<int>(
+      'copias_mantidas', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(3));
+  static const VerificationMeta _atualizadoEmMeta =
+      const VerificationMeta('atualizadoEm');
+  @override
+  late final GeneratedColumn<DateTime> atualizadoEm = GeneratedColumn<DateTime>(
+      'atualizado_em', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _ultimoBackupIdMeta =
+      const VerificationMeta('ultimoBackupId');
+  @override
+  late final GeneratedColumn<String> ultimoBackupId = GeneratedColumn<String>(
+      'ultimo_backup_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, frequencia, copiasMantidas, atualizadoEm, ultimoBackupId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'configuracoes_backup';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<ConfiguracoesBackupData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('frequencia')) {
+      context.handle(
+          _frequenciaMeta,
+          frequencia.isAcceptableOrUnknown(
+              data['frequencia']!, _frequenciaMeta));
+    } else if (isInserting) {
+      context.missing(_frequenciaMeta);
+    }
+    if (data.containsKey('copias_mantidas')) {
+      context.handle(
+          _copiasMantidasMeta,
+          copiasMantidas.isAcceptableOrUnknown(
+              data['copias_mantidas']!, _copiasMantidasMeta));
+    }
+    if (data.containsKey('atualizado_em')) {
+      context.handle(
+          _atualizadoEmMeta,
+          atualizadoEm.isAcceptableOrUnknown(
+              data['atualizado_em']!, _atualizadoEmMeta));
+    } else if (isInserting) {
+      context.missing(_atualizadoEmMeta);
+    }
+    if (data.containsKey('ultimo_backup_id')) {
+      context.handle(
+          _ultimoBackupIdMeta,
+          ultimoBackupId.isAcceptableOrUnknown(
+              data['ultimo_backup_id']!, _ultimoBackupIdMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ConfiguracoesBackupData map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ConfiguracoesBackupData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      frequencia: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}frequencia'])!,
+      copiasMantidas: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}copias_mantidas'])!,
+      atualizadoEm: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}atualizado_em'])!,
+      ultimoBackupId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}ultimo_backup_id']),
+    );
+  }
+
+  @override
+  $ConfiguracoesBackupTable createAlias(String alias) {
+    return $ConfiguracoesBackupTable(attachedDatabase, alias);
+  }
+}
+
+class ConfiguracoesBackupData extends DataClass
+    implements Insertable<ConfiguracoesBackupData> {
+  final String id;
+  final String frequencia;
+  final int copiasMantidas;
+  final DateTime atualizadoEm;
+  final String? ultimoBackupId;
+  const ConfiguracoesBackupData(
+      {required this.id,
+      required this.frequencia,
+      required this.copiasMantidas,
+      required this.atualizadoEm,
+      this.ultimoBackupId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['frequencia'] = Variable<String>(frequencia);
+    map['copias_mantidas'] = Variable<int>(copiasMantidas);
+    map['atualizado_em'] = Variable<DateTime>(atualizadoEm);
+    if (!nullToAbsent || ultimoBackupId != null) {
+      map['ultimo_backup_id'] = Variable<String>(ultimoBackupId);
+    }
+    return map;
+  }
+
+  ConfiguracoesBackupCompanion toCompanion(bool nullToAbsent) {
+    return ConfiguracoesBackupCompanion(
+      id: Value(id),
+      frequencia: Value(frequencia),
+      copiasMantidas: Value(copiasMantidas),
+      atualizadoEm: Value(atualizadoEm),
+      ultimoBackupId: ultimoBackupId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ultimoBackupId),
+    );
+  }
+
+  factory ConfiguracoesBackupData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ConfiguracoesBackupData(
+      id: serializer.fromJson<String>(json['id']),
+      frequencia: serializer.fromJson<String>(json['frequencia']),
+      copiasMantidas: serializer.fromJson<int>(json['copiasMantidas']),
+      atualizadoEm: serializer.fromJson<DateTime>(json['atualizadoEm']),
+      ultimoBackupId: serializer.fromJson<String?>(json['ultimoBackupId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'frequencia': serializer.toJson<String>(frequencia),
+      'copiasMantidas': serializer.toJson<int>(copiasMantidas),
+      'atualizadoEm': serializer.toJson<DateTime>(atualizadoEm),
+      'ultimoBackupId': serializer.toJson<String?>(ultimoBackupId),
+    };
+  }
+
+  ConfiguracoesBackupData copyWith(
+          {String? id,
+          String? frequencia,
+          int? copiasMantidas,
+          DateTime? atualizadoEm,
+          Value<String?> ultimoBackupId = const Value.absent()}) =>
+      ConfiguracoesBackupData(
+        id: id ?? this.id,
+        frequencia: frequencia ?? this.frequencia,
+        copiasMantidas: copiasMantidas ?? this.copiasMantidas,
+        atualizadoEm: atualizadoEm ?? this.atualizadoEm,
+        ultimoBackupId:
+            ultimoBackupId.present ? ultimoBackupId.value : this.ultimoBackupId,
+      );
+  ConfiguracoesBackupData copyWithCompanion(ConfiguracoesBackupCompanion data) {
+    return ConfiguracoesBackupData(
+      id: data.id.present ? data.id.value : this.id,
+      frequencia:
+          data.frequencia.present ? data.frequencia.value : this.frequencia,
+      copiasMantidas: data.copiasMantidas.present
+          ? data.copiasMantidas.value
+          : this.copiasMantidas,
+      atualizadoEm: data.atualizadoEm.present
+          ? data.atualizadoEm.value
+          : this.atualizadoEm,
+      ultimoBackupId: data.ultimoBackupId.present
+          ? data.ultimoBackupId.value
+          : this.ultimoBackupId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ConfiguracoesBackupData(')
+          ..write('id: $id, ')
+          ..write('frequencia: $frequencia, ')
+          ..write('copiasMantidas: $copiasMantidas, ')
+          ..write('atualizadoEm: $atualizadoEm, ')
+          ..write('ultimoBackupId: $ultimoBackupId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, frequencia, copiasMantidas, atualizadoEm, ultimoBackupId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ConfiguracoesBackupData &&
+          other.id == this.id &&
+          other.frequencia == this.frequencia &&
+          other.copiasMantidas == this.copiasMantidas &&
+          other.atualizadoEm == this.atualizadoEm &&
+          other.ultimoBackupId == this.ultimoBackupId);
+}
+
+class ConfiguracoesBackupCompanion
+    extends UpdateCompanion<ConfiguracoesBackupData> {
+  final Value<String> id;
+  final Value<String> frequencia;
+  final Value<int> copiasMantidas;
+  final Value<DateTime> atualizadoEm;
+  final Value<String?> ultimoBackupId;
+  final Value<int> rowid;
+  const ConfiguracoesBackupCompanion({
+    this.id = const Value.absent(),
+    this.frequencia = const Value.absent(),
+    this.copiasMantidas = const Value.absent(),
+    this.atualizadoEm = const Value.absent(),
+    this.ultimoBackupId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ConfiguracoesBackupCompanion.insert({
+    required String id,
+    required String frequencia,
+    this.copiasMantidas = const Value.absent(),
+    required DateTime atualizadoEm,
+    this.ultimoBackupId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        frequencia = Value(frequencia),
+        atualizadoEm = Value(atualizadoEm);
+  static Insertable<ConfiguracoesBackupData> custom({
+    Expression<String>? id,
+    Expression<String>? frequencia,
+    Expression<int>? copiasMantidas,
+    Expression<DateTime>? atualizadoEm,
+    Expression<String>? ultimoBackupId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (frequencia != null) 'frequencia': frequencia,
+      if (copiasMantidas != null) 'copias_mantidas': copiasMantidas,
+      if (atualizadoEm != null) 'atualizado_em': atualizadoEm,
+      if (ultimoBackupId != null) 'ultimo_backup_id': ultimoBackupId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ConfiguracoesBackupCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? frequencia,
+      Value<int>? copiasMantidas,
+      Value<DateTime>? atualizadoEm,
+      Value<String?>? ultimoBackupId,
+      Value<int>? rowid}) {
+    return ConfiguracoesBackupCompanion(
+      id: id ?? this.id,
+      frequencia: frequencia ?? this.frequencia,
+      copiasMantidas: copiasMantidas ?? this.copiasMantidas,
+      atualizadoEm: atualizadoEm ?? this.atualizadoEm,
+      ultimoBackupId: ultimoBackupId ?? this.ultimoBackupId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (frequencia.present) {
+      map['frequencia'] = Variable<String>(frequencia.value);
+    }
+    if (copiasMantidas.present) {
+      map['copias_mantidas'] = Variable<int>(copiasMantidas.value);
+    }
+    if (atualizadoEm.present) {
+      map['atualizado_em'] = Variable<DateTime>(atualizadoEm.value);
+    }
+    if (ultimoBackupId.present) {
+      map['ultimo_backup_id'] = Variable<String>(ultimoBackupId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ConfiguracoesBackupCompanion(')
+          ..write('id: $id, ')
+          ..write('frequencia: $frequencia, ')
+          ..write('copiasMantidas: $copiasMantidas, ')
+          ..write('atualizadoEm: $atualizadoEm, ')
+          ..write('ultimoBackupId: $ultimoBackupId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $BackupsTable extends Backups with TableInfo<$BackupsTable, Backup> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BackupsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _caminhoArquivoMeta =
+      const VerificationMeta('caminhoArquivo');
+  @override
+  late final GeneratedColumn<String> caminhoArquivo = GeneratedColumn<String>(
+      'caminho_arquivo', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _criadoEmMeta =
+      const VerificationMeta('criadoEm');
+  @override
+  late final GeneratedColumn<DateTime> criadoEm = GeneratedColumn<DateTime>(
+      'criado_em', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _mensagemErroMeta =
+      const VerificationMeta('mensagemErro');
+  @override
+  late final GeneratedColumn<String> mensagemErro = GeneratedColumn<String>(
+      'mensagem_erro', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tamanhoBytesMeta =
+      const VerificationMeta('tamanhoBytes');
+  @override
+  late final GeneratedColumn<int> tamanhoBytes = GeneratedColumn<int>(
+      'tamanho_bytes', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, caminhoArquivo, criadoEm, status, mensagemErro, tamanhoBytes];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'backups';
+  @override
+  VerificationContext validateIntegrity(Insertable<Backup> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('caminho_arquivo')) {
+      context.handle(
+          _caminhoArquivoMeta,
+          caminhoArquivo.isAcceptableOrUnknown(
+              data['caminho_arquivo']!, _caminhoArquivoMeta));
+    }
+    if (data.containsKey('criado_em')) {
+      context.handle(_criadoEmMeta,
+          criadoEm.isAcceptableOrUnknown(data['criado_em']!, _criadoEmMeta));
+    } else if (isInserting) {
+      context.missing(_criadoEmMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('mensagem_erro')) {
+      context.handle(
+          _mensagemErroMeta,
+          mensagemErro.isAcceptableOrUnknown(
+              data['mensagem_erro']!, _mensagemErroMeta));
+    }
+    if (data.containsKey('tamanho_bytes')) {
+      context.handle(
+          _tamanhoBytesMeta,
+          tamanhoBytes.isAcceptableOrUnknown(
+              data['tamanho_bytes']!, _tamanhoBytesMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Backup map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Backup(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      caminhoArquivo: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}caminho_arquivo']),
+      criadoEm: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}criado_em'])!,
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      mensagemErro: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}mensagem_erro']),
+      tamanhoBytes: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}tamanho_bytes']),
+    );
+  }
+
+  @override
+  $BackupsTable createAlias(String alias) {
+    return $BackupsTable(attachedDatabase, alias);
+  }
+}
+
+class Backup extends DataClass implements Insertable<Backup> {
+  final String id;
+  final String? caminhoArquivo;
+  final DateTime criadoEm;
+  final String status;
+  final String? mensagemErro;
+  final int? tamanhoBytes;
+  const Backup(
+      {required this.id,
+      this.caminhoArquivo,
+      required this.criadoEm,
+      required this.status,
+      this.mensagemErro,
+      this.tamanhoBytes});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || caminhoArquivo != null) {
+      map['caminho_arquivo'] = Variable<String>(caminhoArquivo);
+    }
+    map['criado_em'] = Variable<DateTime>(criadoEm);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || mensagemErro != null) {
+      map['mensagem_erro'] = Variable<String>(mensagemErro);
+    }
+    if (!nullToAbsent || tamanhoBytes != null) {
+      map['tamanho_bytes'] = Variable<int>(tamanhoBytes);
+    }
+    return map;
+  }
+
+  BackupsCompanion toCompanion(bool nullToAbsent) {
+    return BackupsCompanion(
+      id: Value(id),
+      caminhoArquivo: caminhoArquivo == null && nullToAbsent
+          ? const Value.absent()
+          : Value(caminhoArquivo),
+      criadoEm: Value(criadoEm),
+      status: Value(status),
+      mensagemErro: mensagemErro == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mensagemErro),
+      tamanhoBytes: tamanhoBytes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tamanhoBytes),
+    );
+  }
+
+  factory Backup.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Backup(
+      id: serializer.fromJson<String>(json['id']),
+      caminhoArquivo: serializer.fromJson<String?>(json['caminhoArquivo']),
+      criadoEm: serializer.fromJson<DateTime>(json['criadoEm']),
+      status: serializer.fromJson<String>(json['status']),
+      mensagemErro: serializer.fromJson<String?>(json['mensagemErro']),
+      tamanhoBytes: serializer.fromJson<int?>(json['tamanhoBytes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'caminhoArquivo': serializer.toJson<String?>(caminhoArquivo),
+      'criadoEm': serializer.toJson<DateTime>(criadoEm),
+      'status': serializer.toJson<String>(status),
+      'mensagemErro': serializer.toJson<String?>(mensagemErro),
+      'tamanhoBytes': serializer.toJson<int?>(tamanhoBytes),
+    };
+  }
+
+  Backup copyWith(
+          {String? id,
+          Value<String?> caminhoArquivo = const Value.absent(),
+          DateTime? criadoEm,
+          String? status,
+          Value<String?> mensagemErro = const Value.absent(),
+          Value<int?> tamanhoBytes = const Value.absent()}) =>
+      Backup(
+        id: id ?? this.id,
+        caminhoArquivo:
+            caminhoArquivo.present ? caminhoArquivo.value : this.caminhoArquivo,
+        criadoEm: criadoEm ?? this.criadoEm,
+        status: status ?? this.status,
+        mensagemErro:
+            mensagemErro.present ? mensagemErro.value : this.mensagemErro,
+        tamanhoBytes:
+            tamanhoBytes.present ? tamanhoBytes.value : this.tamanhoBytes,
+      );
+  Backup copyWithCompanion(BackupsCompanion data) {
+    return Backup(
+      id: data.id.present ? data.id.value : this.id,
+      caminhoArquivo: data.caminhoArquivo.present
+          ? data.caminhoArquivo.value
+          : this.caminhoArquivo,
+      criadoEm: data.criadoEm.present ? data.criadoEm.value : this.criadoEm,
+      status: data.status.present ? data.status.value : this.status,
+      mensagemErro: data.mensagemErro.present
+          ? data.mensagemErro.value
+          : this.mensagemErro,
+      tamanhoBytes: data.tamanhoBytes.present
+          ? data.tamanhoBytes.value
+          : this.tamanhoBytes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Backup(')
+          ..write('id: $id, ')
+          ..write('caminhoArquivo: $caminhoArquivo, ')
+          ..write('criadoEm: $criadoEm, ')
+          ..write('status: $status, ')
+          ..write('mensagemErro: $mensagemErro, ')
+          ..write('tamanhoBytes: $tamanhoBytes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id, caminhoArquivo, criadoEm, status, mensagemErro, tamanhoBytes);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Backup &&
+          other.id == this.id &&
+          other.caminhoArquivo == this.caminhoArquivo &&
+          other.criadoEm == this.criadoEm &&
+          other.status == this.status &&
+          other.mensagemErro == this.mensagemErro &&
+          other.tamanhoBytes == this.tamanhoBytes);
+}
+
+class BackupsCompanion extends UpdateCompanion<Backup> {
+  final Value<String> id;
+  final Value<String?> caminhoArquivo;
+  final Value<DateTime> criadoEm;
+  final Value<String> status;
+  final Value<String?> mensagemErro;
+  final Value<int?> tamanhoBytes;
+  final Value<int> rowid;
+  const BackupsCompanion({
+    this.id = const Value.absent(),
+    this.caminhoArquivo = const Value.absent(),
+    this.criadoEm = const Value.absent(),
+    this.status = const Value.absent(),
+    this.mensagemErro = const Value.absent(),
+    this.tamanhoBytes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BackupsCompanion.insert({
+    required String id,
+    this.caminhoArquivo = const Value.absent(),
+    required DateTime criadoEm,
+    required String status,
+    this.mensagemErro = const Value.absent(),
+    this.tamanhoBytes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        criadoEm = Value(criadoEm),
+        status = Value(status);
+  static Insertable<Backup> custom({
+    Expression<String>? id,
+    Expression<String>? caminhoArquivo,
+    Expression<DateTime>? criadoEm,
+    Expression<String>? status,
+    Expression<String>? mensagemErro,
+    Expression<int>? tamanhoBytes,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (caminhoArquivo != null) 'caminho_arquivo': caminhoArquivo,
+      if (criadoEm != null) 'criado_em': criadoEm,
+      if (status != null) 'status': status,
+      if (mensagemErro != null) 'mensagem_erro': mensagemErro,
+      if (tamanhoBytes != null) 'tamanho_bytes': tamanhoBytes,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BackupsCompanion copyWith(
+      {Value<String>? id,
+      Value<String?>? caminhoArquivo,
+      Value<DateTime>? criadoEm,
+      Value<String>? status,
+      Value<String?>? mensagemErro,
+      Value<int?>? tamanhoBytes,
+      Value<int>? rowid}) {
+    return BackupsCompanion(
+      id: id ?? this.id,
+      caminhoArquivo: caminhoArquivo ?? this.caminhoArquivo,
+      criadoEm: criadoEm ?? this.criadoEm,
+      status: status ?? this.status,
+      mensagemErro: mensagemErro ?? this.mensagemErro,
+      tamanhoBytes: tamanhoBytes ?? this.tamanhoBytes,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (caminhoArquivo.present) {
+      map['caminho_arquivo'] = Variable<String>(caminhoArquivo.value);
+    }
+    if (criadoEm.present) {
+      map['criado_em'] = Variable<DateTime>(criadoEm.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (mensagemErro.present) {
+      map['mensagem_erro'] = Variable<String>(mensagemErro.value);
+    }
+    if (tamanhoBytes.present) {
+      map['tamanho_bytes'] = Variable<int>(tamanhoBytes.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BackupsCompanion(')
+          ..write('id: $id, ')
+          ..write('caminhoArquivo: $caminhoArquivo, ')
+          ..write('criadoEm: $criadoEm, ')
+          ..write('status: $status, ')
+          ..write('mensagemErro: $mensagemErro, ')
+          ..write('tamanhoBytes: $tamanhoBytes, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -6655,6 +7348,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $FotosTable fotos = $FotosTable(this);
   late final $HistoricosAlteracaoTable historicosAlteracao =
       $HistoricosAlteracaoTable(this);
+  late final $ConfiguracoesBackupTable configuracoesBackup =
+      $ConfiguracoesBackupTable(this);
+  late final $BackupsTable backups = $BackupsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6674,7 +7370,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         vistoriasFotos,
         medicoes,
         fotos,
-        historicosAlteracao
+        historicosAlteracao,
+        configuracoesBackup,
+        backups
       ];
 }
 
@@ -9787,6 +10485,277 @@ class $$HistoricosAlteracaoTableOrderingComposer
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
+typedef $$ConfiguracoesBackupTableCreateCompanionBuilder
+    = ConfiguracoesBackupCompanion Function({
+  required String id,
+  required String frequencia,
+  Value<int> copiasMantidas,
+  required DateTime atualizadoEm,
+  Value<String?> ultimoBackupId,
+  Value<int> rowid,
+});
+typedef $$ConfiguracoesBackupTableUpdateCompanionBuilder
+    = ConfiguracoesBackupCompanion Function({
+  Value<String> id,
+  Value<String> frequencia,
+  Value<int> copiasMantidas,
+  Value<DateTime> atualizadoEm,
+  Value<String?> ultimoBackupId,
+  Value<int> rowid,
+});
+
+class $$ConfiguracoesBackupTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ConfiguracoesBackupTable,
+    ConfiguracoesBackupData,
+    $$ConfiguracoesBackupTableFilterComposer,
+    $$ConfiguracoesBackupTableOrderingComposer,
+    $$ConfiguracoesBackupTableCreateCompanionBuilder,
+    $$ConfiguracoesBackupTableUpdateCompanionBuilder> {
+  $$ConfiguracoesBackupTableTableManager(
+      _$AppDatabase db, $ConfiguracoesBackupTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer: $$ConfiguracoesBackupTableFilterComposer(
+              ComposerState(db, table)),
+          orderingComposer: $$ConfiguracoesBackupTableOrderingComposer(
+              ComposerState(db, table)),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> frequencia = const Value.absent(),
+            Value<int> copiasMantidas = const Value.absent(),
+            Value<DateTime> atualizadoEm = const Value.absent(),
+            Value<String?> ultimoBackupId = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ConfiguracoesBackupCompanion(
+            id: id,
+            frequencia: frequencia,
+            copiasMantidas: copiasMantidas,
+            atualizadoEm: atualizadoEm,
+            ultimoBackupId: ultimoBackupId,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String frequencia,
+            Value<int> copiasMantidas = const Value.absent(),
+            required DateTime atualizadoEm,
+            Value<String?> ultimoBackupId = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ConfiguracoesBackupCompanion.insert(
+            id: id,
+            frequencia: frequencia,
+            copiasMantidas: copiasMantidas,
+            atualizadoEm: atualizadoEm,
+            ultimoBackupId: ultimoBackupId,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $$ConfiguracoesBackupTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $ConfiguracoesBackupTable> {
+  $$ConfiguracoesBackupTableFilterComposer(super.$state);
+  ColumnFilters<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get frequencia => $state.composableBuilder(
+      column: $state.table.frequencia,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get copiasMantidas => $state.composableBuilder(
+      column: $state.table.copiasMantidas,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<DateTime> get atualizadoEm => $state.composableBuilder(
+      column: $state.table.atualizadoEm,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get ultimoBackupId => $state.composableBuilder(
+      column: $state.table.ultimoBackupId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$ConfiguracoesBackupTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $ConfiguracoesBackupTable> {
+  $$ConfiguracoesBackupTableOrderingComposer(super.$state);
+  ColumnOrderings<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get frequencia => $state.composableBuilder(
+      column: $state.table.frequencia,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get copiasMantidas => $state.composableBuilder(
+      column: $state.table.copiasMantidas,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<DateTime> get atualizadoEm => $state.composableBuilder(
+      column: $state.table.atualizadoEm,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get ultimoBackupId => $state.composableBuilder(
+      column: $state.table.ultimoBackupId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $$BackupsTableCreateCompanionBuilder = BackupsCompanion Function({
+  required String id,
+  Value<String?> caminhoArquivo,
+  required DateTime criadoEm,
+  required String status,
+  Value<String?> mensagemErro,
+  Value<int?> tamanhoBytes,
+  Value<int> rowid,
+});
+typedef $$BackupsTableUpdateCompanionBuilder = BackupsCompanion Function({
+  Value<String> id,
+  Value<String?> caminhoArquivo,
+  Value<DateTime> criadoEm,
+  Value<String> status,
+  Value<String?> mensagemErro,
+  Value<int?> tamanhoBytes,
+  Value<int> rowid,
+});
+
+class $$BackupsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $BackupsTable,
+    Backup,
+    $$BackupsTableFilterComposer,
+    $$BackupsTableOrderingComposer,
+    $$BackupsTableCreateCompanionBuilder,
+    $$BackupsTableUpdateCompanionBuilder> {
+  $$BackupsTableTableManager(_$AppDatabase db, $BackupsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $$BackupsTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$BackupsTableOrderingComposer(ComposerState(db, table)),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String?> caminhoArquivo = const Value.absent(),
+            Value<DateTime> criadoEm = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> mensagemErro = const Value.absent(),
+            Value<int?> tamanhoBytes = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              BackupsCompanion(
+            id: id,
+            caminhoArquivo: caminhoArquivo,
+            criadoEm: criadoEm,
+            status: status,
+            mensagemErro: mensagemErro,
+            tamanhoBytes: tamanhoBytes,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            Value<String?> caminhoArquivo = const Value.absent(),
+            required DateTime criadoEm,
+            required String status,
+            Value<String?> mensagemErro = const Value.absent(),
+            Value<int?> tamanhoBytes = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              BackupsCompanion.insert(
+            id: id,
+            caminhoArquivo: caminhoArquivo,
+            criadoEm: criadoEm,
+            status: status,
+            mensagemErro: mensagemErro,
+            tamanhoBytes: tamanhoBytes,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $$BackupsTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $BackupsTable> {
+  $$BackupsTableFilterComposer(super.$state);
+  ColumnFilters<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get caminhoArquivo => $state.composableBuilder(
+      column: $state.table.caminhoArquivo,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<DateTime> get criadoEm => $state.composableBuilder(
+      column: $state.table.criadoEm,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get status => $state.composableBuilder(
+      column: $state.table.status,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get mensagemErro => $state.composableBuilder(
+      column: $state.table.mensagemErro,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get tamanhoBytes => $state.composableBuilder(
+      column: $state.table.tamanhoBytes,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$BackupsTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $BackupsTable> {
+  $$BackupsTableOrderingComposer(super.$state);
+  ColumnOrderings<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get caminhoArquivo => $state.composableBuilder(
+      column: $state.table.caminhoArquivo,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<DateTime> get criadoEm => $state.composableBuilder(
+      column: $state.table.criadoEm,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get status => $state.composableBuilder(
+      column: $state.table.status,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get mensagemErro => $state.composableBuilder(
+      column: $state.table.mensagemErro,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get tamanhoBytes => $state.composableBuilder(
+      column: $state.table.tamanhoBytes,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
@@ -9820,4 +10789,8 @@ class $AppDatabaseManager {
       $$FotosTableTableManager(_db, _db.fotos);
   $$HistoricosAlteracaoTableTableManager get historicosAlteracao =>
       $$HistoricosAlteracaoTableTableManager(_db, _db.historicosAlteracao);
+  $$ConfiguracoesBackupTableTableManager get configuracoesBackup =>
+      $$ConfiguracoesBackupTableTableManager(_db, _db.configuracoesBackup);
+  $$BackupsTableTableManager get backups =>
+      $$BackupsTableTableManager(_db, _db.backups);
 }

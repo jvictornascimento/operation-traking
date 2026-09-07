@@ -41,6 +41,11 @@ class DashboardPage extends ConsumerWidget {
             subtitle: 'Clientes, responsaveis e contatos',
             onTap: () => context.push('/contratantes'),
           ),
+          _DashboardAction(
+            title: 'Configuracoes',
+            subtitle: 'Backup local e preferencias do app',
+            onTap: () => context.push('/configuracoes'),
+          ),
         ],
       ),
     );
