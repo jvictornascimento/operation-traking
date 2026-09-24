@@ -111,6 +111,11 @@ class RelatoriosController extends StateNotifier<AsyncValue<Relatorio?>> {
         dados: dados,
         criadoEm: criadoEm,
       );
+      final nomeArquivoCompartilhamento =
+          criarNomeArquivoCompartilhamentoFiscalizacao(
+        dados: dados,
+        criadoEm: criadoEm,
+      );
       final caminhoArquivo = await _salvarPdfLocal(
         id: id,
         bytes: bytes,
@@ -122,6 +127,7 @@ class RelatoriosController extends StateNotifier<AsyncValue<Relatorio?>> {
         fiscalizacaoId: vistoriaServicoIdNormalizado,
         criadoEm: criadoEm,
         caminhoArquivo: caminhoArquivo,
+        nomeArquivoCompartilhamento: nomeArquivoCompartilhamento,
       );
     });
   }
@@ -216,6 +222,17 @@ String criarIdRelatorioFiscalizacao({
   final fiscalizacaoId = _normalizarNomeArquivo(dados.fiscalizacao.id);
 
   return '$obra-$data-$horario-fiscalizacao-$fiscalizacaoId';
+}
+
+String criarNomeArquivoCompartilhamentoFiscalizacao({
+  required RelatorioFiscalizacaoDados dados,
+  required DateTime criadoEm,
+}) {
+  final obra = _normalizarNomeArquivo(dados.obra.nome);
+  final data = _formatarDataArquivo(dados.fiscalizacao.data);
+  final horario = _formatarHorarioArquivo(criadoEm);
+
+  return '$obra - $data $horario.pdf';
 }
 
 String _formatarDataArquivo(DateTime data) {

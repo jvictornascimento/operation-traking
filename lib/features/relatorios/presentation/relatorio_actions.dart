@@ -61,7 +61,8 @@ class RelatorioActionsCard extends StatelessWidget {
     final bytes = await File(relatorio.caminhoArquivo).readAsBytes();
     await Printing.sharePdf(
       bytes: bytes,
-      filename: p.basename(relatorio.caminhoArquivo),
+      filename: relatorio.nomeArquivoCompartilhamento ??
+          p.basename(relatorio.caminhoArquivo),
     );
   }
 }

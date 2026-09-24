@@ -64,6 +64,8 @@ class RelatorioPdfGenerator {
               child: pw.Text('Relatorio da fiscalizacao'),
             ),
             _fiscalizacaoResumo(dados),
+            _sectionTitle('Registros da fiscalizacao'),
+            _registrosFiscalizacao(dados),
             _sectionTitle('Periodos'),
             _periodosTable(dados),
             _sectionTitle('Mao de obra'),
@@ -346,6 +348,60 @@ class RelatorioPdfGenerator {
     );
   }
 
+  pw.Widget _registrosFiscalizacao(RelatorioFiscalizacaoDados dados) {
+    final atividade = _normalizarTexto(dados.fiscalizacao.atividade);
+    final ocorrencia = _normalizarTexto(dados.fiscalizacao.ocorrencia);
+    final comentario = _normalizarTexto(dados.fiscalizacao.comentario);
+    final itens = <_HeaderInfoItem>[
+      if (atividade != null)
+        _HeaderInfoItem(label: 'Atividade', value: atividade),
+      if (ocorrencia != null)
+        _HeaderInfoItem(label: 'Ocorrencia', value: ocorrencia),
+      if (comentario != null)
+        _HeaderInfoItem(label: 'Observacoes', value: comentario),
+    ];
+
+    if (itens.isEmpty) {
+      return pw.Text('Nenhum registro informado.');
+    }
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        for (final item in itens) ...[
+          pw.Container(
+            width: double.infinity,
+            padding: const pw.EdgeInsets.all(10),
+            decoration: pw.BoxDecoration(
+              color: PdfColors.grey100,
+              border: pw.Border.all(color: PdfColors.grey300),
+              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  item.label,
+                  style: pw.TextStyle(
+                    fontSize: 9,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.grey700,
+                  ),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  item.value,
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
+              ],
+            ),
+          ),
+          pw.SizedBox(height: 6),
+        ],
+      ],
+    );
+  }
+
   pw.Widget _maoDeObraFiscalizacaoTable(RelatorioFiscalizacaoDados dados) {
     if (dados.maoDeObra.isEmpty) {
       return pw.Text('Nenhuma mao de obra cadastrada.');
@@ -526,6 +582,11 @@ class RelatorioPdfGenerator {
     return '${data.day.toString().padLeft(2, '0')}/'
         '${data.month.toString().padLeft(2, '0')}/'
         '${data.year.toString().padLeft(4, '0')}';
+  }
+
+  String? _normalizarTexto(String? value) {
+    final texto = value?.trim();
+    return texto == null || texto.isEmpty ? null : texto;
   }
 
   String _diaSemanaLabel(int weekday) {
