@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/features/configuracoes/data/backups_repository.dart';
-import 'package:operational_tracking/features/configuracoes/domain/backup.dart';
-import 'package:operational_tracking/features/configuracoes/presentation/configuracoes_controller.dart';
+import 'package:belis_oversight/features/configuracoes/data/backups_repository.dart';
+import 'package:belis_oversight/features/configuracoes/domain/backup.dart';
+import 'package:belis_oversight/features/configuracoes/presentation/configuracoes_controller.dart';
 
 void main() {
   group('Issue 21 - BackupController', () {

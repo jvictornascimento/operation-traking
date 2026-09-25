@@ -5,7 +5,7 @@
 Use este comando quando quiser que o agente implemente o projeto seguindo o backlog completo, sem pedir aprovacao a cada story.
 
 ```text
-Execute o projeto Operational Tracking do comeco ao fim seguindo exatamente estes arquivos:
+Execute o projeto belis-oversight do comeco ao fim seguindo exatamente estes arquivos:
 
 1. AGENTS.md
 2. PROJECT_CONTEXT.md

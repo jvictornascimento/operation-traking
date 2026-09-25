@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/features/cadastros/domain/funcionario.dart';
-import 'package:operational_tracking/features/fiscalizacoes/data/vistorias_mao_de_obra_repository.dart';
-import 'package:operational_tracking/features/fiscalizacoes/domain/vistoria_mao_de_obra.dart';
-import 'package:operational_tracking/features/fiscalizacoes/presentation/fiscalizacoes_controller.dart';
+import 'package:belis_oversight/features/cadastros/domain/funcionario.dart';
+import 'package:belis_oversight/features/fiscalizacoes/data/vistorias_mao_de_obra_repository.dart';
+import 'package:belis_oversight/features/fiscalizacoes/domain/vistoria_mao_de_obra.dart';
+import 'package:belis_oversight/features/fiscalizacoes/presentation/fiscalizacoes_controller.dart';
 
 void main() {
   group('Story 4.4 - MaoDeObraFiscalizacaoController', () {

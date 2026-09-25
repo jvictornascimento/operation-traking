@@ -1,4 +1,4 @@
-# Operational Tracking - Contexto do Projeto
+# belis-oversight - Contexto do Projeto
 
 ## Objetivo
 
@@ -29,7 +29,7 @@ Por isso, o app precisa salvar automaticamente e manter historico de alteracoes.
 
 ## Conceito
 
-Offline Operational Tracking.
+Offline belis-oversight.
 
 Uma plataforma local para registrar operacoes de campo com evidencias, progresso, fiscalizacoes diarias e historico.
 

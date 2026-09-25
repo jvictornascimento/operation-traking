@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/core/domain/domain_enums.dart';
-import 'package:operational_tracking/features/fiscalizacoes/domain/vistoria_servico.dart';
-import 'package:operational_tracking/features/fiscalizacoes/domain/vistoria_servico_rules.dart';
+import 'package:belis_oversight/core/domain/domain_enums.dart';
+import 'package:belis_oversight/features/fiscalizacoes/domain/vistoria_servico.dart';
+import 'package:belis_oversight/features/fiscalizacoes/domain/vistoria_servico_rules.dart';
 
 void main() {
   group('VistoriaServicoRules', () {

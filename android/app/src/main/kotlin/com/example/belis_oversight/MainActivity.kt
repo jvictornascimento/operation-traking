@@ -1,4 +1,4 @@
-package com.example.operational_tracking
+package com.example.belis_oversight
 
 import android.content.Intent
 import androidx.core.content.FileProvider
@@ -8,7 +8,7 @@ import io.flutter.plugin.common.MethodChannel
 import java.io.File
 
 class MainActivity : FlutterActivity() {
-    private val backupExportChannel = "operational_tracking/backup_export"
+    private val backupExportChannel = "belis_oversight/backup_export"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -48,7 +48,7 @@ class MainActivity : FlutterActivity() {
                 val sendIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "application/octet-stream"
                     putExtra(Intent.EXTRA_STREAM, uri)
-                    putExtra(Intent.EXTRA_SUBJECT, "Backup Operational Tracking")
+                    putExtra(Intent.EXTRA_SUBJECT, "Backup belis-oversight")
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
 

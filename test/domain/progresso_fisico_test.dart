@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/core/domain/domain_enums.dart';
-import 'package:operational_tracking/core/domain/progresso_fisico.dart';
-import 'package:operational_tracking/features/etapas/domain/etapa.dart';
-import 'package:operational_tracking/features/medicoes/domain/medicao.dart';
-import 'package:operational_tracking/features/servicos/domain/servico.dart';
+import 'package:belis_oversight/core/domain/domain_enums.dart';
+import 'package:belis_oversight/core/domain/progresso_fisico.dart';
+import 'package:belis_oversight/features/etapas/domain/etapa.dart';
+import 'package:belis_oversight/features/medicoes/domain/medicao.dart';
+import 'package:belis_oversight/features/servicos/domain/servico.dart';
 
 void main() {
   group('ProgressoFisico', () {

@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/core/domain/domain_enums.dart';
-import 'package:operational_tracking/features/fiscalizacoes/data/vistorias_periodo_repository.dart';
-import 'package:operational_tracking/features/fiscalizacoes/domain/vistoria_periodo.dart';
-import 'package:operational_tracking/features/fiscalizacoes/presentation/fiscalizacoes_controller.dart';
+import 'package:belis_oversight/core/domain/domain_enums.dart';
+import 'package:belis_oversight/features/fiscalizacoes/data/vistorias_periodo_repository.dart';
+import 'package:belis_oversight/features/fiscalizacoes/domain/vistoria_periodo.dart';
+import 'package:belis_oversight/features/fiscalizacoes/presentation/fiscalizacoes_controller.dart';
 
 void main() {
   group('Story 4.3 - PeriodosFiscalizacaoController', () {

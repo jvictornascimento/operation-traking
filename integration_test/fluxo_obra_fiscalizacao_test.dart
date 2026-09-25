@@ -1,22 +1,22 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:operational_tracking/core/database/app_database.dart';
-import 'package:operational_tracking/core/domain/domain_enums.dart';
-import 'package:operational_tracking/features/cadastros/data/contratantes_repository.dart';
-import 'package:operational_tracking/features/cadastros/data/empresas_repository.dart';
-import 'package:operational_tracking/features/cadastros/data/funcionarios_repository.dart';
-import 'package:operational_tracking/features/cadastros/presentation/contratantes_controller.dart';
-import 'package:operational_tracking/features/cadastros/presentation/empresas_controller.dart';
-import 'package:operational_tracking/features/cadastros/presentation/funcionarios_controller.dart';
-import 'package:operational_tracking/features/etapas/data/etapas_repository.dart';
-import 'package:operational_tracking/features/etapas/presentation/etapas_controller.dart';
-import 'package:operational_tracking/features/fiscalizacoes/data/vistorias_mao_de_obra_repository.dart';
-import 'package:operational_tracking/features/fiscalizacoes/data/vistorias_periodo_repository.dart';
-import 'package:operational_tracking/features/fiscalizacoes/data/vistorias_servico_repository.dart';
-import 'package:operational_tracking/features/fiscalizacoes/presentation/fiscalizacoes_controller.dart';
-import 'package:operational_tracking/features/obras/data/obras_repository.dart';
-import 'package:operational_tracking/features/obras/presentation/obras_controller.dart';
+import 'package:belis_oversight/core/database/app_database.dart';
+import 'package:belis_oversight/core/domain/domain_enums.dart';
+import 'package:belis_oversight/features/cadastros/data/contratantes_repository.dart';
+import 'package:belis_oversight/features/cadastros/data/empresas_repository.dart';
+import 'package:belis_oversight/features/cadastros/data/funcionarios_repository.dart';
+import 'package:belis_oversight/features/cadastros/presentation/contratantes_controller.dart';
+import 'package:belis_oversight/features/cadastros/presentation/empresas_controller.dart';
+import 'package:belis_oversight/features/cadastros/presentation/funcionarios_controller.dart';
+import 'package:belis_oversight/features/etapas/data/etapas_repository.dart';
+import 'package:belis_oversight/features/etapas/presentation/etapas_controller.dart';
+import 'package:belis_oversight/features/fiscalizacoes/data/vistorias_mao_de_obra_repository.dart';
+import 'package:belis_oversight/features/fiscalizacoes/data/vistorias_periodo_repository.dart';
+import 'package:belis_oversight/features/fiscalizacoes/data/vistorias_servico_repository.dart';
+import 'package:belis_oversight/features/fiscalizacoes/presentation/fiscalizacoes_controller.dart';
+import 'package:belis_oversight/features/obras/data/obras_repository.dart';
+import 'package:belis_oversight/features/obras/presentation/obras_controller.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

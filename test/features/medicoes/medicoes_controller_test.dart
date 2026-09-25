@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/core/domain/domain_enums.dart';
-import 'package:operational_tracking/features/medicoes/data/medicoes_repository.dart';
-import 'package:operational_tracking/features/medicoes/domain/medicao.dart';
-import 'package:operational_tracking/features/medicoes/presentation/medicoes_controller.dart';
-import 'package:operational_tracking/features/servicos/data/servicos_repository.dart';
-import 'package:operational_tracking/features/servicos/domain/servico.dart';
+import 'package:belis_oversight/core/domain/domain_enums.dart';
+import 'package:belis_oversight/features/medicoes/data/medicoes_repository.dart';
+import 'package:belis_oversight/features/medicoes/domain/medicao.dart';
+import 'package:belis_oversight/features/medicoes/presentation/medicoes_controller.dart';
+import 'package:belis_oversight/features/servicos/data/servicos_repository.dart';
+import 'package:belis_oversight/features/servicos/domain/servico.dart';
 
 void main() {
   group('Story 5.1 - MedicoesController', () {

@@ -1,4 +1,4 @@
-# Stories - Operational Tracking
+# Stories - belis-oversight
 
 Este arquivo organiza o desenvolvimento do app do começo ao fim, com base em `PROJECT_CONTEXT.md`.
 

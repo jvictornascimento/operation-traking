@@ -11,7 +11,7 @@ import '../domain/relatorio_obra_dados.dart';
 class RelatorioPdfGenerator {
   const RelatorioPdfGenerator();
 
-  static const _appName = 'Operational Tracking';
+  static const _appName = 'belis-oversight';
   static const _appVersion = 'Versao 0.1.0';
 
   Future<Uint8List> gerarRelatorioObra(RelatorioObraDados dados) async {

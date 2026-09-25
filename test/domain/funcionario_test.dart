@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/features/cadastros/domain/funcionario.dart';
+import 'package:belis_oversight/features/cadastros/domain/funcionario.dart';
 
 void main() {
   group('Funcionario', () {

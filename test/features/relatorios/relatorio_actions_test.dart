@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/features/relatorios/domain/relatorio.dart';
-import 'package:operational_tracking/features/relatorios/presentation/relatorio_actions.dart';
+import 'package:belis_oversight/features/relatorios/domain/relatorio.dart';
+import 'package:belis_oversight/features/relatorios/presentation/relatorio_actions.dart';
 
 void main() {
   group('Story 8.3 - RelatorioActionsCard', () {

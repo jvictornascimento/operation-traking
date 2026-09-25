@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/core/domain/domain_enums.dart';
-import 'package:operational_tracking/features/cadastros/data/contatos_repository.dart';
-import 'package:operational_tracking/features/cadastros/domain/contato.dart';
-import 'package:operational_tracking/features/cadastros/presentation/contatos_controller.dart';
+import 'package:belis_oversight/core/domain/domain_enums.dart';
+import 'package:belis_oversight/features/cadastros/data/contatos_repository.dart';
+import 'package:belis_oversight/features/cadastros/domain/contato.dart';
+import 'package:belis_oversight/features/cadastros/presentation/contatos_controller.dart';
 
 void main() {
   group('ContatosController', () {
@@ -76,7 +76,8 @@ class _FakeContatosRepository implements ContatosRepository {
       contatos
           .where(
             (contato) =>
-                contato.entidade == entidade && contato.entidadeId == entidadeId,
+                contato.entidade == entidade &&
+                contato.entidadeId == entidadeId,
           )
           .toList(),
     );

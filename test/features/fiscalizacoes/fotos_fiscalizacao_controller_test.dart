@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/features/fiscalizacoes/data/fotos_fiscalizacao_repository.dart';
-import 'package:operational_tracking/features/fiscalizacoes/data/fotos_fiscalizacao_storage.dart';
-import 'package:operational_tracking/features/fiscalizacoes/domain/foto_fiscalizacao.dart';
-import 'package:operational_tracking/features/fiscalizacoes/presentation/fiscalizacoes_controller.dart';
+import 'package:belis_oversight/features/fiscalizacoes/data/fotos_fiscalizacao_repository.dart';
+import 'package:belis_oversight/features/fiscalizacoes/data/fotos_fiscalizacao_storage.dart';
+import 'package:belis_oversight/features/fiscalizacoes/domain/foto_fiscalizacao.dart';
+import 'package:belis_oversight/features/fiscalizacoes/presentation/fiscalizacoes_controller.dart';
 
 void main() {
   group('Issue 28 - FotosFiscalizacaoController', () {

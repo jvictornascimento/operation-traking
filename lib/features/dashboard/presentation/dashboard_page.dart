@@ -14,7 +14,7 @@ class DashboardPage extends ConsumerWidget {
     final resumo = ref.watch(dashboardResumoProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Operational Tracking')),
+      appBar: AppBar(title: const Text('belis-oversight')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

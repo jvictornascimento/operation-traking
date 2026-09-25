@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/core/domain/domain_enums.dart';
-import 'package:operational_tracking/features/cadastros/domain/endereco.dart';
-import 'package:operational_tracking/features/obras/data/obras_repository.dart';
-import 'package:operational_tracking/features/obras/domain/obra.dart';
-import 'package:operational_tracking/features/obras/presentation/obras_controller.dart';
+import 'package:belis_oversight/core/domain/domain_enums.dart';
+import 'package:belis_oversight/features/cadastros/domain/endereco.dart';
+import 'package:belis_oversight/features/obras/data/obras_repository.dart';
+import 'package:belis_oversight/features/obras/domain/obra.dart';
+import 'package:belis_oversight/features/obras/presentation/obras_controller.dart';
 
 void main() {
   group('ObrasController', () {

@@ -2,8 +2,8 @@ import 'dart:ffi';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/core/database/app_database.dart' as db;
-import 'package:operational_tracking/features/historico/data/historicos_repository.dart';
+import 'package:belis_oversight/core/database/app_database.dart' as db;
+import 'package:belis_oversight/features/historico/data/historicos_repository.dart';
 import 'package:sqlite3/open.dart';
 
 void main() {

@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:operational_tracking/features/cadastros/data/empresas_repository.dart';
-import 'package:operational_tracking/features/cadastros/domain/empresa.dart';
-import 'package:operational_tracking/features/cadastros/presentation/empresas_controller.dart';
+import 'package:belis_oversight/features/cadastros/data/empresas_repository.dart';
+import 'package:belis_oversight/features/cadastros/domain/empresa.dart';
+import 'package:belis_oversight/features/cadastros/presentation/empresas_controller.dart';
 
 void main() {
   group('EmpresasController', () {

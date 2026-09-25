@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/core/domain/domain_enums.dart';
-import 'package:operational_tracking/features/servicos/data/servicos_repository.dart';
-import 'package:operational_tracking/features/servicos/domain/servico.dart';
-import 'package:operational_tracking/features/servicos/presentation/servicos_controller.dart';
+import 'package:belis_oversight/core/domain/domain_enums.dart';
+import 'package:belis_oversight/features/servicos/data/servicos_repository.dart';
+import 'package:belis_oversight/features/servicos/domain/servico.dart';
+import 'package:belis_oversight/features/servicos/presentation/servicos_controller.dart';
 
 void main() {
   group('ServicosController', () {

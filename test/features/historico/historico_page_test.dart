@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:operational_tracking/features/historico/domain/historico_alteracao.dart';
-import 'package:operational_tracking/features/historico/presentation/historico_controller.dart';
-import 'package:operational_tracking/features/historico/presentation/historico_page.dart';
+import 'package:belis_oversight/features/historico/domain/historico_alteracao.dart';
+import 'package:belis_oversight/features/historico/presentation/historico_controller.dart';
+import 'package:belis_oversight/features/historico/presentation/historico_page.dart';
 
 void main() {
   group('Story 9.2 - HistoricoPage', () {

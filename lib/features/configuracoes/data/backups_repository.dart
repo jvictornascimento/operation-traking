@@ -25,7 +25,7 @@ class DriftBackupsRepository implements BackupsRepository {
   const DriftBackupsRepository(this._database);
 
   static const _planoId = 'backup-local';
-  static const _databaseFileName = 'operational_tracking.sqlite';
+  static const _databaseFileName = 'belis_oversight.sqlite';
 
   final db.AppDatabase _database;
 
@@ -126,7 +126,7 @@ class DriftBackupsRepository implements BackupsRepository {
       }
 
       final backupFileName =
-          'operational_tracking_backup_${_timestampArquivo(criadoEm)}.sqlite';
+          'belis_oversight_backup_${_timestampArquivo(criadoEm)}.sqlite';
       final backupFile = File(p.join(backupsDir.path, backupFileName));
       await databaseFile.copy(backupFile.path);
 

@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/features/cadastros/data/funcionarios_repository.dart';
-import 'package:operational_tracking/features/cadastros/domain/funcionario.dart';
-import 'package:operational_tracking/features/cadastros/presentation/funcionarios_controller.dart';
+import 'package:belis_oversight/features/cadastros/data/funcionarios_repository.dart';
+import 'package:belis_oversight/features/cadastros/domain/funcionario.dart';
+import 'package:belis_oversight/features/cadastros/presentation/funcionarios_controller.dart';
 
 void main() {
   group('FuncionariosController', () {

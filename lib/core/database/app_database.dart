@@ -122,7 +122,7 @@ class AppDatabase extends _$AppDatabase {
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final directory = await getApplicationDocumentsDirectory();
-    final file = File(p.join(directory.path, 'operational_tracking.sqlite'));
+    final file = File(p.join(directory.path, 'belis_oversight.sqlite'));
     return NativeDatabase.createInBackground(file);
   });
 }

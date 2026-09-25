@@ -73,7 +73,7 @@ class PhotoManagerFotosFiscalizacaoGaleria implements FotosFiscalizacaoGaleria {
     final asset = await PhotoManager.editor.saveImageWithPath(
       caminhoArquivo,
       title: titulo,
-      relativePath: 'Pictures/Operational Tracking',
+      relativePath: 'Pictures/belis-oversight',
     );
 
     return 'photo_manager://asset/${Uri.encodeComponent(asset.id)}';

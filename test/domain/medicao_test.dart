@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/features/medicoes/domain/medicao.dart';
+import 'package:belis_oversight/features/medicoes/domain/medicao.dart';
 
 void main() {
   group('Medicao', () {

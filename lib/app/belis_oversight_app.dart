@@ -4,13 +4,13 @@ import '../core/router/app_router.dart';
 import '../core/theme/app_theme.dart';
 import '../core/widgets/app_loading.dart';
 
-class OperationTrackingApp extends StatelessWidget {
-  const OperationTrackingApp({super.key});
+class BelisOversightApp extends StatelessWidget {
+  const BelisOversightApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Operational Tracking',
+      title: 'belis-oversight',
       theme: AppTheme.light,
       routerConfig: appRouter,
       debugShowCheckedModeBanner: false,

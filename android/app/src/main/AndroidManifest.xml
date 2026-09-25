@@ -10,7 +10,7 @@
         android:maxSdkVersion="28" />
 
     <application
-        android:label="operational_tracking"
+        android:label="belis-oversight"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

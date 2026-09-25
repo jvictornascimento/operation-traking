@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/core/domain/domain_enums.dart';
-import 'package:operational_tracking/features/relatorios/data/relatorio_pdf_generator.dart';
-import 'package:operational_tracking/features/relatorios/domain/relatorio_fiscalizacao_dados.dart';
-import 'package:operational_tracking/features/relatorios/domain/relatorio_obra_dados.dart';
+import 'package:belis_oversight/core/domain/domain_enums.dart';
+import 'package:belis_oversight/features/relatorios/data/relatorio_pdf_generator.dart';
+import 'package:belis_oversight/features/relatorios/domain/relatorio_fiscalizacao_dados.dart';
+import 'package:belis_oversight/features/relatorios/domain/relatorio_obra_dados.dart';
 
 void main() {
   group('Story 7.1 - RelatorioPdfGenerator', () {

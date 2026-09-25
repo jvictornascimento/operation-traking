@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/features/cadastros/data/contratantes_repository.dart';
-import 'package:operational_tracking/features/cadastros/domain/contratante.dart';
-import 'package:operational_tracking/features/cadastros/presentation/contratantes_controller.dart';
+import 'package:belis_oversight/features/cadastros/data/contratantes_repository.dart';
+import 'package:belis_oversight/features/cadastros/domain/contratante.dart';
+import 'package:belis_oversight/features/cadastros/presentation/contratantes_controller.dart';
 
 void main() {
   group('ContratantesController', () {

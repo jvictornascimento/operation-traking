@@ -3,10 +3,10 @@ import 'dart:ffi';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/core/database/app_database.dart' as db;
-import 'package:operational_tracking/core/domain/domain_enums.dart';
-import 'package:operational_tracking/features/fiscalizacoes/data/vistorias_periodo_repository.dart';
-import 'package:operational_tracking/features/fiscalizacoes/domain/vistoria_periodo.dart';
+import 'package:belis_oversight/core/database/app_database.dart' as db;
+import 'package:belis_oversight/core/domain/domain_enums.dart';
+import 'package:belis_oversight/features/fiscalizacoes/data/vistorias_periodo_repository.dart';
+import 'package:belis_oversight/features/fiscalizacoes/domain/vistoria_periodo.dart';
 import 'package:sqlite3/open.dart';
 
 void main() {

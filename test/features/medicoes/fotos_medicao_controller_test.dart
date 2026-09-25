@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:operational_tracking/features/medicoes/data/fotos_medicao_repository.dart';
-import 'package:operational_tracking/features/medicoes/data/fotos_medicao_storage.dart';
-import 'package:operational_tracking/features/medicoes/domain/foto_medicao.dart';
-import 'package:operational_tracking/features/medicoes/presentation/medicoes_controller.dart';
+import 'package:belis_oversight/features/medicoes/data/fotos_medicao_repository.dart';
+import 'package:belis_oversight/features/medicoes/data/fotos_medicao_storage.dart';
+import 'package:belis_oversight/features/medicoes/domain/foto_medicao.dart';
+import 'package:belis_oversight/features/medicoes/presentation/medicoes_controller.dart';
 
 void main() {
   group('Story 5.2 - FotosMedicaoController', () {
